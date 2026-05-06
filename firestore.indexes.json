@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "strategy_embeddings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "bot_id",    "order": "ASCENDING"  },
+        { "fieldPath": "timestamp", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

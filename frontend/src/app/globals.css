@@ -1,0 +1,122 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+
+  --color-success: oklch(72.3% 0.15 150);
+  --color-warning: oklch(76.8% 0.18 70);
+
+  --radius-lg: 1rem;
+  --radius-md: 0.75rem;
+  --radius-sm: 0.5rem;
+}
+
+:root {
+  --background: oklch(98.5% 0 0);
+  --foreground: oklch(20.5% 0 0);
+  --card: oklch(100% 0 0);
+  --card-foreground: oklch(20.5% 0 0);
+  --popover: oklch(100% 0 0);
+  --popover-foreground: oklch(20.5% 0 0);
+  --primary: oklch(62.8% 0.25 256.4);
+  --primary-foreground: oklch(98.5% 0 0);
+  --secondary: oklch(96.1% 0 0);
+  --secondary-foreground: oklch(20.5% 0 0);
+  --muted: oklch(96.1% 0 0);
+  --muted-foreground: oklch(45.1% 0 0);
+  --accent: oklch(96.1% 0 0);
+  --accent-foreground: oklch(20.5% 0 0);
+  --destructive: oklch(62.8% 0.25 25.7);
+  --border: oklch(89.8% 0 0);
+  --input: oklch(89.8% 0 0);
+  --ring: oklch(62.8% 0.25 256.4);
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: oklch(10.5% 0 0);
+  --foreground: oklch(98.5% 0 0);
+  --card: oklch(14.5% 0 0);
+  --card-foreground: oklch(98.5% 0 0);
+  --popover: oklch(10.5% 0 0);
+  --popover-foreground: oklch(98.5% 0 0);
+  --primary: oklch(62.8% 0.25 256.4);
+  --primary-foreground: oklch(98.5% 0 0);
+  --secondary: oklch(20.5% 0 0);
+  --secondary-foreground: oklch(98.5% 0 0);
+  --muted: oklch(18% 0 0);
+  --muted-foreground: oklch(65% 0 0);
+  --accent: oklch(20.5% 0 0);
+  --accent-foreground: oklch(98.5% 0 0);
+  --destructive: oklch(55% 0.25 25.7);
+  --border: oklch(100% 0 0 / 12%);
+  --input: oklch(100% 0 0 / 12%);
+  --ring: oklch(62.8% 0.25 256.4);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    @apply bg-background text-foreground selection:bg-primary/30;
+    background-image: 
+      radial-gradient(at 0% 0%, oklch(62.8% 0.25 256.4 / 0.05) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, oklch(72.3% 0.15 150 / 0.05) 0px, transparent 50%);
+    background-attachment: fixed;
+  }
+}
+
+/* Glassmorphism utility */
+.glass {
+  @apply bg-card/60 backdrop-blur-md border-white/5;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40 transition-colors;
+}
+
+/* Animated Pulse for Green/Red dots */
+@keyframes bloom {
+  0% { transform: scale(0.95); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+  100% { transform: scale(0.95); opacity: 0.5; }
+}
+
+.animate-bloom {
+  animation: bloom 2s ease-in-out infinite;
+}

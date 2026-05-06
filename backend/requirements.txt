@@ -1,0 +1,21 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+alpaca-py==0.33.1
+pandas==2.2.3
+numpy==1.26.4
+python-dotenv==1.0.1
+aiosqlite==0.20.0
+pydantic==2.10.4
+websockets==14.1
+httpx==0.27.0
+scipy==1.13.1
+# Fleet / Firebase
+firebase-admin==6.5.0
+google-cloud-firestore==2.19.0
+# LLM clients
+openai==1.52.0
+# System monitoring
+psutil==6.1.1
+# LangGraph — deliberation graph + event streaming + checkpointing
+langgraph>=0.2.0
+langgraph-checkpoint-sqlite>=1.0.0
