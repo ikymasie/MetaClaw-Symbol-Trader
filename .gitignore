@@ -1,0 +1,46 @@
+# ══════════════════════════════════════════════════════════
+#  TradeClaw — Root .gitignore
+# ══════════════════════════════════════════════════════════
+
+# ── OS ────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Python ────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+backend/venv/
+backend/.env
+backend/*.db
+backend/*.log
+backend/scratch/
+backend/.genkit/
+
+# ── Node / Next.js ────────────────────────────────────────
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/.env*.local
+frontend/*.tsbuildinfo
+frontend/next-env.d.ts
+
+# ── Secrets (NEVER commit) ───────────────────────────────
+service-account-key.json
+*.pem
+*.key
+
+# ── IDE ───────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Misc ──────────────────────────────────────────────────
+.sixth/
+.pids/
+*.pid
