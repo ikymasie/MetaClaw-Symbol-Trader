@@ -4,6 +4,9 @@ import { useState } from 'react';
 import {
   useDeployBot,
   useFleetConfig,
+  useAvailableSymbols,
+  useMT5Account,
+  useFleetStatus,
 } from '@/hooks/useFleet';
 import { BotDeployRequest } from '@/lib/api';
 import {
@@ -11,13 +14,12 @@ import {
   BrainCircuit, Shield, BarChart2, Wifi, AlertTriangle
 } from 'lucide-react';
 
-const SYMBOLS = ['SPY', 'QQQ', 'AAPL', 'MSFT', 'NVDA', 'BTC/USD', 'ETH/USD', 'GLD', 'EURUSD=X', 'GBPUSD=X'];
 const STRATEGIES = ['mean_reversion', 'momentum', 'breakout', 'scalp'];
 const ALL_AGENTS = ['sentiment', 'macro', 'earnings', 'technical'];
 
 const DEFAULT_FORM: BotDeployRequest = {
   name: '',
-  symbol: 'SPY',
+  symbol: '',
   strategy: 'mean_reversion',
   capital_allocation: 10000.0,
   qty: 1,
@@ -42,16 +44,36 @@ export function DeployWizard({ onClose, onDeployed }: Props) {
   const [form, setForm] = useState<BotDeployRequest>(DEFAULT_FORM);
   const [advanced, setAdvanced] = useState(false);
   const [tagInput, setTagInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
   const deployBot = useDeployBot();
   const { data: fleetConfig } = useFleetConfig();
+  const { data: fleetStatus } = useFleetStatus();
+  const { data: symbolsData, isLoading: isLoadingSymbols, isError: isErrorSymbols } = useAvailableSymbols();
+  const { data: accountInfo } = useMT5Account();
   
-  // Fetch account info for allocation context
-  const [accountInfo, setAccountInfo] = useState<{ buying_power: number } | null>(null);
-  useState(() => {
-    import('@/lib/api').then(({ tradingApi }) => {
-      tradingApi.getAccountInfo().then(setAccountInfo).catch(() => {});
-    });
-  });
+  // Calculate max available allocation
+  const totalAllocated = fleetStatus?.bots?.reduce((sum, b) => sum + b.capital_allocation, 0) || 0;
+  // Include paper PnL so max available reflects paper profits/losses
+  const paperPnl = fleetStatus?.bots
+    ?.filter(b => b.demo_mode)
+    .reduce((sum, b) => sum + (b.status?.daily_pnl || 0), 0) || 0;
+
+  const displayEquity = accountInfo ? accountInfo.equity + paperPnl : 0;
+  const maxAllocation = accountInfo ? Math.max(0, displayEquity - totalAllocated) : 0;
+  // Initialize default symbol once loaded
+  const [initialized, setInitialized] = useState(false);
+  if (!initialized && symbolsData?.symbols?.length && !form.symbol) {
+    setForm(prev => ({ ...prev, symbol: symbolsData.symbols[0].name }));
+    setInitialized(true);
+  }
+
+  const filteredSymbols = symbolsData?.symbols.filter(s => 
+    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.category.toLowerCase().includes(searchTerm.toLowerCase())
+  ).slice(0, 50) || []; // Performance limit
+
 
   const set = <K extends keyof BotDeployRequest>(key: K, value: BotDeployRequest[K]) =>
     setForm(prev => ({ ...prev, [key]: value }));
@@ -130,15 +152,69 @@ export function DeployWizard({ onClose, onDeployed }: Props) {
                   className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/8 text-sm text-white placeholder-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-mono"
                 />
               </div>
-              <div>
-                <select
-                  value={form.symbol}
-                  onChange={e => set('symbol', e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/8 text-sm text-white focus:outline-none focus:border-primary/50 transition-all font-mono"
-                >
-                  {SYMBOLS.map(s => <option key={s} value={s} className="bg-[#0d0d14]">{s}</option>)}
-                </select>
-                <p className="text-[9px] text-muted-foreground mt-1 font-mono">SYMBOL</p>
+              <div className="relative">
+                <div className="relative group">
+                  <input
+                    type="text"
+                    placeholder="Search Symbol..."
+                    value={searchTerm || form.symbol}
+                    onFocus={() => setIsOpen(true)}
+                    onChange={e => {
+                      setSearchTerm(e.target.value);
+                      setIsOpen(true);
+                    }}
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/8 text-sm text-white placeholder-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-mono"
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <ChevronDown className={`w-3 h-3 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                </div>
+
+                {isOpen && (
+                  <>
+                    <div className="fixed inset-0 z-[60]" onClick={() => setIsOpen(false)} />
+                    <div className="absolute left-0 right-0 top-full mt-2 z-[70] max-h-60 overflow-y-auto rounded-xl border border-white/8 bg-[#16161f] shadow-2xl backdrop-blur-xl animate-in fade-in slide-in-from-top-2 duration-200">
+                      {isLoadingSymbols ? (
+                        <div className="p-4 text-center text-xs text-muted-foreground font-mono animate-pulse">
+                          Scanning MT5 Terminal...
+                        </div>
+                      ) : filteredSymbols.length === 0 ? (
+                        <div className="p-4 text-center text-xs text-muted-foreground font-mono">
+                          No symbols found
+                        </div>
+                      ) : (
+                        <div className="py-2">
+                          {filteredSymbols.map(s => (
+                            <button
+                              key={s.name}
+                              onClick={() => {
+                                set('symbol', s.name);
+                                setSearchTerm('');
+                                setIsOpen(false);
+                              }}
+                              className={`w-full px-4 py-2 text-left hover:bg-white/5 transition-colors flex flex-col gap-0.5 ${
+                                form.symbol === s.name ? 'bg-primary/10 border-l-2 border-primary' : ''
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-bold text-white font-mono">{s.name}</span>
+                                <span className="text-[9px] text-primary/60 font-mono uppercase px-1.5 py-0.5 rounded-md bg-primary/5 border border-primary/10">
+                                  {s.category}
+                                </span>
+                              </div>
+                              {s.description && (
+                                <span className="text-[10px] text-muted-foreground font-mono truncate">
+                                  {s.description}
+                                </span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+                <p className="text-[9px] text-muted-foreground mt-1 font-mono uppercase tracking-widest">Selected Symbol</p>
               </div>
               <div>
                 <select
@@ -176,7 +252,7 @@ export function DeployWizard({ onClose, onDeployed }: Props) {
                     <p className="text-[9px] font-mono text-muted-foreground mt-0.5">
                       {form.demo_mode
                         ? 'Simulated trading — no real money at risk'
-                        : 'Real capital — executes on Alpaca'}
+                        : 'Real capital — executes on MT5'}
                     </p>
                   </div>
                 </div>
@@ -196,7 +272,7 @@ export function DeployWizard({ onClose, onDeployed }: Props) {
                 <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-red-500/5 border border-red-500/15">
                   <AlertTriangle className="w-3 h-3 text-red-400 mt-0.5 shrink-0" />
                   <p className="text-[9px] font-mono text-red-400/80 leading-relaxed">
-                    Live mode will execute real trades using your Alpaca account.
+                    Live mode will execute real trades using your MT5 account.
                     Ensure API keys are configured and capital allocation is correct.
                   </p>
                 </div>
@@ -215,7 +291,7 @@ export function DeployWizard({ onClose, onDeployed }: Props) {
                   <p className="text-[9px] text-muted-foreground font-mono uppercase">CAPITAL ALLOCATION</p>
                   {accountInfo && (
                     <p className="text-[9px] text-primary/60 font-mono">
-                      BP: ${accountInfo.buying_power.toLocaleString()}
+                      MAX AVAIL: ${maxAllocation.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                     </p>
                   )}
                 </div>

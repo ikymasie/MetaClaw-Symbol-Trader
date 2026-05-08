@@ -10,10 +10,10 @@ import {
   type IChartApi,
   type ISeriesApi,
 } from 'lightweight-charts';
-import type { AlpacaBar, TickerBotContext } from '@/hooks/useAlpacaTicker';
+import type { MT5Bar, TickerBotContext } from '@/hooks/useMT5Ticker';
 
 interface TickerChartProps {
-  bars: AlpacaBar[];
+  bars: MT5Bar[];
   bots: TickerBotContext[];
   className?: string;
 }

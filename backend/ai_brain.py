@@ -31,7 +31,7 @@ from firebase_store import (
     _legacy_get_equity_history as get_equity_history,
     insert_ai_decision,
 )
-from vital_signs import vital_signs, build_organism_system_prompt
+from vital_signs import vital_signs
 
 logger = logging.getLogger("tradeclaw.ai_brain")
 
@@ -281,13 +281,7 @@ class PerformanceAnalyser:
 
 def get_system_prompt() -> str:
     """Build the organism system prompt using current vital signs."""
-    vs = vital_signs.get_status()
-    return build_organism_system_prompt(
-        survival_state=vs["survival_state"],
-        apex_state=vs["apex_state"],
-        profit_pct=vs["profit_pct"],
-        drawdown_pct=vs["drawdown_pct"],
-    )
+    return vital_signs.build_organism_system_prompt()
 
 
 def build_prompt(

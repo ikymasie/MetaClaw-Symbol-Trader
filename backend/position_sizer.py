@@ -85,13 +85,13 @@ class PositionSizer:
         avg_win: float,
         avg_loss: float,
         total_trades: int,
-        base_qty: int,
+        base_qty: float,
         survival_state: str = "HEALTHY",
         apex_state: str = "HUNTING",
         kelly_fraction_override: Optional[float] = None,
-        max_qty: int = 50,
+        max_qty: float = 50.0,
         hunger_multiplier: float = 1.0,
-    ) -> tuple[int, dict]:
+    ) -> tuple[float, dict]:
         """
         Calculate the Kelly-optimal position quantity.
 
@@ -115,8 +115,8 @@ class PositionSizer:
             logger.warning(
                 f"[SIZER] {survival_state} — position sizing blocked. Returning 0."
             )
-            diag.update({"kelly_fraction": 0.0, "full_kelly": 0.0, "final_qty": 0, "reason": f"{survival_state}: no sizing"})
-            return 0, diag
+            diag.update({"kelly_fraction": 0.0, "full_kelly": 0.0, "final_qty": 0.0, "reason": f"{survival_state}: no sizing"})
+            return 0.0, diag
 
         # ── Determine Kelly Fraction ───────────────────────────────
         if kelly_fraction_override is not None:
@@ -161,7 +161,7 @@ class PositionSizer:
             )
             # Even without Kelly, apply survival scaling
             if survival_state == "WOUNDED":
-                qty = max(1, math.floor(base_qty * 0.5))
+                qty = max(0.01, base_qty * 0.5)
             else:
                 qty = base_qty
             
@@ -193,8 +193,8 @@ class PositionSizer:
                 f"[SIZER] Kelly is negative ({full_kelly:.4f}) — no edge detected. "
                 f"Returning minimum qty=1."
             )
-            diag.update({"final_qty": 1, "reason": "Negative Kelly (no edge). Minimum qty."})
-            return 1, diag
+            diag.update({"final_qty": 0.01, "reason": "Negative Kelly (no edge). Minimum qty."})
+            return 0.01, diag
 
         # ── Apply Fraction ────────────────────────────────────────
         fractional_kelly = full_kelly * kelly_fraction
@@ -210,7 +210,7 @@ class PositionSizer:
         qty_multiplier = fractional_kelly / reference_fraction if reference_fraction > 0 else 1.0
         raw_qty = base_qty * qty_multiplier
 
-        qty = max(1, min(int(math.floor(raw_qty)), max_qty))
+        qty = max(0.01, min(raw_qty, max_qty))
 
         logger.info(
             f"[SIZER] Kelly sizing: wr={win_rate:.1%} | "

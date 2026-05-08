@@ -1,6 +1,6 @@
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
-alpaca-py==0.33.1
+rpyc==6.0.0
 pandas==2.2.3
 numpy==1.26.4
 python-dotenv==1.0.1

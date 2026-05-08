@@ -2,7 +2,7 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { useAlpacaAccount, FLEET_KEY } from '@/hooks/useFleet';
+import { useMT5Account, FLEET_KEY } from '@/hooks/useFleet';
 import { Wifi, WifiOff, Rocket, RefreshCw, TrendingUp, TrendingDown } from 'lucide-react';
 import { FleetStatus } from '@/lib/api';
 
@@ -14,7 +14,7 @@ interface Props {
 
 export function FleetSummaryBar({ fleet, onDeployClick, onRefresh }: Props) {
   const queryClient = useQueryClient();
-  const { data: account } = useAlpacaAccount();
+  const { data: account } = useMT5Account();
   const [wsAlive, setWsAlive] = useState(false);
 
   // Derive WS liveness from how fresh the fleet polling data is

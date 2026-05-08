@@ -73,7 +73,7 @@ export const tradingApi = {
     return data;
   },
   startBot: async (botId: string) => {
-    const { data } = await api.post(`/fleet/bot/${botId}/start`);
+    const { data } = await api.post(`/fleet/bot/${botId}/start`, {});
     return data;
   },
   stopBotEngine: async (botId: string) => {
@@ -117,7 +117,7 @@ export const tradingApi = {
     const { data } = await api.post('/fleet/wizard/generate', req);
     return data;
   },
-  getAccountInfo: async (): Promise<AlpacaAccount> => {
+  getAccountInfo: async (): Promise<MT5Account> => {
     const { data } = await api.get('/fleet/account');
     return data;
   },
@@ -129,10 +129,25 @@ export const tradingApi = {
     const { data } = await api.get('/system/resources');
     return data;
   },
+  getAvailableSymbols: async (): Promise<{ symbols: AvailableSymbol[] }> => {
+    const { data } = await api.get('/market/symbols/available');
+    return data;
+  },
 };
 
+export interface AvailableSymbol {
+  name: string;
+  broker_symbol: string;
+  category: string;
+  path: string;
+  description: string;
+  digits: number;
+  spread: number;
+  trade_mode: number;
+}
+
 // ── Types ───────────────────────────────────────────────
-export interface AlpacaAccount {
+export interface MT5Account {
   equity: number;
   portfolio_value: number;
   buying_power: number;

@@ -85,7 +85,7 @@ export function BotDetailDrawer({ bot, onClose }: Props) {
       // Switching to LIVE — require confirmation
       if (!confirm(
         `⚠️ Switch "${bot.name}" to LIVE MODE?\n\n` +
-        `This will execute REAL trades on your Alpaca account.\n` +
+        `This will execute REAL trades on your MT5 account.\n` +
         `Ensure your API keys and capital allocation are correct.`
       )) return;
     }
@@ -243,7 +243,7 @@ export function BotDetailDrawer({ bot, onClose }: Props) {
                       <p className="text-[9px] font-mono text-muted-foreground mt-0.5">
                         {isDemo
                           ? 'Simulated — no real capital at risk'
-                          : 'Executing real trades via Alpaca'}
+                          : 'Executing real trades via MT5'}
                       </p>
                     </div>
                   </div>

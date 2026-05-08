@@ -17,6 +17,7 @@ from typing import Optional
 
 from bot_config import BotConfig
 from bot_vital_signs import BotVitalSigns
+from symbol_service import to_mt5_symbol
 
 logger = logging.getLogger("tradeclaw.bot_engine")
 
@@ -34,7 +35,7 @@ class BotEngineStatus:
 class BotEngine:
     """
     Isolated strategy execution engine for a single bot.
-    Wraps the Alpaca trading loop for one symbol/strategy combination.
+    Wraps the MT5 trading loop for one symbol/strategy combination.
     All state is instance-local — no cross-bot contamination.
     """
 
@@ -57,7 +58,7 @@ class BotEngine:
 
         # Market state
         self.current_price: float = 0.0
-        self.position_qty: int = 0
+        self.position_qty: float = 0.0
         self.position_side: str = "NONE"
         self.entry_price: float = 0.0
 
@@ -101,7 +102,7 @@ class BotEngine:
 
         # MAS agent references (wired by fleet.py after construction)
         self._sub_agent_pool = None   # SubAgentPool — set by fleet.py
-        self._executioner = None      # ExecutionerAgent — set by _run_loop after Alpaca init
+        self._executioner = None      # ExecutionerAgent — set by _run_loop after MT5 init
 
         # Last deliberation result (exposed via API)
         self.last_deliberation: dict = {}
@@ -203,18 +204,29 @@ class BotEngine:
     # ── Lifecycle ──────────────────────────────────────────────────────
 
     def start(self):
-        """Start the trading loop in a background thread."""
-        if self._status == BotEngineStatus.RUNNING:
+        """Start the trading loop in a background thread.
+
+        Supports restart from STOPPED, CRITICAL_STOP, or EMERGENCY_HALTED states.
+        """
+        if self._status in (BotEngineStatus.RUNNING, BotEngineStatus.STARTING):
+            self._logger.info(f"Engine already {self._status} — ignoring start()")
             return
+
+        # Ensure any previous stop event is cleared so the new loop isn't
+        # immediately terminated from a prior stop/halt.
         self._stop_event.clear()
+
+        # Reset status so _run_loop doesn't exit prematurely on a stale state
         self._status = BotEngineStatus.STARTING
+        self._message = ""
+
         self._thread = threading.Thread(
             target=self._run_loop,
             daemon=True,
             name=f"engine-{self.bot_id}",
         )
         self._thread.start()
-        self._logger.info(f"Engine started. Symbol={self.config.symbol}")
+        self._logger.info(f"Engine started (restart). Symbol={self.config.symbol}")
 
     def stop(self):
         """Gracefully stop the trading loop."""
@@ -296,12 +308,11 @@ class BotEngine:
         Main trading loop. Mirrors existing strategy.py MeanReversionEngine
         but fully isolated to this bot's symbol/params/state.
 
-        Imports the Alpaca client and strategy logic from the existing
+        Imports the MT5 client and strategy logic from the existing
         strategy.py module functions (they are stateless calculation functions).
         """
-        import alpaca.trading.client as alpaca_trading
-        import alpaca.data.live as alpaca_live
         import os
+        from mt5_bridge import mt5
 
         try:
             from strategy import (
@@ -313,27 +324,31 @@ class BotEngine:
             self._status = BotEngineStatus.STOPPED
             return
 
-        api_key = os.getenv("ALPACA_API_KEY", "")
-        secret_key = os.getenv("ALPACA_SECRET_KEY", "")
-        base_url = os.getenv("ALPACA_BASE_URL", "https://paper-api.alpaca.markets")
+        # Determine operating mode at startup (may be overridden per-tick via params)
+        params = self.get_current_params()
+        initial_demo_mode = params.get("demo_mode", self.config.demo_mode)
 
-        try:
-            trading_client = alpaca_trading.TradingClient(
-                api_key, secret_key, paper=True
-            )
-        except Exception as e:
-            self._logger.error(f"Alpaca client init failed: {e}")
-            self._status = BotEngineStatus.STOPPED
-            return
+        # Only require a live MT5 connection for live (non-demo) bots.
+        # Demo bots run an entirely simulated tick loop and never touch MT5 directly.
+        if not initial_demo_mode:
+            terminal = mt5.terminal_info()
+            if not terminal:
+                last_err = mt5.last_error()
+                self._logger.error(
+                    f"MT5 terminal not connected — live bot cannot start. "
+                    f"last_error={last_err}. "
+                    f"Ensure the MT5 bridge (Wine/RPyC) is running and mt5_hub.initialize() succeeded."
+                )
+                self._status = BotEngineStatus.STOPPED
+                return
 
         self._status = BotEngineStatus.RUNNING
-        self._logger.info("Engine RUNNING")
+        self._logger.info(f"Engine RUNNING (demo={initial_demo_mode})")
 
         # Pre-seed price history with historical bars so the bot is
-        # immediately warm for BB/regime calculations (skips 2+ min warmup)
-        params = self.get_current_params()
-        demo_mode = params.get("demo_mode", self.config.demo_mode)
-        if not demo_mode:
+        # immediately warm for BB/regime calculations (skips 2+ min warmup).
+        # Demo bots don't need warmup — they synthesise prices from random walks.
+        if not initial_demo_mode:
             self._warmup_history(params)
 
         # Main loop — 5 second tick
@@ -345,7 +360,7 @@ class BotEngine:
                 if demo_mode:
                     self._demo_tick(params)
                 else:
-                    self._live_tick(trading_client, params)
+                    self._live_tick(params)
 
                 # Update vital signs
                 self._vital_signs.update(
@@ -365,35 +380,20 @@ class BotEngine:
     def _warmup_history(self, params: dict):
         """
         Pre-seed price_history from persistent Firestore bar store.
-        Falls back to Alpaca historical API if Firestore has < 200 bars.
+        Falls back to MT5 historical API if Firestore has < 200 bars.
 
         Priority:
           1. Firestore → up to 1000 bars (fast, free, survives restarts)
-          2. Alpaca API → up to 200 bars (cold start only)
+          2. MT5 API → up to 200 bars (cold start only)
           3. Live accumulation (fallback if both fail)
 
-        After Alpaca fetch, new bars are back-filled into Firestore so
+        After MT5 fetch, new bars are back-filled into Firestore so
         the next restart loads them instantly.
         """
-        import os
         import asyncio
         from datetime import timedelta
 
         symbol = params.get("symbol", self.config.symbol)
-        CRYPTO_BASE_SYMBOLS = {"BTC", "ETH", "SOL", "ADA", "DOGE", "XRP", "LTC", "AVAX", "MATIC", "SHIB", "UNI", "LINK", "DOT"}
-        is_crypto = (
-            self.config.category == "Crypto"
-            or "/" in symbol
-            or symbol.replace("/USD", "").replace("/USDT", "") in CRYPTO_BASE_SYMBOLS
-        )
-        is_forex = (
-            self.config.category == "Forex"
-            or symbol.endswith("=X")
-            or (len(symbol.replace("/", "")) == 6 and symbol.replace("/", "").isalpha() and not is_crypto)
-        )
-
-        api_key = os.getenv("ALPACA_API_KEY", "") or None
-        secret_key = os.getenv("ALPACA_SECRET_KEY", "") or None
 
         # ── Step 1: Try Firestore persistent bar store ────────────────
         firestore_bars = []
@@ -445,103 +445,60 @@ class BotEngine:
                 pass
             return
 
-        # ── Step 2: Firestore insufficient — fetch from Alpaca ────────
+        # ── Step 2: Firestore insufficient — fetch from MT5 ──────────
         self._logger.info(
             f"Firestore has {len(firestore_bars)} bars for {symbol} (need 200+) — "
-            f"fetching from Alpaca"
+            f"fetching from MT5"
         )
         try:
+            from mt5_bridge import mt5
             end = datetime.now(timezone.utc)
             start = end - timedelta(hours=6)  # 6h of 1-min bars → ~360 bars max
 
-            if is_crypto:
-                from alpaca.data.historical import CryptoHistoricalDataClient
-                from alpaca.data.requests import CryptoBarsRequest
-                from alpaca.data.timeframe import TimeFrame
+            mt5_symbol = to_mt5_symbol(symbol)
+            mt5.symbol_select(mt5_symbol, True)
+            rates = mt5.copy_rates_from_pos(mt5_symbol, mt5.TIMEFRAME_M1, 0, 360)
 
-                alpaca_symbol = symbol if "/" in symbol else f"{symbol}/USD"
-                client = CryptoHistoricalDataClient()
-                request = CryptoBarsRequest(
-                    symbol_or_symbols=alpaca_symbol,
-                    timeframe=TimeFrame.Minute,
-                    start=start,
-                    end=end,
-                    limit=200,
+            if rates is None or len(rates) == 0:
+                self._logger.warning(
+                    f"Warmup: no MT5 bars for {mt5_symbol}: {mt5.last_error()}"
                 )
-                bars = client.get_crypto_bars(request)
-            else:
-                from alpaca.data.historical import StockHistoricalDataClient
-                from alpaca.data.requests import StockBarsRequest
-                from alpaca.data.timeframe import TimeFrame
-
-                if is_forex:
-                    # alpaca-py has no ForexHistoricalDataClient — use Stock client
-                    self._logger.warning(
-                        f"Forex warmup: alpaca-py lacks Forex API. "
-                        f"Attempting Stock client for {symbol} (may return empty)."
-                    )
-                
-                from alpaca.data.historical import StockHistoricalDataClient
-                from alpaca.data.requests import StockBarsRequest
-                alpaca_symbol = symbol.replace("/", "").replace("=X", "") if is_forex else (
-                    symbol.replace("/", "") if "/" in symbol else symbol
-                )
-                client = StockHistoricalDataClient(api_key, secret_key)
-                request = StockBarsRequest(
-                    symbol_or_symbols=alpaca_symbol,
-                    timeframe=TimeFrame.Minute,
-                    start=start,
-                    end=end,
-                    limit=200,
-                )
-                bars = client.get_stock_bars(request)
-
-            df = bars.df
-            if hasattr(df.index, "levels") and len(df.index.levels) > 1:
-                try:
-                    df = df.xs(alpaca_symbol, level="symbol")
-                except KeyError:
-                    alt = alpaca_symbol.replace("/", "")
-                    df = df.xs(alt, level="symbol")
-
-            if df.empty:
-                self._logger.warning(f"Warmup: no historical bars for {symbol}")
                 return
 
             count = 0
             bars_to_persist: list[dict] = []
             with self._lock:
-                for idx, row in df.iterrows():
-                    ts = idx.isoformat() if hasattr(idx, "isoformat") else str(idx)
-                    price = float(row["close"])
+                for rate in rates[-200:]:
+                    ts = datetime.fromtimestamp(int(rate["time"]), tz=timezone.utc).isoformat()
+                    price = float(rate["close"])
                     self.price_history.append({
                         "time": ts,
                         "price": price,
-                        "open": float(row["open"]),
-                        "high": float(row["high"]),
-                        "low": float(row["low"]),
+                        "open": float(rate["open"]),
+                        "high": float(rate["high"]),
+                        "low": float(rate["low"]),
                         "close": price,
-                        "volume": float(row.get("volume", 0)),
+                        "volume": float(rate["tick_volume"]),
                     })
                     bars_to_persist.append({
                         "t": ts,
-                        "o": float(row["open"]),
-                        "h": float(row["high"]),
-                        "l": float(row["low"]),
+                        "o": float(rate["open"]),
+                        "h": float(rate["high"]),
+                        "l": float(rate["low"]),
                         "c": price,
-                        "v": float(row.get("volume", 0)),
+                        "v": float(rate["tick_volume"]),
                         "src": "warmup",
                     })
                     count += 1
                 if count > 0:
-                    self.current_price = float(df.iloc[-1]["close"])
+                    self.current_price = float(rates[-1]["close"])
 
             self._logger.info(
-                f"Warmup: {count} bars loaded from Alpaca for {symbol} — "
+                f"Warmup: {count} bars loaded from MT5 for {mt5_symbol} — "
                 f"back-filling Firestore"
             )
 
-            # Back-fill Alpaca bars into Firestore for next restart
+            # Back-fill bars into Firestore for next restart
             try:
                 import firebase_store
                 loop = asyncio.get_event_loop()
@@ -678,7 +635,7 @@ class BotEngine:
         with self._lock:
             # BUY: enter a position if we don't have one
             if raw_signal == "BUY" and self.position_qty == 0:
-                qty = int(params.get("qty", self.config.qty))
+                qty = float(params.get("qty", self.config.qty))
                 self.position_qty = qty
                 self.position_side = "LONG"
                 self.entry_price = current_price
@@ -824,7 +781,7 @@ class BotEngine:
                 self.last_deliberation = {
                     "approved": quorum_score > 0 if is_directional else False,
                     "signal": raw_signal,
-                    "approved_qty": int(params.get("qty", self.config.qty)),
+                    "approved_qty": float(params.get("qty", self.config.qty)),
                     "order_urgency": "LOW",
                     "quorum_score": round(quorum_score, 3),
                     "votes": synthetic_votes,
@@ -904,7 +861,7 @@ class BotEngine:
                 "timestamp": ts,
             }
 
-    def _live_tick(self, trading_client, params: dict):
+    def _live_tick(self, params: dict):
         """
         Live market tick — the full 6-step Multi-Agent System pipeline.
 
@@ -915,81 +872,42 @@ class BotEngine:
         Step 5: ExecutionerAgent routes the approved order
         Step 6: Update internal state (position, equity, PnL)
         """
-        import os
         import pandas as pd
         import numpy as np
-        from alpaca.data.historical import StockHistoricalDataClient
-        from alpaca.data.requests import StockLatestBarRequest
-        from alpaca.trading.requests import GetAssetsRequest
-        from alpaca.trading.enums import AssetClass
+        from mt5_bridge import mt5
 
-        api_key = os.getenv("ALPACA_API_KEY", "") or None
-        secret_key = os.getenv("ALPACA_SECRET_KEY", "") or None
         symbol = params.get("symbol", self.config.symbol)
+        mt5_symbol = to_mt5_symbol(symbol)
 
         # ────────────────────────────────────────────────────────────
-        # STEP 1: Fetch live price from Alpaca
+        # STEP 1: Fetch live price from MT5
         # ────────────────────────────────────────────────────────────
-        # Auto-detect crypto: explicit category OR symbol contains "/"
-        # (Alpaca crypto symbols always use slash format e.g. "BTC/USD")
-        CRYPTO_BASE_SYMBOLS = {"BTC", "ETH", "SOL", "ADA", "DOGE", "XRP", "LTC", "AVAX", "MATIC", "SHIB", "UNI", "LINK", "DOT"}
-        is_crypto = (
-            self.config.category == "Crypto"
-            or "/" in symbol
-            or symbol.replace("/USD", "").replace("/USDT", "") in CRYPTO_BASE_SYMBOLS
-        )
-        is_forex = (
-            self.config.category == "Forex"
-            or symbol.endswith("=X")
-            or (len(symbol.replace("/", "")) == 6 and symbol.replace("/", "").isalpha() and not is_crypto)
-        )
-
-        if is_crypto:
-            # Ensure crypto symbol has the slash format for data API
-            alpaca_symbol = symbol if "/" in symbol else f"{symbol}/USD"
-        elif is_forex:
-            # Normalise to slash format for Data API: GBPUSD=X -> GBP/USD
-            clean = symbol.replace("=X", "").replace("/", "")
-            alpaca_symbol = f"{clean[:3]}/{clean[3:]}" if len(clean) == 6 else clean
-        else:
-            alpaca_symbol = symbol.replace("/", "") if "/" in symbol else symbol
-        
         try:
-            if is_crypto:
-                from alpaca.data.historical import CryptoHistoricalDataClient
-                from alpaca.data.requests import CryptoLatestBarRequest
-                # Crypto data is free — no API keys needed
-                data_client = CryptoHistoricalDataClient()
-                bar_req = CryptoLatestBarRequest(symbol_or_symbols=alpaca_symbol)
-                bars = data_client.get_crypto_latest_bar(bar_req)
-            elif is_forex:
-                # alpaca-py has no ForexHistoricalDataClient — fall back to Stock
-                from alpaca.data.historical import StockHistoricalDataClient
-                from alpaca.data.requests import StockLatestBarRequest
-                alpaca_symbol = alpaca_symbol.replace("/", "")  # strip slash for stock API
-                data_client = StockHistoricalDataClient(api_key, secret_key)
-                bar_req = StockLatestBarRequest(symbol_or_symbols=alpaca_symbol)
-                bars = data_client.get_stock_latest_bar(bar_req)
-            else:
-                from alpaca.data.historical import StockHistoricalDataClient
-                from alpaca.data.requests import StockLatestBarRequest
-                data_client = StockHistoricalDataClient(api_key, secret_key)
-                bar_req = StockLatestBarRequest(symbol_or_symbols=alpaca_symbol)
-                bars = data_client.get_stock_latest_bar(bar_req)
-                
-            bar = bars.get(alpaca_symbol)
-            if bar is None:
-                # Try without the slash (some SDK versions normalise the key)
-                alt_key = alpaca_symbol.replace("/", "")
-                bar = bars.get(alt_key)
-            if bar is None:
-                self._logger.warning(f"No bar data returned for {alpaca_symbol}, keys={list(bars.keys())}")
+            mt5.symbol_select(mt5_symbol, True)
+            tick = mt5.symbol_info_tick(mt5_symbol)
+            if tick is None:
+                self._logger.warning(f"No tick for {mt5_symbol}: {mt5.last_error()}")
                 return
-            current_price = float(bar.close)
-            current_open = float(bar.open)
-            current_high = float(bar.high)
-            current_low = float(bar.low)
-            current_volume = float(bar.volume)
+            # Use mid price as canonical price; fall back to last if bid/ask unavailable
+            if tick.bid > 0 and tick.ask > 0:
+                current_price = (tick.bid + tick.ask) / 2
+            else:
+                current_price = tick.last or 0.0
+            if current_price == 0.0:
+                self._logger.warning(f"Zero price for {mt5_symbol}, skipping tick")
+                return
+
+            # Latest completed 1-min bar for OHLCV
+            rates = mt5.copy_rates_from_pos(mt5_symbol, mt5.TIMEFRAME_M1, 0, 1)
+            if rates is not None and len(rates) > 0:
+                bar = rates[0]
+                current_open   = float(bar["open"])
+                current_high   = float(bar["high"])
+                current_low    = float(bar["low"])
+                current_volume = float(bar["tick_volume"])
+            else:
+                current_open = current_high = current_low = current_price
+                current_volume = 0.0
         except Exception as e:
             self._logger.error(f"Price fetch failed: {e}")
             return
@@ -1028,7 +946,7 @@ class BotEngine:
 
         if len(prices) < 20:
             self._logger.debug(f"Insufficient bars ({len(prices)}) for signal — accumulating.")
-            self._sync_account(trading_client, symbol)
+            self._sync_account(symbol)
             return
 
         # ────────────────────────────────────────────────────────────
@@ -1077,7 +995,7 @@ class BotEngine:
                     ts, regime, current_price,
                     note=f"Outside Kill Zone — waiting for institutional session | {self.config.symbol} @ ${current_price:.2f}"
                 )
-                self._sync_account(trading_client, symbol)
+                self._sync_account(symbol)
                 return
 
         # ────────────────────────────────────────────────────────────
@@ -1089,7 +1007,7 @@ class BotEngine:
             # Hard gate — no new entries in volatile markets
             self._logger.info(f"[{self.bot_id}] Regime=VOLATILE — skipping signal generation.")
             self._update_scanning_deliberation(ts, regime, current_price)
-            self._sync_account(trading_client, symbol)
+            self._sync_account(symbol)
             return
 
         elif regime == "TRENDING" and self.config.strategy in ("trend_following", "combined"):
@@ -1230,7 +1148,7 @@ class BotEngine:
         if raw_signal == "HOLD" and self.position_qty == 0:
             # Update deliberation with scanning state so Situation Room stays alive
             self._update_scanning_deliberation(ts, regime, current_price)
-            self._sync_account(trading_client, symbol)
+            self._sync_account(symbol)
             self.last_signal = "HOLD"
             return
 
@@ -1238,33 +1156,33 @@ class BotEngine:
         # Close LONG on SELL signal
         if self.position_qty > 0 and self.position_side == "LONG" and raw_signal == "SELL":
             self._logger.info(f"[{self.bot_id}] Exit signal — closing LONG {self.position_qty} shares.")
-            self._close_position(trading_client, symbol, params)
-            self._sync_account(trading_client, symbol)
+            self._close_position(symbol, params)
+            self._sync_account(symbol)
             return
 
         # Close SHORT on BUY signal (cover)
         if self.position_qty > 0 and self.position_side == "SHORT" and raw_signal == "BUY":
             self._logger.info(f"[{self.bot_id}] Cover signal — closing SHORT {self.position_qty} shares.")
-            self._close_position(trading_client, symbol, params)
-            self._sync_account(trading_client, symbol)
+            self._close_position(symbol, params)
+            self._sync_account(symbol)
             return
 
         if raw_signal not in ("BUY", "SELL"):
-            self._sync_account(trading_client, symbol)
+            self._sync_account(symbol)
             return
 
         # RULE 2: Don't double-enter an existing position
         if self.position_qty > 0 and raw_signal == "BUY" and self.position_side == "LONG":
-            self._sync_account(trading_client, symbol)
+            self._sync_account(symbol)
             return
         if self.position_qty > 0 and raw_signal == "SELL" and self.position_side == "SHORT":
-            self._sync_account(trading_client, symbol)
+            self._sync_account(symbol)
             return
 
         # ────────────────────────────────────────────────────────────
         # STEP 4: Expert Team Deliberation (votes from all 5 panel agents)
         # ────────────────────────────────────────────────────────────
-        requested_qty = int(params.get("qty", self.config.qty))
+        requested_qty = float(params.get("qty", self.config.qty))
         survival_state = self._vital_signs.survival_state
 
         if self._sub_agent_pool is not None:
@@ -1298,7 +1216,7 @@ class BotEngine:
                 self._logger.info(
                     f"[{self.bot_id}] Trade BLOCKED by deliberation: {decision.reasoning}"
                 )
-                self._sync_account(trading_client, symbol)
+                self._sync_account(symbol)
                 return
 
             approved_qty = decision.approved_qty
@@ -1317,7 +1235,7 @@ class BotEngine:
             from executioner import ExecutionerAgent, OrderUrgency
             self._executioner = ExecutionerAgent(
                 bot_id=self.bot_id,
-                trading_client=trading_client,
+                symbol=symbol,
                 smart_routing_min_qty=self.config.smart_routing_min_qty,
                 twap_interval_ms=self.config.twap_interval_ms,
                 max_slippage_pct=self.config.max_slippage_pct,
@@ -1329,7 +1247,6 @@ class BotEngine:
         urgency = OrderUrgency.HIGH if order_urgency == "HIGH" else OrderUrgency.LOW
 
         result = self._executioner.execute(
-            symbol=symbol,
             side=side,
             qty=approved_qty,
             signal_price=current_price,
@@ -1419,9 +1336,9 @@ class BotEngine:
             )
 
         # Always sync account state at end of tick
-        self._sync_account(trading_client, symbol)
+        self._sync_account(symbol)
 
-    def _close_position(self, trading_client, symbol: str, params: dict):
+    def _close_position(self, symbol: str, params: dict):
         """Close any open position (long or short) via a market order."""
         if self.position_qty <= 0:
             return
@@ -1433,7 +1350,7 @@ class BotEngine:
             from executioner import ExecutionerAgent, OrderUrgency
             self._executioner = ExecutionerAgent(
                 bot_id=self.bot_id,
-                trading_client=trading_client,
+                symbol=symbol,
                 smart_routing_min_qty=self.config.smart_routing_min_qty,
                 twap_interval_ms=self.config.twap_interval_ms,
                 max_slippage_pct=self.config.max_slippage_pct,
@@ -1441,7 +1358,6 @@ class BotEngine:
             )
         from executioner import OrderUrgency
         result = self._executioner.execute(
-            symbol=symbol,
             side=close_side,
             qty=self.position_qty,
             signal_price=self.current_price,
@@ -1483,33 +1399,40 @@ class BotEngine:
             
             self._entry_deliberation = None
 
-    def _sync_account(self, trading_client, symbol: str):
+    def _sync_account(self, symbol: str):
         try:
-            # NO LONGER syncing total account equity to this isolated bot.
-            # account = trading_client.get_account()
-            # equity = float(account.equity or 0)
-            
+            from mt5_bridge import mt5
+
             with self._lock:
-                # Unrealized PnL is local to the current position
-                # daily_pnl = Realized + Unrealized
                 self.equity = self.starting_equity + self.total_realized_pnl + self.unrealized_pnl
                 self.daily_pnl = self.total_realized_pnl + self.unrealized_pnl
 
-            # Sync position
+            # Sync position from MT5
             try:
-                # Alpaca position API usually expects BTCUSD for crypto or GBPUSD for forex
-                alpaca_symbol = symbol.replace("=X", "").replace("/", "")
-                position = trading_client.get_open_position(alpaca_symbol)
-                with self._lock:
-                    self.position_qty = int(float(position.qty or 0))
-                    if self.position_qty > 0:
-                        alpaca_side = getattr(position, "side", "long")
-                        self.position_side = "SHORT" if str(alpaca_side).lower() == "short" else "LONG"
-                    else:
-                        self.position_side = "NONE"
-                    self.unrealized_pnl = float(position.unrealized_pl or 0)
+                from symbol_service import to_mt5_symbol
+                mt5_symbol = to_mt5_symbol(symbol)
+                magic = abs(hash(self.bot_id)) % 2_147_483_647
+                positions = mt5.positions_get(symbol=mt5_symbol)
+                bot_positions = [p for p in (positions or []) if p.magic == magic]
+                if bot_positions:
+                    pos = bot_positions[0]
+                    # Get symbol info for lot sizing
+                    info = mt5.symbol_info(mt5_symbol)
+                    min_lot = info.volume_min if info else 0.01
+                    with self._lock:
+                        # Convert lots back to units (float)
+                        self.position_qty = float(pos.volume / min_lot)
+                        self.position_side = "SHORT" if pos.type == mt5.POSITION_TYPE_SELL else "LONG"
+                        self.unrealized_pnl = float(pos.profit)
+                else:
+                    with self._lock:
+                        if self.position_qty != 0:
+                            self.position_qty = 0
+                            self.position_side = "NONE"
+                            self.unrealized_pnl = 0.0
+                            self._trailing_high = 0.0
+                            self._trailing_low = float("inf")
             except Exception:
-                # No open position
                 with self._lock:
                     if self.position_qty != 0:
                         self.position_qty = 0

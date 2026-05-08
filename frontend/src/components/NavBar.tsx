@@ -7,7 +7,7 @@ import { Zap, Bot, LayoutDashboard, Radio, Activity,
   ChevronDown, Wallet, TrendingUp, TrendingDown, 
   DollarSign, CreditCard, Power, Loader2, Coffee
 } from 'lucide-react';
-import { useFleetStatus, useAlpacaAccount } from '@/hooks/useFleet';
+import { useFleetStatus, useMT5Account } from '@/hooks/useFleet';
 import { FleetStatus } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SystemResourceMonitor } from '@/components/SystemResourceMonitor';
@@ -96,7 +96,7 @@ function ServerPowerButton() {
 
 function AccountOverview() {
   const [isOpen, setIsOpen] = useState(false);
-  const { data: acc, isLoading } = useAlpacaAccount();
+  const { data: acc, isLoading } = useMT5Account();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -269,7 +269,7 @@ export function NavBar() {
         {/* CPU & RAM Monitor */}
         <SystemResourceMonitor />
 
-        {/* Alpaca Account Overview */}
+        {/* MT5 Account Overview */}
         <AccountOverview />
 
         {/* Fleet live indicator */}

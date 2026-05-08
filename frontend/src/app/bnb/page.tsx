@@ -28,7 +28,7 @@ export default function BNBPage() {
           <Info className="w-12 h-12 text-rose-500 mx-auto" />
           <h2 className="text-xl font-bold text-white uppercase tracking-tighter">Market Data Unavailable</h2>
           <p className="text-sm text-zinc-400 font-mono">
-            Could not retrieve historical bars for BNB. Ensure your Alpaca API keys support Crypto data and check balance.
+            Could not retrieve historical bars for BNB. Ensure your MT5 API keys support Crypto data and check balance.
           </p>
         </div>
       </div>
@@ -54,7 +54,7 @@ export default function BNBPage() {
             </h1>
           </div>
           <p className="text-xs font-mono text-muted-foreground tracking-widest opacity-60">
-            BINANCE COIN • ALPACA CRYPTO DATA • 1m TIMEFRAME
+            BINANCE COIN • MT5 MARKET DATA • 1m TIMEFRAME
           </p>
         </div>
 
@@ -110,7 +110,7 @@ export default function BNBPage() {
 
           <div className="p-4 rounded-xl border border-white/5 bg-white/2 text-[10px] font-mono text-zinc-500 leading-relaxed">
             <p className="uppercase font-bold mb-2 text-zinc-400 opacity-80">Execution Note</p>
-            You can deploy a specialized mean-reversion bot for BNB directly from the <span className="text-primary hover:underline cursor-pointer">Fleet Command</span>. Current chart uses Alpaca's historical minute bars.
+            You can deploy a specialized mean-reversion bot for BNB directly from the <span className="text-primary hover:underline cursor-pointer">Fleet Command</span>. Current chart uses MT5's historical minute bars.
           </div>
         </div>
       </div>

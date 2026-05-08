@@ -1,88 +1,23 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   X, Rocket, ChevronRight, ChevronLeft, RefreshCw,
   Zap, Shield, Brain, BarChart2, TrendingUp,
   ArrowRight, Check, Loader2, Sparkles
 } from 'lucide-react';
 import { api } from '@/lib/api';
-import { useDeployBot } from '@/hooks/useFleet';
+import {
+  useDeployBot,
+  useAvailableSymbols,
+} from '@/hooks/useFleet';
 
 // ─────────────────────────────────────────────────────────
 // DATA
 // ─────────────────────────────────────────────────────────
 
-const CATEGORIES = [
-  { id: 'Equities',    label: 'Equities',    icon: '📈', color: 'from-blue-500/20 to-blue-500/5',   border: 'border-blue-500/30',   glow: 'shadow-blue-500/20' },
-  { id: 'ETFs',        label: 'ETFs',         icon: '🏦', color: 'from-indigo-500/20 to-indigo-500/5', border: 'border-indigo-500/30', glow: 'shadow-indigo-500/20' },
-  { id: 'Crypto',      label: 'Crypto',       icon: '₿',  color: 'from-orange-500/20 to-orange-500/5', border: 'border-orange-500/30', glow: 'shadow-orange-500/20' },
-  { id: 'Forex',       label: 'Forex',        icon: '💱', color: 'from-cyan-500/20 to-cyan-500/5',   border: 'border-cyan-500/30',   glow: 'shadow-cyan-500/20' },
-  { id: 'Commodities', label: 'Commodities',  icon: '🥇', color: 'from-yellow-500/20 to-yellow-500/5', border: 'border-yellow-500/30', glow: 'shadow-yellow-500/20' },
-];
+// Categories and Symbols are now fetched dynamically from MT5
 
-const SYMBOLS_BY_CATEGORY: Record<string, { ticker: string; name: string; flag?: string }[]> = {
-  Equities: [
-    { ticker: 'AAPL',  name: 'Apple' },
-    { ticker: 'NVDA',  name: 'Nvidia' },
-    { ticker: 'MSFT',  name: 'Microsoft' },
-    { ticker: 'TSLA',  name: 'Tesla' },
-    { ticker: 'AMZN',  name: 'Amazon' },
-    { ticker: 'GOOGL', name: 'Alphabet' },
-    { ticker: 'META',  name: 'Meta' },
-    { ticker: 'NFLX',  name: 'Netflix' },
-    { ticker: 'AMD',   name: 'AMD' },
-    { ticker: 'BABA',  name: 'Alibaba' },
-  ],
-  ETFs: [
-    { ticker: 'SPY',  name: 'S&P 500' },
-    { ticker: 'QQQ',  name: 'Nasdaq 100' },
-    { ticker: 'IWM',  name: 'Russell 2000' },
-    { ticker: 'DIA',  name: 'Dow Jones' },
-    { ticker: 'GLD',  name: 'Gold ETF' },
-    { ticker: 'SLV',  name: 'Silver ETF' },
-    { ticker: 'XLF',  name: 'Financials' },
-    { ticker: 'XLT',  name: 'Technology' },
-    { ticker: 'ARKK', name: 'ARK Innov.' },
-    { ticker: 'VTI',  name: 'Total Mkt' },
-  ],
-  Crypto: [
-    { ticker: 'BTC/USD', name: 'Bitcoin' },
-    { ticker: 'ETH/USD', name: 'Ethereum' },
-    { ticker: 'SOL/USD', name: 'Solana' },
-    { ticker: 'XRP/USD', name: 'Ripple' },
-    { ticker: 'ADA/USD', name: 'Cardano' },
-    { ticker: 'DOGE/USD',name: 'Dogecoin' },
-    { ticker: 'AVAX/USD',name: 'Avalanche' },
-    { ticker: 'DOT/USD', name: 'Polkadot' },
-    { ticker: 'LINK/USD',name: 'Chainlink' },
-    { ticker: 'UNI/USD', name: 'Uniswap' },
-  ],
-  Forex: [
-    { ticker: 'EUR/USD', name: 'EUR/USD', flag: '🇪🇺' },
-    { ticker: 'GBP/USD', name: 'GBP/USD', flag: '🇬🇧' },
-    { ticker: 'USD/JPY', name: 'USD/JPY', flag: '🇯🇵' },
-    { ticker: 'AUD/USD', name: 'AUD/USD', flag: '🇦🇺' },
-    { ticker: 'USD/CAD', name: 'USD/CAD', flag: '🇨🇦' },
-    { ticker: 'USD/CHF', name: 'USD/CHF', flag: '🇨🇭' },
-    { ticker: 'NZD/USD', name: 'NZD/USD', flag: '🇳🇿' },
-    { ticker: 'EUR/GBP', name: 'EUR/GBP', flag: '🇪🇺' },
-    { ticker: 'EUR/JPY', name: 'EUR/JPY', flag: '🇪🇺' },
-    { ticker: 'GBP/JPY', name: 'GBP/JPY', flag: '🇬🇧' },
-  ],
-  Commodities: [
-    { ticker: 'GLD',   name: 'Gold ETF' },
-    { ticker: 'SLV',   name: 'Silver ETF' },
-    { ticker: 'USO',   name: 'Oil ETF' },
-    { ticker: 'UNG',   name: 'Nat Gas ETF' },
-    { ticker: 'WEAT',  name: 'Wheat ETF' },
-    { ticker: 'CORN',  name: 'Corn ETF' },
-    { ticker: 'SOYB',  name: 'Soybean ETF' },
-    { ticker: 'CPER',  name: 'Copper ETF' },
-    { ticker: 'PPLT',  name: 'Platinum ETF' },
-    { ticker: 'PALL',  name: 'Palladium ETF' },
-  ],
-};
 
 const PERSONALITIES = [
   {
@@ -264,7 +199,103 @@ export function BotWizard({ onClose, onDeployed }: Props) {
   const [forgeMsg, setForgeMsg]   = useState(0);
   const [capitalAllocation, setCapitalAllocation] = useState(10000);
   const [forgeError, setForgeError] = useState('');
+  const [symbolSearch, setSymbolSearch] = useState('');
+  const [categorySearch, setCategorySearch] = useState('');
   const deployBot = useDeployBot();
+  const { data: symbolsData, isLoading: isLoadingSymbols } = useAvailableSymbols();
+
+  // ── Dynamic Categories ────────────────────────────────
+  const { categories, symbolsByCategory } = useMemo(() => {
+    if (!symbolsData?.symbols) return { categories: [], symbolsByCategory: {} };
+
+    const catMap: Record<string, { ticker: string; name: string }[]> = {};
+    const rawSymbols = symbolsData.symbols;
+
+    rawSymbols.forEach(s => {
+      const cat = s.category || 'Uncategorized';
+      if (!catMap[cat]) catMap[cat] = [];
+      catMap[cat].push({ ticker: s.name, name: s.description || s.name });
+    });
+
+    const categoryList = Object.keys(catMap).map(id => {
+      const icons: Record<string, string> = {
+        'Forex Majors': '💹',
+        'Forex Minors': '💹',
+        'Forex Exotics': '🌍',
+        'Forex': '💱',
+        'Crypto': '₿',
+        'Energies': '⛽',
+        'Indices': '📊',
+        'Indices & SyntX': '📊',
+        'SyntX': '🧬',
+        'Commodities': '🥇',
+        'Commodities & Metals': '🥇',
+        'Metals': '🪙',
+      };
+      
+      const colors: Record<string, string> = {
+        'Forex': 'from-blue-500/20 to-blue-500/5',
+        'Crypto': 'from-orange-500/20 to-orange-500/5',
+        'Indices': 'from-purple-500/20 to-purple-500/5',
+        'Commodities': 'from-amber-500/20 to-amber-500/5',
+        'Metals': 'from-yellow-500/20 to-yellow-500/5',
+        'Energies': 'from-red-500/20 to-red-500/5',
+        'SyntX': 'from-cyan-500/20 to-cyan-500/5',
+      };
+
+      const borders: Record<string, string> = {
+        'Forex': 'border-blue-500/30',
+        'Crypto': 'border-orange-500/30',
+        'Indices': 'border-purple-500/30',
+        'Commodities': 'border-amber-500/30',
+        'Metals': 'border-yellow-500/30',
+        'Energies': 'border-red-500/30',
+        'SyntX': 'border-cyan-500/30',
+      };
+
+      const glows: Record<string, string> = {
+        'Forex': 'shadow-blue-500/20',
+        'Crypto': 'shadow-orange-500/20',
+        'Indices': 'shadow-purple-500/20',
+        'Commodities': 'shadow-amber-500/20',
+        'Metals': 'shadow-yellow-500/20',
+        'Energies': 'shadow-red-500/20',
+        'SyntX': 'shadow-cyan-500/20',
+      };
+      
+      // Try to find a matching property or default
+      const icon = icons[id] || 
+                   Object.entries(icons).find(([k]) => id.includes(k))?.[1] || 
+                   '🔍';
+      
+      const color = colors[id] || 
+                    Object.entries(colors).find(([k]) => id.includes(k))?.[1] || 
+                    'from-zinc-500/20 to-zinc-500/5';
+                    
+      const border = borders[id] || 
+                     Object.entries(borders).find(([k]) => id.includes(k))?.[1] || 
+                     'border-zinc-500/30';
+                     
+      const glow = glows[id] || 
+                   Object.entries(glows).find(([k]) => id.includes(k))?.[1] || 
+                   'shadow-zinc-500/20';
+
+      return {
+        id,
+        label: id,
+        icon,
+        color,
+        border,
+        glow
+      };
+    });
+
+    return { categories: categoryList, symbolsByCategory: catMap };
+  }, [symbolsData]);
+
+  const CATEGORIES = categories;
+  const SYMBOLS_BY_CATEGORY = symbolsByCategory;
+
 
   // Cycle through forge messages
   useEffect(() => {
@@ -326,67 +357,125 @@ export function BotWizard({ onClose, onDeployed }: Props) {
   // RENDER STEPS
   // ─────────────────────────────────────────────────────
 
-  const renderCategory = () => (
-    <div className="space-y-4 animate-in fade-in duration-300">
-      <div className="text-center space-y-1 pb-2">
-        <h3 className="text-white font-semibold text-base">Choose your market</h3>
-        <p className="text-muted-foreground text-xs">Where does your bot hunt?</p>
-      </div>
-      <div className="grid grid-cols-1 gap-2.5">
-        {CATEGORIES.map(cat => (
-          <button
-            key={cat.id}
-            onClick={() => { setCategory(cat.id); setSymbol(''); setTimeout(() => setStep('symbol'), 180); }}
-            className={`relative flex items-center gap-4 p-4 rounded-2xl border bg-gradient-to-r ${cat.color} ${cat.border} hover:shadow-lg ${cat.glow} transition-all duration-200 group text-left`}
-          >
-            <span className="text-2xl">{cat.icon}</span>
-            <div className="flex-1">
-              <p className="text-white text-sm font-semibold">{cat.label}</p>
-              <p className="text-muted-foreground text-[10px]">
-                {SYMBOLS_BY_CATEGORY[cat.id].slice(0, 3).map(s => s.ticker).join(' · ')} + more
-              </p>
+  const renderCategory = () => {
+    const filteredCategories = CATEGORIES.filter(cat => 
+      cat.label.toLowerCase().includes(categorySearch.toLowerCase()) ||
+      SYMBOLS_BY_CATEGORY[cat.id].some(s => s.ticker.toLowerCase().includes(categorySearch.toLowerCase()))
+    );
+
+    return (
+      <div className="space-y-4 animate-in fade-in duration-300">
+        <div className="text-center space-y-1 pb-2">
+          <h3 className="text-white font-semibold text-base">Choose your market</h3>
+          <p className="text-muted-foreground text-xs">Where does your bot hunt?</p>
+        </div>
+
+        {/* Category Search */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search markets or symbols..."
+            value={categorySearch}
+            onChange={e => setCategorySearch(e.target.value)}
+            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-muted-foreground focus:outline-none focus:border-primary/50 font-mono"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-2.5 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
+          {filteredCategories.length > 0 ? (
+            filteredCategories.map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => { 
+                  setCategory(cat.id); 
+                  setSymbol(''); 
+                  setSymbolSearch('');
+                  setTimeout(() => setStep('symbol'), 180); 
+                }}
+                className={`relative flex items-center gap-4 p-4 rounded-2xl border bg-gradient-to-r ${cat.color} ${cat.border} hover:shadow-lg ${cat.glow} transition-all duration-200 group text-left`}
+              >
+                <span className="text-2xl">{cat.icon}</span>
+                <div className="flex-1">
+                  <p className="text-white text-sm font-semibold">{cat.label}</p>
+                  <p className="text-muted-foreground text-[10px]">
+                    {SYMBOLS_BY_CATEGORY[cat.id].slice(0, 3).map(s => s.ticker).join(' · ')} + more
+                  </p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-white group-hover:translate-x-0.5 transition-all" />
+              </button>
+            ))
+          ) : (
+            <div className="py-8 text-center">
+              <p className="text-xs text-muted-foreground font-mono">No markets found matching "{categorySearch}"</p>
             </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-white group-hover:translate-x-0.5 transition-all" />
-          </button>
-        ))}
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderSymbol = () => {
-    const symbols = SYMBOLS_BY_CATEGORY[category] ?? [];
+    const symbols = (SYMBOLS_BY_CATEGORY[category] ?? []).filter(s => 
+      s.ticker.toLowerCase().includes(symbolSearch.toLowerCase()) ||
+      s.name.toLowerCase().includes(symbolSearch.toLowerCase())
+    );
+    
     return (
       <div className="space-y-4 animate-in fade-in duration-300">
         <div className="flex items-center gap-2">
           <button onClick={() => setStep('category')} className="p-1.5 rounded-lg hover:bg-white/5 text-muted-foreground hover:text-white transition-colors">
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <div>
+          <div className="flex-1">
             <h3 className="text-white font-semibold text-sm">Pick a symbol</h3>
             <p className="text-muted-foreground text-[10px]">{category} · Select or type your own</p>
           </div>
         </div>
-        <div className="grid grid-cols-5 gap-2">
-          {symbols.map(s => (
-            <button
-              key={s.ticker}
-              onClick={() => { setSymbol(s.ticker); setCustomSymbol(''); setTimeout(() => setStep('personality'), 180); }}
-              className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border transition-all duration-150 ${
-                symbol === s.ticker
-                  ? 'bg-primary/20 border-primary/60 text-primary'
-                  : 'bg-white/3 border-white/8 text-muted-foreground hover:border-white/20 hover:text-white'
-              }`}
-            >
-              <span className="text-[11px] font-mono font-bold text-white truncate w-full text-center">{s.ticker.replace('/USD','')}</span>
-              <span className="text-[8px] text-muted-foreground truncate w-full text-center leading-tight">{s.name}</span>
-            </button>
-          ))}
+
+        {/* Search Input */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search symbols..."
+            value={symbolSearch}
+            onChange={e => setSymbolSearch(e.target.value)}
+            className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-muted-foreground focus:outline-none focus:border-primary/50 font-mono"
+          />
         </div>
+
+        <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+          {isLoadingSymbols ? (
+             <div className="col-span-2 py-8 text-center">
+                <Loader2 className="w-4 h-4 text-primary animate-spin mx-auto mb-2" />
+                <p className="text-[10px] text-muted-foreground font-mono">Synchronizing MT5 Terminal...</p>
+             </div>
+          ) : symbols.length > 0 ? (
+            symbols.slice(0, 100).map(s => (
+              <button
+                key={s.ticker}
+                onClick={() => { setSymbol(s.ticker); setCustomSymbol(''); setTimeout(() => setStep('personality'), 180); }}
+                className={`flex flex-col items-start gap-1 p-3 rounded-xl border transition-all duration-150 ${
+                  symbol === s.ticker
+                    ? 'bg-primary/20 border-primary/60 text-primary'
+                    : 'bg-white/3 border-white/8 text-muted-foreground hover:border-white/20 hover:text-white'
+                }`}
+              >
+                <span className="text-[11px] font-mono font-bold text-white truncate w-full">{s.ticker}</span>
+                <span className="text-[8px] text-muted-foreground truncate w-full text-left leading-tight opacity-70">{s.name}</span>
+              </button>
+            ))
+          ) : (
+            <div className="col-span-2 py-8 text-center">
+              <p className="text-xs text-muted-foreground font-mono">No symbols found</p>
+            </div>
+          )}
+        </div>
+
         <div className="flex gap-2 pt-1">
           <div className="relative flex-1">
             <input
               type="text"
-              placeholder="Custom symbol e.g. PLTR"
+              placeholder="Manual entry e.g. BTCUSD"
               value={customSymbol}
               onChange={e => { setCustomSymbol(e.target.value.toUpperCase()); setSymbol(''); }}
               className="w-full px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-muted-foreground focus:outline-none focus:border-primary/50 font-mono"

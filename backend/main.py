@@ -16,17 +16,14 @@ from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import pandas as pd
-from alpaca.data.historical import StockHistoricalDataClient, CryptoHistoricalDataClient
-from alpaca.data.requests import StockBarsRequest, CryptoBarsRequest
-from alpaca.data.timeframe import TimeFrame
 from datetime import timedelta
 
 # Fleet
 from bot_config import BotConfig, FleetConfig
 from fleet import fleet
 
-# Alpaca realtime ticker
-from alpaca_ticker import alpaca_ticker
+# MT5 hub (market data + news)
+from mt5_hub import mt5_hub
 
 from config import config
 from firebase_store import (
@@ -58,6 +55,7 @@ from models import (
 from strategy import engine
 from ai_brain import ai_brain
 from vital_signs import vital_signs
+from symbol_service import symbol_service, to_mt5_symbol
 
 # ---- Logging ----
 logging.basicConfig(
@@ -338,7 +336,7 @@ async def ws_fleet_broadcast_loop():
 class DeployBotRequest(BaseModel):
     bot_id: Optional[str] = None
     name: str = "Unnamed Bot"
-    symbol: str = "SPY"
+    symbol: str = Field(..., description="Target trading symbol")
     strategy: str = "mean_reversion"
     capital_allocation: float = Field(default=10000.0, ge=1.0)
     description: str = ""
@@ -347,7 +345,7 @@ class DeployBotRequest(BaseModel):
     category: str = ""
     ai_generated: bool = False
     demo_mode: bool = True
-    qty: int = Field(default=1, ge=1, le=50)
+    qty: float = Field(default=1.0, gt=0)
     stop_loss_pct: float = Field(default=1.5, ge=0.25, le=5.0)
     max_daily_drawdown_pct: float = Field(default=6.0, ge=0.5, le=25.0)
     bb_period: int = Field(default=20, ge=8, le=100)
@@ -365,7 +363,7 @@ class DeployBotRequest(BaseModel):
     fib_bounce_threshold_pct: float = 0.20
     fib_entry_mode: str = "AND"
     fib_active_levels_raw: str = "23.6,38.2,50.0,61.8"
-    smart_routing_min_qty: int = 3
+    smart_routing_min_qty: float = 3.0
     twap_interval_ms: int = 500
     max_slippage_pct: float = 0.30
     limit_timeout_s: int = 10
@@ -441,12 +439,13 @@ async def lifespan(app: FastAPI):
     if config.ai_snapshot()["ai_brain_enabled"]:
         ai_brain.start()
 
-    # Start Alpaca Ticker Manager (real-time market data proxy)
-    alpaca_ticker.init(
-        api_key=os.getenv("ALPACA_API_KEY", ""),
-        secret_key=os.getenv("ALPACA_SECRET_KEY", ""),
+    # Start MT5 Hub (market data)
+    mt5_hub.init(
+        login=int(os.getenv("MT5_LOGIN", "0") or "0"),
+        password=os.getenv("MT5_PASSWORD", ""),
+        server=os.getenv("MT5_SERVER", ""),
     )
-    alpaca_ticker.start()
+    mt5_hub.start()
 
     logger.info("TradeClaw ready")
 
@@ -455,7 +454,7 @@ async def lifespan(app: FastAPI):
     # Shutdown
     logger.info("TradeClaw shutting down...")
     fleet.stop_monitor()
-    alpaca_ticker.stop()
+    mt5_hub.stop()
     if ai_brain.enabled:
         ai_brain.stop()
     flush_task.cancel()
@@ -752,20 +751,20 @@ async def system_gemini_budget():
 
 @app.post("/streaming/pause")
 async def streaming_pause():
-    """Pause all WebSocket broadcast loops and Alpaca ticker fan-out."""
+    """Pause all WebSocket broadcast loops and MT5 hub fan-out."""
     global _streaming_paused
     _streaming_paused = True
-    alpaca_ticker.pause()
+    mt5_hub.pause()
     logger.info("[Streaming] PAUSED — all broadcast loops suspended")
     return {"streaming": False, "message": "All streams paused"}
 
 
 @app.post("/streaming/resume")
 async def streaming_resume():
-    """Resume all WebSocket broadcast loops and Alpaca ticker fan-out."""
+    """Resume all WebSocket broadcast loops and MT5 hub fan-out."""
     global _streaming_paused
     _streaming_paused = False
-    alpaca_ticker.resume()
+    mt5_hub.resume()
     logger.info("[Streaming] RESUMED — all broadcast loops active")
     return {"streaming": True, "message": "All streams resumed"}
 
@@ -775,7 +774,7 @@ async def streaming_status():
     """Return current streaming state and stats."""
     return {
         "paused": _streaming_paused,
-        "ticker": alpaca_ticker.get_stats(),
+        "ticker": mt5_hub.get_stats(),
         "ws_channels": len(manager.active),
     }
 
@@ -807,54 +806,27 @@ async def get_market_data(symbol: str):
     }
 
     try:
-        api_key = os.getenv("ALPACA_API_KEY", "")
-        secret_key = os.getenv("ALPACA_SECRET_KEY", "")
-
-        # Reject obvious non-Alpaca symbols (e.g. Yahoo Finance forex "GBPUSD=X")
+        from mt5_bridge import mt5
         clean = symbol.strip().upper()
-        if "=" in clean:
-            logger.warning(f"[MarketData] Rejected unsupported symbol format: {symbol}")
-            _empty_response["message"] = f"Symbol '{symbol}' is not supported by Alpaca"
-            return _empty_response
-
-        # Crypto check (robust: handles BTC or BTC/USD)
-        base_symbol = clean.split('/')[0]
-        is_crypto = base_symbol in ["BTC", "ETH", "SOL", "ADA", "DOGE", "LINK", "DOT", "MATIC", "XRP", "LTC", "AVAX", "SHIB", "UNI", "AAVE"]
+        mt5_symbol = to_mt5_symbol(clean)
 
         end = datetime.now(timezone.utc)
-        start = end - timedelta(hours=2) # Get enough data for BBs (120 mins)
+        start = end - timedelta(hours=2)
 
-        if is_crypto:
-            client = CryptoHistoricalDataClient(api_key, secret_key)
-            pair = clean if "/" in clean else f"{base_symbol}/USD"
-            request = CryptoBarsRequest(
-                symbol_or_symbols=pair,
-                timeframe=TimeFrame.Minute,
-                start=start,
-                end=end,
-            )
-            bars = client.get_crypto_bars(request)
-            df = bars.df
-            actual_symbol = pair
-        else:
-            client = StockHistoricalDataClient(api_key, secret_key)
-            request = StockBarsRequest(
-                symbol_or_symbols=clean,
-                timeframe=TimeFrame.Minute,
-                start=start.date(),
-                end=end,
-                limit=100
-            )
-            bars = client.get_stock_bars(request)
-            df = bars.df
-            actual_symbol = clean
+        mt5.symbol_select(mt5_symbol, True)
+        # Use copy_rates_from_pos (index-based) instead of copy_rates_range (time-based)
+        # for better stability over RPyC bridge.
+        rates = mt5.copy_rates_from_pos(mt5_symbol, mt5.TIMEFRAME_M1, 0, 120)
 
-        if df.empty:
-            _empty_response["message"] = f"No recent data for {symbol} — market may be closed"
+        if rates is None or len(rates) == 0:
+            _empty_response["message"] = f"No recent data for {mt5_symbol} — market may be closed"
             return _empty_response
 
-        if isinstance(df.index, pd.MultiIndex):
-            df = df.xs(actual_symbol, level="symbol")
+        import numpy as np
+        df = pd.DataFrame(rates)
+        df["time"] = pd.to_datetime(df["time"], unit="s", utc=True)
+        df = df.rename(columns={"tick_volume": "volume"})
+        df = df[["time", "open", "high", "low", "close", "volume"]]
 
         # BB Calculation
         period = 20
@@ -868,8 +840,8 @@ async def get_market_data(symbol: str):
         # Format for TV Chart
         price_data = []
         bollinger = []
-        for idx, row in df.iterrows():
-            ts = idx.isoformat() if hasattr(idx, "isoformat") else str(idx)
+        for _, row in df.iterrows():
+            ts = row["time"].isoformat() if hasattr(row["time"], "isoformat") else str(row["time"])
             price_data.append({
                 "time": ts,
                 "open": float(row["open"]),
@@ -896,6 +868,44 @@ async def get_market_data(symbol: str):
         logger.warning(f"[MarketData] Data unavailable for {symbol}: {e}")
         _empty_response["message"] = str(e)
         return _empty_response
+
+
+@app.get("/market/symbols/available")
+async def get_available_symbols(q: Optional[str] = None):
+    """Fetch all available symbols from the MT5 terminal, enriched by Excel definitions."""
+    try:
+        # Get live terminal data for technical fields (digits, spread, etc)
+        live_symbols = {s["name"]: s for s in mt5_hub.get_all_symbols()}
+        
+        # Get Excel definitions
+        if q:
+            excel_symbols = symbol_service.search_symbols(q)
+        else:
+            excel_symbols = symbol_service.get_all_symbols()
+        
+        enriched = []
+        for s in excel_symbols:
+            name = s["name"]
+            # Look up live data using the broker-specific symbol name (e.g. EURUSD_i)
+            broker_name = symbol_service.get_broker_symbol(name)
+            live = live_symbols.get(broker_name, {})
+            
+            # Merge: Excel provides metadata, MT5 provides live trading params
+            enriched.append({
+                "name": name,
+                "broker_symbol": broker_name,
+                "description": s["description"] or live.get("description", ""),
+                "category": s["category"],
+                "path": live.get("path", ""),
+                "digits": live.get("digits", 0),
+                "spread": live.get("spread", 0),
+                "trade_mode": live.get("trade_mode", 0),
+            })
+            
+        return {"symbols": enriched}
+    except Exception as e:
+        logger.error(f"Error fetching available symbols: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/fleet/deploy")
@@ -956,35 +966,33 @@ async def fleet_deploy(request: DeployBotRequest):
 
 @app.get("/fleet/account")
 async def fleet_account():
-    """Get Alpaca account summary (buying power, equity, etc.)."""
+    """Get MT5 account summary (balance, equity, margin, etc.)."""
     try:
-        from alpaca.trading.client import TradingClient
-        api_key = os.getenv("ALPACA_API_KEY", "")
-        secret_key = os.getenv("ALPACA_SECRET_KEY", "")
-        client = TradingClient(api_key, secret_key, paper=True)
-        acc = client.get_account()
-        
-        # Calculate daily drift
+        from mt5_bridge import mt5
+        acc = mt5.account_info()
+        if acc is None:
+            raise RuntimeError(f"MT5 account_info() returned None: {mt5.last_error()}")
+
         equity = float(acc.equity)
-        last_equity = float(acc.last_equity)
-        daily_pnl = equity - last_equity
-        daily_pnl_pct = (daily_pnl / last_equity * 100) if last_equity > 0 else 0.0
+        balance = float(acc.balance)
+        daily_pnl = equity - balance
+        daily_pnl_pct = (daily_pnl / balance * 100) if balance > 0 else 0.0
 
         return {
             "equity": equity,
-            "portfolio_value": float(acc.portfolio_value),
-            "buying_power": float(acc.buying_power),
-            "daytrading_buying_power": float(acc.daytrading_buying_power),
-            "regt_buying_power": float(acc.regt_buying_power),
-            "cash": float(acc.cash),
+            "portfolio_value": equity,
+            "buying_power": float(acc.margin_free),
+            "daytrading_buying_power": float(acc.margin_free),
+            "regt_buying_power": float(acc.margin_free),
+            "cash": balance,
             "daily_pnl": round(daily_pnl, 2),
             "daily_pnl_pct": round(daily_pnl_pct, 2),
             "currency": acc.currency,
-            "status": str(acc.status),
+            "status": "ACTIVE",
         }
     except Exception as e:
-        logger.error(f"Failed to fetch Alpaca account: {e}")
-        raise HTTPException(status_code=500, detail="Alpaca sync failed")
+        logger.error(f"Failed to fetch MT5 account: {e}")
+        raise HTTPException(status_code=500, detail="MT5 account sync failed")
 
 
 
@@ -1037,15 +1045,20 @@ async def fleet_get_bot_history(bot_id: str, limit: int = 200):
 
 
 @app.post("/fleet/bot/{bot_id}/start")
-async def fleet_start_bot(bot_id: str):
+async def fleet_start_bot(bot_id: str, request: StartRequest = StartRequest()):
     """Start a deployed (but stopped) bot's engine."""
     instance = fleet.get_bot(bot_id)
     if not instance:
         raise HTTPException(status_code=404, detail=f"Bot {bot_id} not found")
     if not instance.engine:
         raise HTTPException(status_code=400, detail="Bot has no engine")
+    
+    # Update demo mode if provided
+    instance.config.demo_mode = request.demo_mode
+    instance.engine.config.demo_mode = request.demo_mode
+    
     instance.engine.start()
-    return {"status": "started", "bot_id": bot_id}
+    return {"status": "started", "bot_id": bot_id, "demo_mode": request.demo_mode}
 
 
 @app.post("/fleet/bot/{bot_id}/stop")
@@ -1547,7 +1560,7 @@ async def ticker_symbols():
 async def websocket_ticker(ws: WebSocket, symbol: str):
     """
     Per-symbol realtime market data stream.
-    - Subscribes to Alpaca bars/quotes for the requested symbol
+    - Subscribes to MT5 bars/quotes for the requested symbol
     - Joins bot state for any fleet bots trading that symbol
     - Broadcasts { type, bar | quote | tick, bots } to the client
     Client sends 'ping' for keepalive; server replies 'pong'.
@@ -1556,7 +1569,7 @@ async def websocket_ticker(ws: WebSocket, symbol: str):
     symbol = symbol.upper()
     queue: asyncio.Queue = asyncio.Queue(maxsize=200)
 
-    await alpaca_ticker.subscribe(symbol, queue)
+    await mt5_hub.subscribe(symbol, queue)
     logger.info(f"[TickerWS] Client connected for {symbol}")
 
     async def _send_loop():
@@ -1587,7 +1600,7 @@ async def websocket_ticker(ws: WebSocket, symbol: str):
         pass
     finally:
         send_task.cancel()
-        await alpaca_ticker.unsubscribe(symbol, queue)
+        await mt5_hub.unsubscribe(symbol, queue)
         logger.info(f"[TickerWS] Client disconnected from {symbol}")
 
 

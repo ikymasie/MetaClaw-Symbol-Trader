@@ -1,7 +1,7 @@
 """
 TradeClaw Strategy Engine — Bollinger Band Mean Reversion
 Runs in a background thread. Monitors price against Bollinger Bands
-and executes buy/sell orders via Alpaca. Includes 6% daily drawdown kill switch.
+and executes buy/sell orders via MT5. Includes 6% daily drawdown kill switch.
 
 Now wired to VitalSignsMonitor:
 - check() called every cycle to update organism vital state
@@ -96,7 +96,7 @@ class MeanReversionEngine:
 
         # Live state
         self.current_price: float = 0.0
-        self.position_qty: int = 0
+        self.position_qty: float = 0.0
         self.position_side: str | None = None
         self.entry_price: float = 0.0
         self.equity: float = 0.0
@@ -129,7 +129,7 @@ class MeanReversionEngine:
         self.vwap_data:       dict          = {}   # Latest VWAP dict for the frontend
 
 
-        # Alpaca clients (initialized on start)
+        # MT5 clients (initialized on start)
         self._trading_client = None
         self._data_client = None
 
@@ -290,20 +290,20 @@ class MeanReversionEngine:
     # ----------------------------------------------------------------
 
     def _run_live_loop(self):
-        """Main loop for live (paper) trading via Alpaca."""
+        """Main loop for live (paper) trading via MT5."""
         try:
-            from alpaca.trading.client import TradingClient
-            from alpaca.data.historical import StockHistoricalDataClient
-            from alpaca.data.requests import StockBarsRequest
-            from alpaca.data.timeframe import TimeFrame
-            from alpaca.trading.requests import MarketOrderRequest
-            from alpaca.trading.enums import OrderSide, TimeInForce
+            from mt5.trading.client import TradingClient
+            from mt5.data.historical import StockHistoricalDataClient
+            from mt5.data.requests import StockBarsRequest
+            from mt5.data.timeframe import TimeFrame
+            from mt5.trading.requests import MarketOrderRequest
+            from mt5.trading.enums import OrderSide, TimeInForce
 
             self._trading_client = TradingClient(
                 config.api_key, config.secret_key, paper=True
             )
             if "category" in config.snapshot() and config.snapshot()["category"] == "Crypto":
-                from alpaca.data.historical import CryptoHistoricalDataClient
+                from mt5.data.historical import CryptoHistoricalDataClient
                 self._data_client = CryptoHistoricalDataClient(
                     config.api_key, config.secret_key
                 )
@@ -331,11 +331,11 @@ class MeanReversionEngine:
                 try:
                     cfg = config.snapshot()
                     symbol = cfg["symbol"]
-                    # Alpaca: Stocks use "SPY", Crypto uses "BTC/USD"
+                    # MT5: Stocks use "SPY", Crypto uses "BTC/USD"
                     if cfg.get("category") == "Crypto":
-                        alpaca_symbol = symbol if "/" in symbol else symbol # Keep it as is
+                        mt5_symbol = symbol if "/" in symbol else symbol # Keep it as is
                     else:
-                        alpaca_symbol = symbol.replace("/", "") if "/" in symbol else symbol
+                        mt5_symbol = symbol.replace("/", "") if "/" in symbol else symbol
                     
                     bb_period = cfg["bb_period"]
                     bb_std = cfg["bb_std_dev"]
@@ -352,9 +352,9 @@ class MeanReversionEngine:
                     end = datetime.now(timezone.utc)
                     start = end - timedelta(days=5)
                     if cfg.get("category") == "Crypto":
-                        from alpaca.data.requests import CryptoBarsRequest
+                        from mt5.data.requests import CryptoBarsRequest
                         request = CryptoBarsRequest(
-                            symbol_or_symbols=alpaca_symbol,
+                            symbol_or_symbols=mt5_symbol,
                             timeframe=TimeFrame.Minute,
                             start=start,
                             end=end,
@@ -363,7 +363,7 @@ class MeanReversionEngine:
                         bars_data = self._data_client.get_crypto_bars(request)
                     else:
                         request = StockBarsRequest(
-                            symbol_or_symbols=alpaca_symbol,
+                            symbol_or_symbols=mt5_symbol,
                             timeframe=TimeFrame.Minute,
                             start=start,
                             end=end,
@@ -379,7 +379,7 @@ class MeanReversionEngine:
 
                     # If multi-index, select the symbol
                     if isinstance(df.index, pd.MultiIndex):
-                        df = df.xs(alpaca_symbol, level="symbol")
+                        df = df.xs(mt5_symbol, level="symbol")
 
                     # Calculate Bollinger Bands
                     df["sma"] = df["close"].rolling(window=bb_period).mean()
@@ -509,7 +509,7 @@ class MeanReversionEngine:
 
                     # ── KELLY POSITION SIZING ─────────────────────────────────────────
                     qty_multiplier = vital_signs.get_qty_multiplier()
-                    base_qty = max(1, int(cfg["qty"] * qty_multiplier))
+                    base_qty = max(0.01, float(cfg["qty"] * qty_multiplier))
 
                     if cfg.get("kelly_sizing_enabled", True):
                         try:
@@ -532,18 +532,18 @@ class MeanReversionEngine:
                                 survival_state=vitals.get("survival_state", "HEALTHY"),
                                 apex_state=vitals.get("apex_state", "HUNTING"),
                                 kelly_fraction_override=cfg.get("kelly_fraction") if not cfg.get("kelly_sizing_enabled") else None,
-                                max_qty=max(cfg.get("qty", 10) * 5, int(cfg.get("qty", 10) * vital_signs.hunger_multiplier)),
+                                max_qty=max(float(cfg.get("qty", 10)) * 5.0, float(cfg.get("qty", 10)) * float(vital_signs.hunger_multiplier)),
                                 hunger_multiplier=vital_signs.hunger_multiplier,
                             )
-                            effective_qty = max(1, kelly_qty)
+                            effective_qty = max(0.01, float(kelly_qty))
                             # Apply momentum sizing confidence on top
-                            effective_qty = max(1, int(effective_qty * momentum_state.size_multiplier))
+                            effective_qty = max(0.01, float(effective_qty * momentum_state.size_multiplier))
                             logger.debug(f"[KELLY] {kelly_diag.get('reason', 'sizing applied')}")
                         except Exception as ke:
                             logger.warning(f"[KELLY] Stats unavailable ({ke}). Falling back to base qty={base_qty}.")
-                            effective_qty = max(1, int(base_qty * momentum_state.size_multiplier))
+                            effective_qty = max(0.01, float(base_qty * momentum_state.size_multiplier))
                     else:
-                        effective_qty = max(1, int(base_qty * momentum_state.size_multiplier))
+                        effective_qty = max(0.01, float(base_qty * momentum_state.size_multiplier))
 
                     # Check stop loss (single authoritative block)
                     if self.position_qty > 0 and self.entry_price > 0:

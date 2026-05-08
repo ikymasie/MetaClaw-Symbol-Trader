@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import type { AlpacaBar, AlpacaQuote, TickerBotContext } from '@/hooks/useAlpacaTicker';
+import type { MT5Bar, MT5Quote, TickerBotContext } from '@/hooks/useMT5Ticker';
 import {
   TrendingUp, TrendingDown, Activity, Wifi, WifiOff,
   DollarSign, BarChart2, Target, Layers,
@@ -9,8 +9,8 @@ import {
 
 interface TickerStatsBarProps {
   symbol: string;
-  bars: AlpacaBar[];
-  lastQuote: AlpacaQuote | null;
+  bars: MT5Bar[];
+  lastQuote: MT5Quote | null;
   lastPrice: number | null;
   bots: TickerBotContext[];
   isConnected: boolean;

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useTickerBots, type BotTickerInfo } from '@/hooks/useTickerBots';
-import { useAlpacaTicker } from '@/hooks/useAlpacaTicker';
+import { useMT5Ticker } from '@/hooks/useMT5Ticker';
 import { useStreaming } from '@/contexts/StreamingContext';
 import { BotSwitcherStrip } from '@/components/ticker/BotSwitcherStrip';
 import { TickerStatsBar } from '@/components/ticker/TickerStatsBar';
@@ -21,7 +21,7 @@ export default function TickerPage() {
   const activeSymbol = selectedBot?.symbol ?? 'BTC/USD';
 
   const { isStreaming } = useStreaming();
-  const { bars, lastQuote, lastPrice, bots: liveBots, isConnected, error } = useAlpacaTicker(activeSymbol, isStreaming);
+  const { bars, lastQuote, lastPrice, bots: liveBots, isConnected, error } = useMT5Ticker(activeSymbol, isStreaming);
 
   // Only show bots for the selected symbol
   const filteredBots = useMemo(
