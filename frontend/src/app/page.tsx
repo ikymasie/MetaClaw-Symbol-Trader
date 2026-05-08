@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useFleetStatus, useFleetConfig, useMarketData } from '@/hooks/useFleet';
+
+import { useFleetStatus, useFleetConfig, useMarketData, useAvailableSymbols } from '@/hooks/useFleet';
 import { FleetSummaryBar } from '@/components/dashboard/FleetSummaryBar';
 import { FleetBotGrid } from '@/components/dashboard/FleetBotGrid';
 import { BotDetailDrawer } from '@/components/dashboard/BotDetailDrawer';
@@ -13,13 +14,12 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, Loader2, ShieldAlert, ChevronDown, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
 import type { BotSnapshot, FleetStatus } from '@/lib/api';
 
-const WATCHLIST_SYMBOLS = ['BTC', 'ETH', 'SOL', 'SPY', 'QQQ', 'AAPL', 'TSLA', 'AVAX'];
-
 type Filter = 'all' | 'running' | 'stopped';
 
 export default function Dashboard() {
   const { data: fleet, isLoading, error, refetch } = useFleetStatus();
   const { data: fleetConfig } = useFleetConfig();
+  const { data: symbolsData } = useAvailableSymbols();
 
   const [filter, setFilter]         = useState<Filter>('all');
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
@@ -31,11 +31,29 @@ export default function Dashboard() {
   const config = fleetData?.fleet_config;
 
   // ── Market Pulse ────────────────────────────────────────
-  // Default to first running bot's symbol, fallback to BTC
+  
+  // Dynamically derive watchlist from available MT5 symbols + active bots
+  const watchlistSymbols = useMemo(() => {
+    const available = symbolsData?.symbols?.map(s => s.name) ?? [];
+    const botSymbols = bots.map(b => b.symbol);
+    
+    // Combine and remove duplicates
+    const combined = Array.from(new Set([...botSymbols, ...available]));
+    
+    // If we have too many, let's prioritize bot symbols and a few majors
+    // For now, we'll just return the combined list (select handles large lists okay-ish)
+    // But we might want to limit to top 50 if it's crazy
+    return combined.slice(0, 100);
+  }, [symbolsData, bots]);
+
+  // Default to first running bot's symbol, fallback to first available or BTCUSD
   const defaultSymbol = useMemo(() => {
     const running = bots.find(b => b.status?.bot_status === 'RUNNING');
-    return running?.symbol ?? 'BTC';
-  }, [bots]);
+    if (running) return running.symbol;
+    if (watchlistSymbols.length > 0) return watchlistSymbols[0];
+    return 'BTCUSD';
+  }, [bots, watchlistSymbols]);
+
   const [pulseSymbol, setPulseSymbol] = useState<string | null>(null);
   const activeSymbol = pulseSymbol ?? defaultSymbol;
   const { data: marketData, isLoading: marketLoading } = useMarketData(activeSymbol);
@@ -163,16 +181,9 @@ export default function Dashboard() {
                   onChange={(e) => setPulseSymbol(e.target.value)}
                   className="appearance-none bg-zinc-900 border border-white/8 rounded-xl px-3 py-1.5 pr-8 text-[10px] font-mono font-bold text-zinc-300 hover:border-white/20 transition-all cursor-pointer outline-none focus:ring-1 focus:ring-primary/50"
                 >
-                  {WATCHLIST_SYMBOLS.map(sym => (
-                    <option key={sym} value={sym}>{sym}/USD</option>
+                  {watchlistSymbols.map(sym => (
+                    <option key={sym} value={sym}>{sym}</option>
                   ))}
-                  {/* Include any bot symbols not in the watchlist */}
-                  {bots
-                    .filter(b => !WATCHLIST_SYMBOLS.includes(b.symbol))
-                    .map(b => (
-                      <option key={b.symbol} value={b.symbol}>{b.symbol}</option>
-                    ))
-                  }
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-500 pointer-events-none" />
               </div>
@@ -196,7 +207,7 @@ export default function Dashboard() {
               <div className="flex flex-col items-center justify-center h-full gap-3 text-zinc-600">
                 <BarChart3 className="w-8 h-8 opacity-30" />
                 <p className="text-xs font-mono">No market data available for {activeSymbol}</p>
-                <p className="text-[10px] font-mono text-zinc-700">Check Alpaca API keys and symbol availability</p>
+                <p className="text-[10px] font-mono text-zinc-700">Check MT5 API keys and symbol availability</p>
               </div>
             )}
           </div>
@@ -227,7 +238,7 @@ export default function Dashboard() {
             <div className="p-4 rounded-2xl border border-white/4 bg-white/2 text-[10px] font-mono text-zinc-600">
               <p className="uppercase tracking-widest mb-2 opacity-50">Operational Memo</p>
               <p className="leading-relaxed">
-                Connect your Alpaca Live API and set `demo_mode=false` in bot config to toggle execution. Current fleet is running on PAPER protocols.
+                Connect your MT5 Live API and set `demo_mode=false` in bot config to toggle execution. Current fleet is running on PAPER protocols.
               </p>
             </div>
           </aside>
@@ -245,7 +256,7 @@ export default function Dashboard() {
             <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> FLEET: {bots.length} bots
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> ALPACA: PAPER
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" /> MT5: ACTIVE
           </span>
         </div>
       </footer>

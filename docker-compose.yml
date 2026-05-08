@@ -1,23 +1,30 @@
-version: '3.8'
-
 services:
   tradeclaw:
     build: .
     container_name: tradeclaw
+    platform: linux/amd64   # required on Apple Silicon (M1/M2/M3) for Wine x86_64
     ports:
       - "3000:3000"
       - "8000:8000"
     env_file:
       - backend/.env
       - frontend/.env.local
+    environment:
+      - MT5_LOGIN=${MT5_LOGIN}
+      - MT5_PASSWORD=${MT5_PASSWORD}
+      - MT5_SERVER=${MT5_SERVER}
     volumes:
-      - ./tradeclaw_data:/app/backend/data # Ensure database persistence if any local sqlite is used.
+      - ./tradeclaw_data:/app/backend/data
+      - mt5_terminal:/root/.mt5   # persist MT5 terminal state, cache, and market history
     deploy:
       resources:
         limits:
           cpus: '2.0'
-          memory: 2G
+          memory: 4G        # bumped from 2G — Wine adds ~800MB overhead
         reservations:
           cpus: '0.5'
-          memory: 512M
+          memory: 1G
     restart: unless-stopped
+
+volumes:
+  mt5_terminal:

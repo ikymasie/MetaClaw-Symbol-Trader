@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import type { TickerBotContext } from '@/hooks/useAlpacaTicker';
+import type { TickerBotContext } from '@/hooks/useMT5Ticker';
 import { TrendingUp, TrendingDown, Target, Zap, DollarSign } from 'lucide-react';
 
 interface BotDetailPanelProps {

@@ -22,6 +22,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from bot_config import BotConfig, FleetConfig, DEFAULT_FLEET_CONFIG
+from mt5_hub import mt5_hub
 
 logger = logging.getLogger("tradeclaw.fleet")
 

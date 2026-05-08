@@ -1,0 +1,16 @@
+[Common]
+Login=%MT5_LOGIN%
+Password=%MT5_PASSWORD%
+Server=%MT5_SERVER%
+NewsEnable=0
+
+[Experts]
+AllowLiveTrading=1
+AllowDllImport=0
+Enabled=1
+Account=0
+
+[Charts]
+MaxBars=50000
+
+[Tester]

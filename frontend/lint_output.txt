@@ -1,0 +1,322 @@
+
+> frontend@0.1.0 lint
+> eslint
+
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/app/api/server/route.ts
+  16:12  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+  31:16  warning  'e' is defined but never used    @typescript-eslint/no-unused-vars
+  36:16  warning  'e' is defined but never used    @typescript-eslint/no-unused-vars
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/app/bnb/page.tsx
+  113:193  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/app/page.tsx
+  13:10  warning  'Alert' is defined but never used                                                                                                                                                        @typescript-eslint/no-unused-vars
+  13:17  warning  'AlertDescription' is defined but never used                                                                                                                                             @typescript-eslint/no-unused-vars
+  13:35  warning  'AlertTitle' is defined but never used                                                                                                                                                   @typescript-eslint/no-unused-vars
+  30:9   warning  The 'bots' logical expression could make the dependencies of useMemo Hook (at line 47) change on every render. To fix this, wrap the initialization of 'bots' in its own useMemo() Hook  react-hooks/exhaustive-deps
+  30:9   warning  The 'bots' logical expression could make the dependencies of useMemo Hook (at line 55) change on every render. To fix this, wrap the initialization of 'bots' in its own useMemo() Hook  react-hooks/exhaustive-deps
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/app/situation-room/page.tsx
+   5:10  warning  'AgentCard' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+  33:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/app/situation-room/page.tsx:33:5
+  31 |         second: '2-digit',
+  32 |       });
+> 33 |     setNow(fmt());
+     |     ^^^^^^ Avoid calling setState() directly within an effect
+  34 |     const id = setInterval(() => setNow(fmt()), 1_000);
+  35 |     return () => clearInterval(id);
+  36 |   }, []);  react-hooks/set-state-in-effect
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/app/ticker/page.tsx
+  16:9  warning  The 'bots' logical expression could make the dependencies of useMemo Hook (at line 29) change on every render. To fix this, wrap the initialization of 'bots' in its own useMemo() Hook  react-hooks/exhaustive-deps
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/SystemResourceMonitor.tsx
+  314:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/SystemResourceMonitor.tsx:314:5
+  312 |   useEffect(() => {
+  313 |     mountedRef.current = true;
+> 314 |     fetchData();
+      |     ^^^^^^^^^ Avoid calling setState() directly within an effect
+  315 |     const id = setInterval(fetchData, POLL_INTERVAL_MS);
+  316 |     return () => {
+  317 |       mountedRef.current = false;  react-hooks/set-state-in-effect
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/dashboard/AIBrain.tsx
+  58:42  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/dashboard/AgentCard.tsx
+  8:13  warning  'TrendingUp' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/dashboard/BotDetailDrawer.tsx
+    8:35  warning  'TrendingUp' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+    8:47  warning  'TrendingDown' is defined but never used                                                                         @typescript-eslint/no-unused-vars
+    9:30  warning  'Shield' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+    9:38  warning  'Skull' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+    9:60  warning  'Crown' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+   10:3   warning  'Flame' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+   11:25  warning  'CandlestickChart' is defined but never used                                                                     @typescript-eslint/no-unused-vars
+   19:1   warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+  134:6   warning  React Hook useEffect has a missing dependency: 'fetchHistory'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  456:65  error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/dashboard/ControlPanel.tsx
+  35:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/dashboard/ControlPanel.tsx:35:7
+  33 |   useEffect(() => {
+  34 |     if (config) {
+> 35 |       setStopLoss(config.stop_loss_pct);
+     |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  36 |       setBbPeriod(config.bb_period);
+  37 |       setDemoMode(config.demo_mode);
+  38 |       setSymbol(config.symbol);  react-hooks/set-state-in-effect
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/dashboard/ExecutionerPanel.tsx
+  48:9  warning  'vetoCount' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/dashboard/FleetSummaryBar.tsx
+  23:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/dashboard/GlobalPulse.tsx
+   6:10  warning  'motion' is defined but never used                               @typescript-eslint/no-unused-vars
+  48:83  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/dashboard/OrbitalAgent.tsx
+  4:18  warning  'AnimatePresence' is defined but never used  @typescript-eslint/no-unused-vars
+  7:13  warning  'TrendingUp' is defined but never used       @typescript-eslint/no-unused-vars
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/dashboard/OrbitalCore.tsx
+  5:10  warning  'ShieldAlert' is defined but never used    @typescript-eslint/no-unused-vars
+  5:23  warning  'Zap' is defined but never used            @typescript-eslint/no-unused-vars
+  5:28  warning  'Clock' is defined but never used          @typescript-eslint/no-unused-vars
+  5:35  warning  'CheckCircle2' is defined but never used   @typescript-eslint/no-unused-vars
+  5:49  warning  'XCircle' is defined but never used        @typescript-eslint/no-unused-vars
+  5:58  warning  'AlertTriangle' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/dashboard/OrganismVitalPanel.tsx
+   8:105  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  15:85   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  58:17   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/dashboard/RiskMetrics.tsx
+  4:10  warning  'Progress' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/dashboard/SignalScanning.tsx
+  4:38  warning  'Activity' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/dashboard/StatusBar.tsx
+  22:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/dashboard/TradingChart.tsx
+    8:14  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+    9:18  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   10:12  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  131:53  warning  '_' is defined but never used             @typescript-eslint/no-unused-vars
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/fleet/BotCard.tsx
+   7:3   warning  'Activity' is defined but never used           @typescript-eslint/no-unused-vars
+   7:32  warning  'TrendingDown' is defined but never used       @typescript-eslint/no-unused-vars
+   7:46  warning  'TrendingUp' is defined but never used         @typescript-eslint/no-unused-vars
+  64:9   warning  'sentConf' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/fleet/BotWizard.tsx
+  124:26   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-explicit-any
+  308:9    warning  'selectedCategory' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+  311:32   error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `selectedPersonality`, but the source dependencies were [symbol, customSymbol, category, personality]. Inferred different dependency than source.
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/fleet/BotWizard.tsx:311:32
+  309 |
+  310 |   // ── AI Forge ──────────────────────────────────────────
+> 311 |   const runForge = useCallback(async () => {
+      |                                ^^^^^^^^^^^^^
+> 312 |     setStep('forge');
+      | ^^^^^^^^^^^^^^^^^^^^^
+> 313 |     setForgeError('');
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^
+> 327 |     }
+      | ^^^^^^^^^^^^^^^^^^^^^
+> 328 |   }, [symbol, customSymbol, category, personality]);
+      | ^^^^ Could not preserve existing manual memoization
+  329 |
+  330 |   // ── Deploy ────────────────────────────────────────────
+  331 |   const handleDeploy = () => {  react-hooks/preserve-manual-memoization
+  324:19   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-explicit-any
+  328:6    warning  React Hook useCallback has a missing dependency: 'selectedPersonality?.strategy'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                react-hooks/exhaustive-deps
+  349:24   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-explicit-any
+  409:96   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   react/no-unescaped-entities
+  409:113  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   react/no-unescaped-entities
+  525:15   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @next/next/no-img-element
+  584:13   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @next/next/no-img-element
+  640:11   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @next/next/no-img-element
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/fleet/DeployWizard.tsx
+   52:68  warning  'isErrorSymbols' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  110:9   warning  'atCap' is assigned a value but never used           @typescript-eslint/no-unused-vars
+  420:36  error    Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/fleet/FleetSettings.tsx
+  6:64  warning  'Globe' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/ticker/BotDetailPanel.tsx
+  5:36  warning  'Target' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/ticker/TickerChart.tsx
+    3:29  warning  'useCallback' is defined but never used   @typescript-eslint/no-unused-vars
+  115:44  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  153:74  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  154:72  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  155:74  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  163:23  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  167:46  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/components/ticker/TickerStatsBar.tsx
+  6:3   warning  'TrendingUp' is defined but never used    @typescript-eslint/no-unused-vars
+  6:15  warning  'TrendingDown' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/hooks/useAgentStream.ts
+  122:7   warning  'AGENT_IDS' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  132:10  warning  'randBetween' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  136:10  warning  'pickScript' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  181:55  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+  249:44  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+  260:7   warning  'regime' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  260:15  warning  'status' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  327:35  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-explicit-any
+  392:6   warning  React Hook useCallback has a missing dependency: 'agentMap'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               react-hooks/exhaustive-deps
+  421:20  error    Error: Cannot access variable before it is declared
+
+`connect` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/hooks/useAgentStream.ts:421:20
+  419 |       if (mounted.current && enabled) {
+  420 |         console.log(`[WS] Disconnected. Reconnecting in ${backoffRef.current}ms...`);
+> 421 |         setTimeout(connect, backoffRef.current);
+      |                    ^^^^^^^ `connect` accessed before it is declared
+  422 |         backoffRef.current = Math.min(backoffRef.current * 2, MAX_RECONNECT_MS);
+  423 |       }
+  424 |     };
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/hooks/useAgentStream.ts:394:3
+  392 |   }, [processDeliberationEvent]);
+  393 |
+> 394 |   const connect = useCallback(() => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 395 |     if (!botId || !enabled) return;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 396 |     
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 428 |     };
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 429 |   }, [botId, processUpdate, enabled]);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `connect` is declared here
+  430 |
+  431 |   useEffect(() => {
+  432 |     mounted.current = true;  react-hooks/immutability
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/hooks/useFleet.ts
+  30:60  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/hooks/useLiveFeed.ts
+   67:65  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-explicit-any
+  103:45  error  Error: Cannot access variable before it is declared
+
+`connect` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/hooks/useLiveFeed.ts:103:45
+  101 |       if (mountedRef.current && enabled) {
+  102 |         console.log(`[WS] Disconnected — reconnecting in ${backoffRef.current}ms`);
+> 103 |         reconnectTimer.current = setTimeout(connect, backoffRef.current);
+      |                                             ^^^^^^^ `connect` accessed before it is declared
+  104 |         // Exponential backoff: 2s → 4s → 8s → ... → 30s max
+  105 |         backoffRef.current = Math.min(backoffRef.current * 2, MAX_RECONNECT_MS);
+  106 |       }
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/hooks/useLiveFeed.ts:37:3
+   35 |   }, []);
+   36 |
+>  37 |   const connect = useCallback(() => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>  38 |     if (!mountedRef.current || !enabled) return;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>  39 |
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 107 |     };
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 108 |   }, [queryClient, enabled]);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `connect` is declared here
+  109 |
+  110 |   useEffect(() => {
+  111 |     mountedRef.current = true;  react-hooks/immutability
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/hooks/useMT5Ticker.ts
+  188:51  error  Error: Cannot access variable before it is declared
+
+`connect` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/hooks/useMT5Ticker.ts:188:51
+  186 |       // Only reconnect if the symbol hasn't changed and we're still enabled
+  187 |       if (mountedRef.current && symbolRef.current === sym && enabled) {
+> 188 |         reconnectTimer.current = setTimeout(() => connect(sym), backoffRef.current);
+      |                                                   ^^^^^^^ `connect` accessed before it is declared
+  189 |         backoffRef.current = Math.min(backoffRef.current * 2, MAX_RECONNECT_MS);
+  190 |       }
+  191 |     };
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/hooks/useMT5Ticker.ts:98:3
+   96 |   }, []);
+   97 |
+>  98 |   const connect = useCallback((sym: string) => {
+      |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>  99 |     if (!mountedRef.current || !enabled) return;
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 100 |
+      …
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 191 |     };
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 192 |   }, [enabled]);
+      | ^^^^^^^^^^^^^^^^^ `connect` is declared here
+  193 |
+  194 |   useEffect(() => {
+  195 |     mountedRef.current = true;  react-hooks/immutability
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/hooks/useTrading.ts
+  65:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/frontend/src/lib/api.ts
+   37:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  265:26  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  271:15  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  272:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 96 problems (41 errors, 55 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

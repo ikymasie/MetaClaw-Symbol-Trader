@@ -3,16 +3,11 @@
 #  Copy this file to .env and fill in your values:  cp .env.example .env
 # ══════════════════════════════════════════════════════════════════════════════
 
-# ── MetaTrader 5 ──────────────────────────────────────────────────────────────
-#    Login credentials from your MT5 broker account.
-#    Server name is shown in MT5 terminal: File → Open Account → server list.
-MT5_LOGIN=12345678
-MT5_PASSWORD=your_mt5_password_here
-MT5_SERVER=YourBroker-Demo
-#    Some brokers append a suffix to symbol names (e.g. Weltrade uses "_i":
-#    EURUSD → EURUSD_i). Set this if your broker uses such a convention.
-#    Leave blank if your broker uses standard names.
-MT5_SYMBOL_SUFFIX=
+# ── Alpaca API (Paper Trading) ────────────────────────────────────────────────
+#    Sign up at https://alpaca.markets  →  Paper Trading  →  API Keys
+ALPACA_API_KEY=your_alpaca_api_key_here
+ALPACA_SECRET_KEY=your_alpaca_secret_key_here
+ALPACA_BASE_URL=https://paper-api.alpaca.markets
 
 # ── AI Brain — Gemini (Cloud LLM) ────────────────────────────────────────────
 #    Get a free key at https://aistudio.google.com/apikey
@@ -30,7 +25,7 @@ OLLAMA_MODEL_NAME=gemma4:e4b
 # ── Firebase (Fleet Telemetry & Firestore) ────────────────────────────────────
 #    Optional — leave blank to run without cloud persistence.
 #    Place your service-account-key.json in the project root.
-GOOGLE_APPLICATION_CREDENTIALS=../service-account-key.json
+# GOOGLE_APPLICATION_CREDENTIALS=../service-account-key.json
 
 # ── Server ────────────────────────────────────────────────────────────────────
 HOST=0.0.0.0

@@ -79,7 +79,7 @@ async def insert_trade(
     timestamp: str,
     side: str,
     symbol: str,
-    qty: int,
+    qty: float,
     price: float,
     pnl: float = 0.0,
     signal: str = "",

@@ -711,7 +711,7 @@ async def get_all_trades_firestore(bot_id: str, limit: int = 200) -> list[dict]:
 # MARKET BARS — Persistent Per-Symbol Bar Store
 # ─────────────────────────────────────────────
 # Stores 1-minute OHLC bars in Firestore so bots can load 1000+ bars
-# on startup instead of being limited to Alpaca's 100-bar warmup window.
+# on startup instead of being limited to MT5's 100-bar warmup window.
 # Bars are per-symbol (not per-bot) — multiple bots trading the same
 # symbol share the same bar history.
 #

@@ -15,19 +15,15 @@ load_dotenv()
 class TradingConfig:
     """Mutable trading configuration — can be updated from the UI at runtime."""
 
-    # Alpaca credentials
-    api_key: str = field(default_factory=lambda: os.getenv("ALPACA_API_KEY", ""))
-    secret_key: str = field(default_factory=lambda: os.getenv("ALPACA_SECRET_KEY", ""))
-    base_url: str = field(
-        default_factory=lambda: os.getenv(
-            "ALPACA_BASE_URL", "https://paper-api.alpaca.markets"
-        )
-    )
+    # MetaTrader 5 credentials
+    mt5_login: int = field(default_factory=lambda: int(os.getenv("MT5_LOGIN", "0") or "0"))
+    mt5_password: str = field(default_factory=lambda: os.getenv("MT5_PASSWORD", ""))
+    mt5_server: str = field(default_factory=lambda: os.getenv("MT5_SERVER", ""))
 
     # Trading params
     symbol: str = field(default_factory=lambda: os.getenv("DEFAULT_SYMBOL", "SPY"))
-    qty: int = field(
-        default_factory=lambda: int(os.getenv("DEFAULT_QTY", "1"))
+    qty: float = field(
+        default_factory=lambda: float(os.getenv("DEFAULT_QTY", "1.0"))
     )
     max_daily_drawdown_pct: float = field(
         default_factory=lambda: float(os.getenv("MAX_DAILY_DRAWDOWN_PCT", "6.0"))

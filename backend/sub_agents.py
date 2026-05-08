@@ -33,7 +33,7 @@ from typing import Optional
 
 import httpx
 from openai import OpenAI
-from alpaca_hub import alpaca_hub
+from mt5_hub import mt5_hub
 from gemini_budget import gemini_budget
 from prompt_loader import PromptLoader
 
@@ -111,7 +111,7 @@ class TradeDecision:
     """
     approved: bool
     signal: str                    # "BUY" | "SELL" | "HOLD"
-    approved_qty: int              # Qty approved by RiskManagerAgent (0 if blocked)
+    approved_qty: float            # Qty approved by RiskManagerAgent (0 if blocked)
     order_urgency: str             # "HIGH" | "LOW"
     quorum_score: float            # Weighted vote score (-1.0 – +1.0)
     votes: list = field(default_factory=list)   # list[AgentVote.to_dict()]
@@ -266,8 +266,8 @@ class SentimentAgent(BaseAgent):
     def run(self) -> AgentSignal:
         self._logger.info(f"SentimentAgent running for {self.symbol}")
         
-        # 1. Get real-time headlines from AlpacaHub buffer
-        recent_news = alpaca_hub.get_recent_news(self.symbol)
+        # 1. Get real-time headlines from MT5Hub buffer
+        recent_news = mt5_hub.get_recent_news(self.symbol)
         
         if not recent_news:
             self._logger.info(f"No headlines buffered for {self.symbol}. Returning neutral.")
@@ -399,7 +399,7 @@ class TechnicalAgent(BaseAgent):
 
 class WatchmanAgent(BaseAgent):
     """
-    The Market Watchman monitors order-flow quality using Alpaca Level 1 data.
+    The Market Watchman monitors order-flow quality using MT5 Level 1 data.
     It does NOT use an LLM — it's a pure-math statistical agent.
 
     Metrics:
@@ -431,7 +431,7 @@ class WatchmanAgent(BaseAgent):
 
     def get_vote(
         self,
-        alpaca_client=None,     # Optional live Alpaca client for real data
+        mt5_client=None,     # Optional live MT5 client for real data
         price_history=None,     # Optional deque of {price, volume} dicts
     ) -> AgentVote:
         """
@@ -440,7 +440,7 @@ class WatchmanAgent(BaseAgent):
         ensuring the Watchman never blocks trades due to missing data.
         """
         try:
-            quality, alert = self._assess_quality(alpaca_client, price_history)
+            quality, alert = self._assess_quality(mt5_client, price_history)
         except Exception as e:
             self._logger.warning(f"WatchmanAgent quality check failed: {e}")
             return AgentVote(
@@ -471,7 +471,7 @@ class WatchmanAgent(BaseAgent):
             weight=1.25,
         )
 
-    def _assess_quality(self, alpaca_client, price_history) -> tuple[float, Optional[str]]:
+    def _assess_quality(self, mt5_client, price_history) -> tuple[float, Optional[str]]:
         """Compute market quality score (0.0–1.0) from available inputs."""
         import numpy as np
 
@@ -699,7 +699,7 @@ class RiskManagerAgent(BaseAgent):
     def get_vote(
         self,
         signal: str,            # "BUY" | "SELL"
-        requested_qty: int,
+        requested_qty: float,
         equity: float,
         daily_pnl: float,
         starting_equity: float,
@@ -766,7 +766,7 @@ class RiskManagerAgent(BaseAgent):
                 current_price=1.0,   # qty already computed upstream
             )
             # Cap kelly_qty at the requested qty
-            approved_qty = min(int(kelly_qty), requested_qty)
+            approved_qty = min(float(kelly_qty), requested_qty)
         except Exception as e:
             self._logger.warning(f"Kelly computation error: {e} — using requested qty")
             approved_qty = requested_qty
@@ -1266,7 +1266,7 @@ class SubAgentPool:
     def deliberate(
         self,
         raw_signal: str,            # "BUY" | "SELL" from the Strategist
-        requested_qty: int,
+        requested_qty: float,
         equity: float,
         daily_pnl: float,
         starting_equity: float,

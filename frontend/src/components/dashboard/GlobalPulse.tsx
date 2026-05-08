@@ -1,13 +1,13 @@
 'use client';
 
-import { useAlpacaTicker } from '@/hooks/useAlpacaTicker';
+import { useMT5Ticker } from '@/hooks/useMT5Ticker';
 import { useStreaming } from '@/contexts/StreamingContext';
 import { Activity, TrendingUp, TrendingDown, Target, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export function GlobalPulse() {
   const { isStreaming } = useStreaming();
-  const { lastPrice, bars, isConnected } = useAlpacaTicker('SPY', isStreaming);
+  const { lastPrice, bars, isConnected } = useMT5Ticker('SPY', isStreaming);
 
   const openBar = bars.length > 0 ? bars[0] : null;
   const prevClose = openBar?.close ?? 0;

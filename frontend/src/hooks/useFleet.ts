@@ -147,10 +147,10 @@ export function useBotAIDecisions(botId: string | null) {
   });
 }
 
-/** Alpaca Account Info — polls every 10 seconds (10,000 ms) */
-export function useAlpacaAccount() {
+/** MT5 Account Info — polls every 10 seconds (10,000 ms) */
+export function useMT5Account() {
   return useQuery({
-    queryKey: ['alpaca-account'],
+    queryKey: ['mt5-account'],
     queryFn: tradingApi.getAccountInfo,
     refetchInterval: 10_000,
     retry: 3,
@@ -177,5 +177,14 @@ export function useMarketData(symbol: string) {
     retryDelay: 10_000,     // Wait 10 s before retry
   });
   return query;
+}
+
+/** Fetch available symbols from MT5 terminal */
+export function useAvailableSymbols() {
+  return useQuery({
+    queryKey: ['available-symbols'],
+    queryFn: tradingApi.getAvailableSymbols,
+    staleTime: 60_000, // 1 minute
+  });
 }
 

@@ -61,7 +61,7 @@ class BotConfig:
     # Identity
     bot_id: str = field(default_factory=lambda: f"bot-{uuid.uuid4().hex[:8]}")
     name: str = "Unnamed Bot"
-    symbol: str = "SPY"
+    symbol: str = "EURUSD"
     tags: list = field(default_factory=list)  # e.g. ["equity", "aggressive"]
     auto_start: bool = True
 
@@ -78,7 +78,7 @@ class BotConfig:
     demo_mode: bool = True
 
     # Position & Risk
-    qty: int = 1
+    qty: float = 1.0
     stop_loss_pct: float = 1.0
     max_daily_drawdown_pct: float = 6.0
 
@@ -153,7 +153,7 @@ class BotConfig:
 
     # Smart Order Routing (ExecutionerAgent)
     # Minimum qty before TWAP routing is used (below threshold → LIMIT/MARKET).
-    smart_routing_min_qty: int = 3
+    smart_routing_min_qty: float = 3.0
     # Delay between TWAP child order slices (milliseconds).
     twap_interval_ms: int = 500
     # Maximum acceptable slippage as a % of signal price before aborting.
@@ -165,8 +165,8 @@ class BotConfig:
         """Raise ValueError if config is invalid."""
         if self.strategy not in VALID_STRATEGIES:
             raise ValueError(f"Invalid strategy: {self.strategy}. Must be one of {VALID_STRATEGIES}.")
-        if self.qty < 1:
-            raise ValueError("qty must be >= 1")
+        if self.qty <= 0:
+            raise ValueError("qty must be > 0")
         if self.capital_allocation < 1.0:
             raise ValueError("capital_allocation must be >= 1.0")
         if not (0.1 <= self.stop_loss_pct <= 10.0):
@@ -220,7 +220,7 @@ class FleetConfig:
     max_fleet_drawdown_pct: float = 10.0
 
     # Force all bots into demo mode regardless of individual bot config
-    # DEPRECATED: Standardizing on Alpaca account-wide mode (Paper keys = Demo).
+    # DEPRECATED: Standardizing on MT5 account-wide mode (Paper keys = Demo).
     # global_demo_mode: bool = False
 
     # Sub-agent master switch
@@ -256,40 +256,40 @@ DEFAULT_FLEET_CONFIG = FleetConfig()
 
 # Preset bot templates for the deploy wizard
 BOT_PRESETS = {
-    "conservative_equity": BotConfig(
-        name="Conservative Equity",
-        symbol="SPY",
+    "conservative_forex": BotConfig(
+        name="Conservative Forex",
+        symbol="EURUSD",
         strategy=STRATEGY_COMBINED,
         capital_allocation=25000.0,
         qty=1,
         stop_loss_pct=0.5,
         max_daily_drawdown_pct=3.0,
         bb_std_dev=2.5,
-        tags=["equity", "conservative"],
+        tags=["forex", "conservative"],
         sub_agents=[SUB_AGENT_SENTIMENT, SUB_AGENT_MACRO],
     ),
-    "aggressive_equity": BotConfig(
-        name="Aggressive Equity",
-        symbol="QQQ",
+    "aggressive_forex": BotConfig(
+        name="Aggressive Forex",
+        symbol="GBPUSD",
         strategy=STRATEGY_COMBINED,
         capital_allocation=50000.0,
         qty=5,
         stop_loss_pct=1.5,
         max_daily_drawdown_pct=8.0,
         bb_std_dev=1.8,
-        tags=["equity", "aggressive"],
+        tags=["forex", "aggressive"],
         sub_agents=[SUB_AGENT_SENTIMENT, SUB_AGENT_MACRO, SUB_AGENT_TECHNICAL],
     ),
-    "fib_hunter": BotConfig(
-        name="Fib Hunter",
-        symbol="AAPL",
+    "crypto_hunter": BotConfig(
+        name="Crypto Hunter",
+        symbol="BTCUSD",
         strategy=STRATEGY_FIB_ONLY,
         capital_allocation=15000.0,
         qty=3,
         stop_loss_pct=1.0,
         fib_entry_mode="AND",
         fib_bounce_threshold_pct=0.15,
-        tags=["equity", "fibonacci"],
+        tags=["crypto", "fibonacci"],
         sub_agents=[SUB_AGENT_EARNINGS, SUB_AGENT_TECHNICAL],
     ),
 }

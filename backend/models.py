@@ -32,7 +32,7 @@ class StartRequest(BaseModel):
 
 
 class ConfigUpdate(BaseModel):
-    qty: Optional[int] = None
+    qty: Optional[float] = None
     capital_allocation: Optional[float] = None
 
 
@@ -41,7 +41,7 @@ class ConfigUpdate(BaseModel):
 class ConfigSnapshot(BaseModel):
     # Core strategy
     symbol: str
-    qty: int
+    qty: float
     stop_loss_pct: float
     bb_period: int
     bb_std_dev: float
@@ -86,7 +86,7 @@ class ConfigSnapshot(BaseModel):
 class StatusResponse(BaseModel):
     bot_status: BotStatus
     current_price: float = 0.0
-    position_qty: int = 0
+    position_qty: float = 0.0
     position_side: Optional[str] = None
     entry_price: float = 0.0
     equity: float = 0.0
@@ -114,7 +114,7 @@ class TradeRecord(BaseModel):
     timestamp: str
     side: str
     symbol: str
-    qty: int
+    qty: float
     price: float
     pnl: float = 0.0
     signal: str = ""
