@@ -120,13 +120,22 @@ class ConnectionManager:
             return
 
         data = json.dumps(payload, default=str)
-        dead = []
-        for ws in list(self.active.get(channel, [])):
+        sockets = list(self.active.get(channel, []))
+        if not sockets:
+            return
+
+        async def _send(ws):
             try:
                 await ws.send_text(data)
+                return None
             except Exception:
-                dead.append(ws)
+                return ws
 
+        # Dispatch all sends concurrently
+        results = await asyncio.gather(*(_send(ws) for ws in sockets))
+
+        # Collect and remove dead sockets
+        dead = [ws for ws in results if ws is not None]
         for ws in dead:
             self.disconnect(ws, channel)
 
@@ -135,18 +144,35 @@ class ConnectionManager:
         Should be called periodically (e.g. every 60 s) to reclaim memory from
         browser tabs that closed without sending a proper WebSocket close frame.
         """
-        channels = list(self.active.keys())
+        # Collect unique WebSockets and their associated channels
+        ws_to_channels: dict[WebSocket, list[str]] = {}
+        for channel, sockets in self.active.items():
+            for ws in sockets:
+                if ws not in ws_to_channels:
+                    ws_to_channels[ws] = []
+                ws_to_channels[ws].append(channel)
+
+        if not ws_to_channels:
+            return
+
+        async def _ping(ws, channels):
+            try:
+                await ws.send_text('{"type":"ping"}')
+                return None
+            except Exception:
+                return (ws, channels)
+
+        # Dispatch all pings concurrently across all unique WebSockets
+        results = await asyncio.gather(*(_ping(ws, channels) for ws, channels in ws_to_channels.items()))
+
         evicted_total = 0
-        for channel in channels:
-            dead = []
-            for ws in list(self.active.get(channel, [])):
-                try:
-                    await ws.send_text('{"type":"ping"}')
-                except Exception:
-                    dead.append(ws)
-            for ws in dead:
-                self.disconnect(ws, channel)
+        for res in results:
+            if res:
+                ws, channels = res
+                for channel in channels:
+                    self.disconnect(ws, channel)
                 evicted_total += 1
+
         if evicted_total:
             logger.info(f"[WS] purge_stale: evicted {evicted_total} dead connection(s)")
 
