@@ -16,10 +16,9 @@ from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import pandas as pd
-from datetime import timedelta
 
 # Fleet
-from bot_config import BotConfig, FleetConfig
+from bot_config import BotConfig
 from fleet import fleet
 
 # MT5 hub (market data + news)
@@ -31,9 +30,7 @@ from firebase_store import (
     insert_trade,
     insert_equity_snapshot,
     get_all_trades,
-    get_recent_trades_for_analysis,
     _legacy_get_equity_history as get_equity_history,
-    _legacy_get_daily_pnl_sum as get_daily_pnl_sum,
     _legacy_get_trade_stats_today as get_trade_stats_today,
     _legacy_set_bot_state as set_bot_state,
     _legacy_get_bot_state as get_bot_state,
@@ -674,7 +671,9 @@ async def system_resources():
     can correlate memory growth with backend activity.
     """
     try:
-        import psutil, os
+        import os
+
+        import psutil
         process = psutil.Process(os.getpid())
 
         # CPU — measured over a 0.1s interval (non-blocking in async context)
@@ -810,9 +809,6 @@ async def get_market_data(symbol: str):
         clean = symbol.strip().upper()
         mt5_symbol = to_mt5_symbol(clean)
 
-        end = datetime.now(timezone.utc)
-        start = end - timedelta(hours=2)
-
         mt5.symbol_select(mt5_symbol, True)
         # Use copy_rates_from_pos (index-based) instead of copy_rates_range (time-based)
         # for better stability over RPyC bridge.
@@ -822,7 +818,6 @@ async def get_market_data(symbol: str):
             _empty_response["message"] = f"No recent data for {mt5_symbol} — market may be closed"
             return _empty_response
 
-        import numpy as np
         df = pd.DataFrame(rates)
         df["time"] = pd.to_datetime(df["time"], unit="s", utc=True)
         df = df.rename(columns={"tick_volume": "volume"})
@@ -950,7 +945,7 @@ async def fleet_deploy(request: DeployBotRequest):
             limit_timeout_s=request.limit_timeout_s,
             auto_start=request.auto_start,
         )
-        instance = fleet.deploy_bot(cfg)
+        fleet.deploy_bot(cfg)
         return {
             "status": "deployed",
             "bot_id": bot_id,
