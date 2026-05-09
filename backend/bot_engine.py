@@ -71,6 +71,8 @@ class BotEngine:
 
         # Market state
         self.current_price: float = 0.0
+        self.current_bid: float = 0.0
+        self.current_ask: float = 0.0
         self.position_qty: float = 0.0
         self.position_side: str = "NONE"
         self.entry_price: float = 0.0
@@ -654,6 +656,9 @@ class BotEngine:
                 self._logger.warning(f"Zero price for {mt5_symbol}, skipping tick")
                 return
 
+            self.current_bid = tick.bid
+            self.current_ask = tick.ask
+
             # Latest completed 1-min bar for OHLCV
             rates = mt5.copy_rates_from_pos(mt5_symbol, mt5.TIMEFRAME_M1, 0, 1)
             if rates is not None and len(rates) > 0:
@@ -953,46 +958,52 @@ class BotEngine:
         if self.position_qty > 0 and self.entry_price > 0:
             sl_pct = params.get("stop_loss_pct", self.config.stop_loss_pct)
             if self.position_side == "LONG":
-                loss_pct = (current_price - self.entry_price) / self.entry_price * 100
+                # Exit a LONG by selling at the current BID
+                exit_price = self.current_bid
+                loss_pct = (exit_price - self.entry_price) / self.entry_price * 100
                 if loss_pct <= -sl_pct:
                     raw_signal = "SELL"
                     self._logger.warning(
                         f"[{self.bot_id}] [HARD SL] LONG stopped out: "
-                        f"entry={self.entry_price:.4f} price={current_price:.4f} "
+                        f"entry={self.entry_price:.4f} bid={exit_price:.4f} "
                         f"loss={loss_pct:.2f}% (limit=-{sl_pct}%)"
                     )
             elif self.position_side == "SHORT":
-                loss_pct = (self.entry_price - current_price) / self.entry_price * 100
+                # Exit a SHORT by buying at the current ASK
+                exit_price = self.current_ask
+                loss_pct = (self.entry_price - exit_price) / self.entry_price * 100
                 if loss_pct <= -sl_pct:
                     raw_signal = "BUY"
                     self._logger.warning(
                         f"[{self.bot_id}] [HARD SL] SHORT stopped out: "
-                        f"entry={self.entry_price:.4f} price={current_price:.4f} "
+                        f"entry={self.entry_price:.4f} ask={exit_price:.4f} "
                         f"loss={loss_pct:.2f}% (limit=-{sl_pct}%)"
                     )
 
         # ── TRAILING STOP-LOSS CHECK ────────────────────────────────────
         if self.config.trailing_stop_enabled and self.position_qty > 0:
             if self.position_side == "LONG":
-                if current_price > self._trailing_high:
-                    self._trailing_high = current_price
+                exit_price = self.current_bid
+                if exit_price > self._trailing_high:
+                    self._trailing_high = exit_price
                 trail_floor = self._trailing_high * (1 - self.config.trailing_stop_pct / 100)
-                if current_price <= trail_floor:
+                if exit_price <= trail_floor:
                     raw_signal = "SELL"
                     self._logger.info(
                         f"[{self.bot_id}] [TRAILING STOP] LONG exit: "
-                        f"price {current_price:.4f} < floor {trail_floor:.4f} "
+                        f"bid {exit_price:.4f} < floor {trail_floor:.4f} "
                         f"(high={self._trailing_high:.4f}, trail={self.config.trailing_stop_pct}%)"
                     )
             elif self.position_side == "SHORT":
-                if current_price < self._trailing_low:
-                    self._trailing_low = current_price
+                exit_price = self.current_ask
+                if exit_price < self._trailing_low:
+                    self._trailing_low = exit_price
                 trail_ceiling = self._trailing_low * (1 + self.config.trailing_stop_pct / 100)
-                if current_price >= trail_ceiling:
+                if exit_price >= trail_ceiling:
                     raw_signal = "BUY"
                     self._logger.info(
                         f"[{self.bot_id}] [TRAILING STOP] SHORT exit: "
-                        f"price {current_price:.4f} > ceiling {trail_ceiling:.4f} "
+                        f"ask {exit_price:.4f} > ceiling {trail_ceiling:.4f} "
                         f"(low={self._trailing_low:.4f}, trail={self.config.trailing_stop_pct}%)"
                     )
 
@@ -1196,10 +1207,13 @@ class BotEngine:
         side = raw_signal.lower()   # "buy" or "sell"
         urgency = OrderUrgency.HIGH if order_urgency == "HIGH" else OrderUrgency.LOW
 
+        # Expected execution price is ASK for buys, BID for sells
+        expected_price = self.current_ask if side == "buy" else self.current_bid
+
         result = self._executioner.execute(
             side=side,
             qty=approved_qty,
-            signal_price=current_price,
+            signal_price=expected_price,
             urgency=urgency,
         )
 
@@ -1308,10 +1322,14 @@ class BotEngine:
                 bot_name=self.config.name,
             )
         from executioner import OrderUrgency
+
+        # Closing price is ASK if we are buying to close (SHORT), BID if we are selling to close (LONG)
+        expected_close_price = self.current_ask if close_side == "buy" else self.current_bid
+
         result = self._executioner.execute(
             side=close_side,
             qty=total_qty,
-            signal_price=self.current_price,
+            signal_price=expected_close_price,
             urgency=OrderUrgency.HIGH,  # Exits are always urgent
         )
         if result.success:
