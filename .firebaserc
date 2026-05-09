@@ -1,5 +1,15 @@
 {
-  "projects": {},
-  "targets": {},
+  "projects": {
+    "default": "tradeclaw-fleet"
+  },
+  "targets": {
+    "tradeclaw-fleet": {
+      "hosting": {
+        "main": [
+          "tradeclaw-fleet"
+        ]
+      }
+    }
+  },
   "etags": {}
 }

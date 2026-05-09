@@ -1,0 +1,6 @@
+# TradeClaw — Scheduled Cloud Functions
+# Python 3.11+ required
+
+functions-framework==3.*
+asyncpg==0.29.0
+numpy>=1.26,<3

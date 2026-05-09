@@ -59,7 +59,7 @@ Nothing fires a trade unless the market regime permits it, a council of speciali
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-The platform is built on **FastAPI** with a real-time WebSocket broadcast layer, a **Next.js** frontend, and a **Firestore** persistence layer for full decision auditability. Market data flows from **Alpaca Markets** (both REST and WebSocket). All LLM inference runs through **Google Gemini** with seamless fallback to a locally-hosted **Ollama** instance (Gemma 4B), ensuring the AI brain never goes dark even when cloud API credits run dry.
+The platform is built on **FastAPI** with a real-time WebSocket broadcast layer, a **Next.js** frontend, and a **Firestore** persistence layer for full decision auditability. Market data flows from **MetaTrader 5 Markets** (both REST and WebSocket). All LLM inference runs through **Google Gemini** with seamless fallback to a locally-hosted **Ollama** instance (Gemma 4B), ensuring the AI brain never goes dark even when cloud API credits run dry.
 
 Every bot is **fully isolated** — its own engine, its own AI brain, its own vital signs, its own sub-agent pool. The Fleet Orchestrator spawns, monitors, and kills these organisms, enforcing fleet-wide risk limits while each bot operates as an independent, self-contained trading entity.
 
@@ -74,7 +74,7 @@ Each trading bot runs in its own **isolated execution environment** — the `Bot
 Every market tick triggers a precisely ordered, six-stage execution pipeline:
 
 ```
-① Fetch Price Data       — Pull OHLC from Alpaca (REST + WebSocket)
+① Fetch Price Data       — Pull OHLC from MetaTrader 5 (REST + WebSocket)
          │
 ② Detect Market Regime   — ADX + ATR statistical classifier
          │ GATE: only continue if RANGING or permissive
@@ -91,7 +91,7 @@ Every market tick triggers a precisely ordered, six-stage execution pipeline:
 
 The pipeline is **fail-fast and transparent**. Every gate that blocks execution produces a structured telemetry event that flows to the Situation Room in real-time, so an operator always knows *why* a trade was or wasn't taken — not just what happened.
 
-**Warmup**: On startup, the engine pre-seeds its price history with historical bars from Alpaca, ensuring the regime detector and signal generator have sufficient data to make immediate, informed decisions from the very first live tick. There is no "warming up" dead period.
+**Warmup**: On startup, the engine pre-seeds its price history with historical bars from MetaTrader 5, ensuring the regime detector and signal generator have sufficient data to make immediate, informed decisions from the very first live tick. There is no "warming up" dead period.
 
 ---
 

@@ -7,15 +7,6 @@ const API_BASE = API_BASE_URL;
 
 interface StreamingStats {
   paused: boolean;
-  ticker: {
-    running: boolean;
-    connected: boolean;
-    subscribed_symbols: string[];
-    total_subscribers: number;
-    messages_received: number;
-    messages_fanout: number;
-    messages_dropped: number;
-  } | null;
   ws_channels: number;
 }
 
@@ -36,7 +27,6 @@ interface StreamingContextValue {
 
 const defaultStats: StreamingStats = {
   paused: false,
-  ticker: null,
   ws_channels: 0,
 };
 

@@ -147,7 +147,7 @@ class MeanReversionEngine:
     def message(self) -> str:
         return self._message
 
-    def start(self, demo_mode: bool = True):
+    def start(self):
         """Start the strategy in a background thread."""
         if self._status == BotStatus.RUNNING:
             return
@@ -155,22 +155,15 @@ class MeanReversionEngine:
         self._stop_event.clear()
         self._status = BotStatus.STARTING
         self._message = "Initializing..."
-        config.update(demo_mode=demo_mode)
 
         # Register VitalSigns callbacks
         vital_signs.register_halt_callback(self._vital_halt)
         vital_signs.register_extinction_callback(self._vital_extinction)
 
-        if demo_mode:
-            logger.info("Starting in DEMO mode")
-            self._thread = threading.Thread(
-                target=self._run_demo_loop, daemon=True, name="strategy-demo"
-            )
-        else:
-            logger.info("Starting in LIVE mode (paper trading)")
-            self._thread = threading.Thread(
-                target=self._run_live_loop, daemon=True, name="strategy-live"
-            )
+        logger.info("Starting in LIVE mode (MT5)")
+        self._thread = threading.Thread(
+            target=self._run_live_loop, daemon=True, name="strategy-live"
+        )
 
         self._thread.start()
 
@@ -290,7 +283,7 @@ class MeanReversionEngine:
     # ----------------------------------------------------------------
 
     def _run_live_loop(self):
-        """Main loop for live (paper) trading via MT5."""
+        """Main loop for live trading via MT5."""
         try:
             from mt5.trading.client import TradingClient
             from mt5.data.historical import StockHistoricalDataClient
@@ -300,7 +293,7 @@ class MeanReversionEngine:
             from mt5.trading.enums import OrderSide, TimeInForce
 
             self._trading_client = TradingClient(
-                config.api_key, config.secret_key, paper=True
+                config.api_key, config.secret_key, paper=False
             )
             if "category" in config.snapshot() and config.snapshot()["category"] == "Crypto":
                 from mt5.data.historical import CryptoHistoricalDataClient
@@ -513,7 +506,7 @@ class MeanReversionEngine:
 
                     if cfg.get("kelly_sizing_enabled", True):
                         try:
-                            from firebase_store import _legacy_get_trade_stats_today as get_trade_stats_today
+                            from postgres_store import _legacy_get_trade_stats_today as get_trade_stats_today
                             import asyncio as _asyncio
                             # get_trade_stats_today is async — run it in a new loop from this sync thread
                             _loop = _asyncio.new_event_loop()
@@ -744,101 +737,6 @@ class MeanReversionEngine:
     # ----------------------------------------------------------------
     # DEMO TRADING LOOP
     # ----------------------------------------------------------------
-
-    def _run_demo_loop(self):
-        """Simulated trading loop for demo mode."""
-        from demo import DemoDataGenerator
-
-        generator = DemoDataGenerator(
-            symbol=config.symbol,
-            starting_price=450.0,
-            starting_equity=100000.0,
-        )
-
-        self.starting_equity = generator.equity
-        self.equity = generator.equity
-        self.daily_pnl = 0.0
-        self._status = BotStatus.RUNNING
-        self._message = f"Running DEMO on {config.symbol}"
-        logger.info("Demo loop started")
-
-        # Initialise VitalSigns with demo starting capital
-        vital_signs.set_initial_balance(self.starting_equity)
-
-        last_equity_snapshot = time.time()
-
-        while not self._stop_event.is_set():
-            try:
-                cfg = config.snapshot()
-                result = generator.tick(
-                    bb_period=cfg["bb_period"],
-                    bb_std=cfg["bb_std_dev"],
-                    stop_loss_pct=cfg["stop_loss_pct"],
-                )
-
-                now_str = datetime.now(timezone.utc).isoformat()
-
-                with self._lock:
-                    self.current_price = result["price"]
-                    self.equity = result["equity"]
-                    self.daily_pnl = result["daily_pnl"]
-                    self.position_qty = result["position_qty"]
-                    self.position_side = result["position_side"]
-                    self.entry_price = result["entry_price"]
-                    self.unrealized_pnl = result["unrealized_pnl"]
-                    self.price_history = result["price_history"]
-                    self.bollinger_data = result["bollinger_data"]
-
-                    if result.get("signal") and result["signal"] != SignalType.HOLD:
-                        self.last_signal = result["signal"]
-                        marker = result.get("marker")
-                        if marker:
-                            self.markers.append(marker)
-                        trade = result.get("trade")
-                        if trade:
-                            trade["params_snapshot"] = json.dumps(cfg)
-                            self._db_queue.append({"type": "trade", **trade})
-
-                # ---- VITAL SIGNS CHECK (demo) ----
-                vitals = vital_signs.check(self.equity, self.daily_pnl)
-
-                # 6% drawdown check
-                if self.starting_equity > 0 and self.daily_pnl < 0:
-                    dd_pct = abs(self.daily_pnl) / self.starting_equity * 100
-                    max_dd = cfg["max_daily_drawdown_pct"]
-                    if dd_pct >= max_dd:
-                        self.force_stop(
-                            f"DEMO: Daily drawdown {dd_pct:.1f}% exceeded {max_dd}% limit"
-                        )
-                        return
-
-                # Equity snapshot
-                if time.time() - last_equity_snapshot > 5:
-                    with self._lock:
-                        self.equity_curve.append(
-                            {
-                                "time": now_str,
-                                "equity": self.equity,
-                                "daily_pnl": self.daily_pnl,
-                            }
-                        )
-                        self._db_queue.append(
-                            {
-                                "type": "equity",
-                                "timestamp": now_str,
-                                "equity": self.equity,
-                                "daily_pnl": self.daily_pnl,
-                            }
-                        )
-                    last_equity_snapshot = time.time()
-
-            except Exception as e:
-                logger.error(f"Demo loop error: {e}", exc_info=True)
-
-            self._stop_event.wait(1)
-
-        if self._status == BotStatus.STOPPING:
-            pass  # Normal stop, status set by stop()
 
 
 # Singleton engine instance

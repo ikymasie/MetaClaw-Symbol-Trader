@@ -269,7 +269,7 @@ EVERY TICK:     Price arrives → Regime check → Bollinger+Fib signal?
                                 │
                                 ▼
                 Status Bridge advances to "ORDER EXECUTING"
-                Executioner routes the trade to Alpaca
+                Executioner routes the trade to MetaTrader 5
                                 │
                                 ▼
                 Cards settle to APPROVED (green glow)

@@ -68,36 +68,34 @@ export function BotDetailDrawer({ bot, onClose }: Props) {
   const triggerAI    = useTriggerBotAI();
   const updateConfig = useUpdateBotConfig();
 
-  // ── Local optimistic state for demo mode toggle ──
-  // Prevents the 3-second fleet poll from resetting the toggle mid-transition.
-  const [localDemoMode, setLocalDemoMode] = useState<boolean>(bot.demo_mode !== false);
+  const [localKillZone, setLocalKillZone] = useState<boolean>(bot.kill_zone_enabled !== false);
+  const [leverageEnabled, setLeverageEnabled] = useState<boolean>(bot.leverage_mode_enabled ?? false);
+  const [isolatedRisk, setIsolatedRisk]       = useState<number>(bot.isolated_risk_usd ?? 40);
+  const [netProfitTarget, setNetProfitTarget] = useState<number>(bot.net_profit_target_usd ?? 1);
+  const [takeProfitUsd, setTakeProfitUsd]     = useState<number>(bot.take_profit_usd ?? 1);
+  const [leverageFactor, setLeverageFactor]   = useState<number>(bot.leverage_factor ?? 10);
 
   // Sync from prop only when the drawer opens for a *different* bot
   useEffect(() => {
-    setLocalDemoMode(bot.demo_mode !== false);
+    setLocalKillZone(bot.kill_zone_enabled !== false);
+    setLeverageEnabled(bot.leverage_mode_enabled ?? false);
+    setIsolatedRisk(bot.isolated_risk_usd ?? 40);
+    setNetProfitTarget(bot.net_profit_target_usd ?? 1);
+    setTakeProfitUsd(bot.take_profit_usd ?? 1);
+    setLeverageFactor(bot.leverage_factor ?? 10);
   }, [bot.bot_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const isDemo = localDemoMode;
-
-  const handleToggleDemoMode = () => {
-    const newMode = !isDemo;
-    if (!newMode) {
-      // Switching to LIVE — require confirmation
-      if (!confirm(
-        `⚠️ Switch "${bot.name}" to LIVE MODE?\n\n` +
-        `This will execute REAL trades on your MT5 account.\n` +
-        `Ensure your API keys and capital allocation are correct.`
-      )) return;
-    }
-    // Optimistically update local state immediately
-    setLocalDemoMode(newMode);
+  const handleToggleKillZone = () => {
+    const newVal = !localKillZone;
+    setLocalKillZone(newVal);
     updateConfig.mutate(
-      { botId: bot.bot_id, updates: { demo_mode: newMode } },
-      {
-        // If the server rejects, revert to old state
-        onError: () => setLocalDemoMode(!newMode),
-      },
+      { botId: bot.bot_id, updates: { kill_zone_enabled: newVal } },
+      { onError: () => setLocalKillZone(!newVal) },
     );
+  };
+
+  const handleUpdateLeverage = (updates: Partial<BotSnapshot>) => {
+    updateConfig.mutate({ botId: bot.bot_id, updates });
   };
 
   const { data: aiStatus }    = useBotAIStatus(bot.bot_id);
@@ -154,11 +152,7 @@ export function BotDetailDrawer({ bot, onClose }: Props) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-white">{bot.name}</span>
-              {bot.demo_mode && (
-                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/20">
-                  DEMO
-                </span>
-              )}
+              {bot.leverage_mode_enabled && <Zap className="w-3 h-3 text-violet-400 fill-violet-400/20" />}
             </div>
             <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
               {bot.symbol} · {bot.strategy?.toUpperCase()} · {bot.bot_id}
@@ -224,42 +218,132 @@ export function BotDetailDrawer({ bot, onClose }: Props) {
                 </div>
               </section>
 
-              {/* Trading Mode */}
+              {/* Leverage Mode (Darwinian Scalper) */}
               <section>
-                <SectionLabel>Trading Mode</SectionLabel>
-                <div className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
-                  isDemo
-                    ? 'bg-amber-500/5 border-amber-500/20'
-                    : 'bg-emerald-500/5 border-emerald-500/20'
-                }`}>
-                  <div className="flex items-center gap-3">
-                    {!isDemo && <AlertTriangle className="w-4 h-4 text-red-400" />}
+                <SectionLabel>
+                  <span className="flex items-center gap-1.5">
+                    <Zap className="w-3 h-3 text-violet-400" />
+                    Leverage Mode (Scalper)
+                  </span>
+                </SectionLabel>
+                <div className="space-y-3 p-3 rounded-xl bg-violet-500/5 border border-violet-500/20">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <div className={`text-xs font-mono font-bold ${
-                        isDemo ? 'text-amber-400' : 'text-emerald-400'
-                      }`}>
-                        {isDemo ? '📋 PAPER / DEMO' : '🟢 LIVE TRADING'}
+                      <div className={`text-[11px] font-mono font-semibold ${leverageEnabled ? 'text-violet-400' : 'text-muted-foreground'}`}>
+                        {leverageEnabled ? 'ENABLED — Darwinian Scalper active' : 'DISABLED — Standard Risk'}
                       </div>
                       <p className="text-[9px] font-mono text-muted-foreground mt-0.5">
-                        {isDemo
-                          ? 'Simulated — no real capital at risk'
-                          : 'Executing real trades via MT5'}
+                        High leverage, small net profit targets
                       </p>
                     </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-mono font-bold text-muted-foreground uppercase">Enable Switch</span>
+                      <button
+                        onClick={() => {
+                          const newVal = !leverageEnabled;
+                          setLeverageEnabled(newVal);
+                          handleUpdateLeverage({ leverage_mode_enabled: newVal });
+                        }}
+                        className={`w-12 h-6 rounded-full transition-all relative shrink-0 ${leverageEnabled ? 'bg-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.5)]' : 'bg-white/10'}`}
+                      >
+                        <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${leverageEnabled ? 'left-7' : 'left-1'}`} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {leverageEnabled && (
+                    <div className="space-y-3 pt-2 border-t border-violet-500/10 animate-in fade-in duration-200">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <span className="text-[8px] font-mono text-muted-foreground uppercase tracking-widest">Risk ($)</span>
+                          <input
+                            type="number"
+                            value={isolatedRisk}
+                            onChange={e => {
+                              const v = parseFloat(e.target.value) || 0;
+                              setIsolatedRisk(v);
+                            }}
+                            onBlur={() => handleUpdateLeverage({ isolated_risk_usd: isolatedRisk })}
+                            className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white font-mono focus:border-violet-500/50 outline-none"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[8px] font-mono text-muted-foreground uppercase tracking-widest">Net Target ($)</span>
+                          <input
+                            type="number"
+                            value={netProfitTarget}
+                            onChange={e => {
+                              const v = parseFloat(e.target.value) || 0;
+                              setNetProfitTarget(v);
+                            }}
+                            onBlur={() => handleUpdateLeverage({ net_profit_target_usd: netProfitTarget })}
+                            className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white font-mono focus:border-violet-500/50 outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <span className="text-[8px] font-mono text-muted-foreground uppercase tracking-widest">Trade Take Profit ($)</span>
+                        <input
+                          type="number"
+                          value={takeProfitUsd}
+                          onChange={e => {
+                            const v = parseFloat(e.target.value) || 0;
+                            setTakeProfitUsd(v);
+                          }}
+                          onBlur={() => handleUpdateLeverage({ take_profit_usd: takeProfitUsd })}
+                          className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white font-mono focus:border-violet-500/50 outline-none"
+                          placeholder="Close every profit of $1+"
+                        />
+                        <p className="text-[8px] font-mono text-muted-foreground/60 italic">
+                          Closes individual trades when profit hits this amount.
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-[8px] font-mono text-muted-foreground uppercase tracking-widest">Leverage Factor</span>
+                          <span className="text-[10px] font-mono text-violet-300 font-bold">{leverageFactor}x</span>
+                        </div>
+                        <input
+                          type="range"
+                          min={1} max={100} step={1}
+                          value={leverageFactor}
+                          onChange={e => setLeverageFactor(parseInt(e.target.value))}
+                          onMouseUp={() => handleUpdateLeverage({ leverage_factor: leverageFactor })}
+                          className="w-full accent-violet-500"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Kill Zone */}
+              <section>
+                <SectionLabel>ICT Kill Zone Filter</SectionLabel>
+                <div className="flex items-center justify-between p-3 rounded-xl border border-white/8 bg-white/2">
+                  <div>
+                    <div className={`text-[11px] font-mono font-semibold ${localKillZone ? 'text-sky-400' : 'text-muted-foreground'}`}>
+                      {localKillZone ? 'ACTIVE — NY + London sessions only' : 'DISABLED — trading 24/7'}
+                    </div>
+                    <p className="text-[9px] font-mono text-muted-foreground mt-0.5">
+                      Disable for crypto and 24/7 instruments
+                    </p>
                   </div>
                   <button
-                    onClick={handleToggleDemoMode}
+                    onClick={handleToggleKillZone}
                     disabled={updateConfig.isPending}
-                    className={`w-11 h-6 rounded-full transition-all relative shrink-0 ${
-                      isDemo ? 'bg-amber-500/80' : 'bg-emerald-500/80'
+                    className={`w-10 h-5 rounded-full transition-all relative shrink-0 ${
+                      localKillZone ? 'bg-sky-500/80' : 'bg-white/15'
                     } ${updateConfig.isPending ? 'opacity-50' : 'hover:brightness-110'}`}
                   >
-                    <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-all ${
-                      isDemo ? 'left-1' : 'left-6'
+                    <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${
+                      localKillZone ? 'left-5' : 'left-0.5'
                     }`} />
                   </button>
                 </div>
               </section>
+
 
               {/* Vitals */}
               <section>

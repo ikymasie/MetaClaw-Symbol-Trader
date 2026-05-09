@@ -120,16 +120,6 @@ export default function Dashboard() {
             </span>
           </div>
         )}
-        {config?.global_demo_mode && (
-          <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-amber-500/30 bg-amber-500/5">
-            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
-            <span className="text-xs font-mono text-amber-300">
-              Global Demo Mode is{' '}
-              <span className="text-amber-400 font-semibold">ON</span>{' '}
-              — all bots running in simulation
-            </span>
-          </div>
-        )}
       </div>
 
       {/* ── Market Pulse — Always-On Chart ─────────────────── */}
@@ -238,7 +228,7 @@ export default function Dashboard() {
             <div className="p-4 rounded-2xl border border-white/4 bg-white/2 text-[10px] font-mono text-zinc-600">
               <p className="uppercase tracking-widest mb-2 opacity-50">Operational Memo</p>
               <p className="leading-relaxed">
-                Connect your MT5 Live API and set `demo_mode=false` in bot config to toggle execution. Current fleet is running on PAPER protocols.
+                All bots execute via the MT5 terminal. Account type (demo/live) is determined by your MT5 credentials.
               </p>
             </div>
           </aside>

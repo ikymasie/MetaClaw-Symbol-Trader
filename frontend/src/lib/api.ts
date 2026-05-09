@@ -26,8 +26,8 @@ export const tradingApi = {
     const { data } = await api.get('/history');
     return data;
   },
-  startSingleBot: async (demoMode: boolean) => {
-    const { data } = await api.post('/start', { demo_mode: demoMode });
+  startSingleBot: async () => {
+    const { data } = await api.post('/start', {});
     return data;
   },
   stopSingleBot: async () => {
@@ -144,6 +144,9 @@ export interface AvailableSymbol {
   digits: number;
   spread: number;
   trade_mode: number;
+  volume_min: number;
+  volume_max: number;
+  volume_step: number;
 }
 
 // ── Types ───────────────────────────────────────────────
@@ -172,6 +175,7 @@ export interface BotDeployRequest {
   strategy: string;
   capital_allocation: number;
   qty: number;
+  short_selling_enabled: boolean;
   stop_loss_pct: number;
   bb_period: number;
   bb_std_dev: number;
@@ -181,7 +185,11 @@ export interface BotDeployRequest {
   tags: string[];
   fib_enabled: boolean;
   auto_start: boolean;
-  demo_mode: boolean;
+  leverage_mode_enabled?: boolean;
+  leverage_factor?: number;
+  isolated_risk_usd?: number;
+  net_profit_target_usd?: number;
+  take_profit_usd?: number;
 }
 
 export interface FleetConfig {
@@ -191,7 +199,6 @@ export interface FleetConfig {
   sub_agents_enabled: boolean;
   auto_redeploy: boolean;
   log_retention_days: number;
-  global_demo_mode?: boolean;
 }
 
 export interface BotSnapshot {
@@ -206,7 +213,12 @@ export interface BotSnapshot {
   capital_allocation: number;
   tags: string[];
   created_at: string;
-  demo_mode: boolean;
+  kill_zone_enabled: boolean;
+  leverage_mode_enabled?: boolean;
+  leverage_factor?: number;
+  isolated_risk_usd?: number;
+  net_profit_target_usd?: number;
+  take_profit_usd?: number;
   status: {
     bot_status: string;
     current_price: number;

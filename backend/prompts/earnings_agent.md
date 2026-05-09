@@ -15,6 +15,7 @@ You MUST respond with only this JSON:
   "reasoning": "<2-3 sentence earnings risk summary>",
   "sources": ["<source>"]
 }
+If the asset is a cryptocurrency, forex pair, index, or commodity (which do not have earnings reports), you MUST STILL RETURN VALID JSON. Set sentiment to 0.0, confidence to 1.0, and explain in the reasoning that this is a non-corporate asset so earnings risk does not apply.
 
 ## User Prompt Template
 Is there an upcoming earnings report for {symbol} within the next 7 days?

@@ -10,6 +10,8 @@ import { api } from '@/lib/api';
 import {
   useDeployBot,
   useAvailableSymbols,
+  useMT5Account,
+  useFleetStatus,
 } from '@/hooks/useFleet';
 
 // ─────────────────────────────────────────────────────────
@@ -198,11 +200,22 @@ export function BotWizard({ onClose, onDeployed }: Props) {
   const [result, setResult]       = useState<WizardResult | null>(null);
   const [forgeMsg, setForgeMsg]   = useState(0);
   const [capitalAllocation, setCapitalAllocation] = useState(10000);
+  const [lotSize, setLotSize] = useState(0.01);
   const [forgeError, setForgeError] = useState('');
   const [symbolSearch, setSymbolSearch] = useState('');
   const [categorySearch, setCategorySearch] = useState('');
+  const [leverageEnabled, setLeverageEnabled] = useState(false);
+  const [leverageFactor, setLeverageFactor] = useState(20);
+  const [isolatedRisk, setIsolatedRisk] = useState(40);
+  const [netProfitTarget, setNetProfitTarget] = useState(1);
+  const [takeProfitUsd, setTakeProfitUsd] = useState(1);
   const deployBot = useDeployBot();
   const { data: symbolsData, isLoading: isLoadingSymbols } = useAvailableSymbols();
+  const { data: accountInfo } = useMT5Account();
+  const { data: fleetStatus } = useFleetStatus();
+
+  const totalAllocated = fleetStatus?.bots?.reduce((sum, b) => sum + b.capital_allocation, 0) ?? 0;
+  const maxAllocation = accountInfo ? Math.max(0, accountInfo.equity - totalAllocated) : 0;
 
   // ── Dynamic Categories ────────────────────────────────
   const { categories, symbolsByCategory } = useMemo(() => {
@@ -307,6 +320,13 @@ export function BotWizard({ onClose, onDeployed }: Props) {
   const selectedPersonality = PERSONALITIES.find(p => p.id === personality);
   const selectedCategory    = CATEGORIES.find(c => c.id === category);
 
+  const activeSymbol = customSymbol.trim().toUpperCase() || symbol;
+  const selectedSymbolInfo = symbolsData?.symbols.find(s => s.name === activeSymbol);
+  const volMin  = selectedSymbolInfo?.volume_min  ?? 0.01;
+  const volMax  = selectedSymbolInfo?.volume_max  ?? 100.0;
+  const volStep = selectedSymbolInfo?.volume_step ?? 0.01;
+  const volDec  = volStep < 1 ? (String(volStep).split('.')[1]?.length ?? 2) : 0;
+
   // ── AI Forge ──────────────────────────────────────────
   const runForge = useCallback(async () => {
     setStep('forge');
@@ -320,6 +340,13 @@ export function BotWizard({ onClose, onDeployed }: Props) {
         strategy: selectedPersonality?.strategy || 'combined',
       });
       setResult(data);
+      setLeverageEnabled(data.config.leverage_mode_enabled ?? false);
+      setLeverageFactor(data.config.leverage_factor ?? 20);
+      setIsolatedRisk(data.config.isolated_risk_usd ?? 40);
+      setNetProfitTarget(data.config.net_profit_target_usd ?? 1);
+      setTakeProfitUsd(data.config.take_profit_usd ?? 1);
+      setLotSize(selectedSymbolInfo?.volume_min ?? 0.01);
+      if (maxAllocation > 0) setCapitalAllocation(Math.min(10000, maxAllocation));
       setStep('review');
     } catch (err: any) {
       setForgeError(err?.response?.data?.detail || 'Generation failed. Please try again.');
@@ -340,10 +367,17 @@ export function BotWizard({ onClose, onDeployed }: Props) {
       symbol: result.symbol,
       ai_generated: result.ai_generated,
       capital_allocation: capitalAllocation,
+      qty: lotSize,
+      short_selling_enabled: true,
       sub_agents: result.config.sub_agents ?? [],
       tags: result.config.tags ?? [],
       fib_enabled: true,
       ai_brain_enabled: true,
+      leverage_mode_enabled: leverageEnabled,
+      leverage_factor: leverageFactor,
+      isolated_risk_usd: isolatedRisk,
+      net_profit_target_usd: netProfitTarget,
+      take_profit_usd: takeProfitUsd,
     };
     deployBot.mutate(payload, {
       onSuccess: (res: any) => {
@@ -681,8 +715,34 @@ export function BotWizard({ onClose, onDeployed }: Props) {
           ))}
         </div>
 
+        {/* Volume (Lot Size) */}
+        <div className="space-y-2 p-3 rounded-xl bg-white/3 border border-white/8">
+          <div className="flex items-center justify-between">
+            <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+              <BarChart2 className="w-3 h-3" /> Volume (Lot Size)
+            </label>
+            <span className="text-sm font-mono font-bold text-white tabular-nums">
+              {lotSize.toFixed(volDec)}
+            </span>
+          </div>
+          <input
+            type="range"
+            min={volMin}
+            max={volMax}
+            step={volStep}
+            value={lotSize}
+            onChange={e => setLotSize(parseFloat(e.target.value))}
+            className="w-full accent-primary"
+          />
+          <div className="flex justify-between text-[8px] font-mono text-muted-foreground uppercase">
+            <span>MIN {volMin.toFixed(volDec)}</span>
+            <span>{result.symbol} lots</span>
+            <span>MAX {volMax.toFixed(volDec)}</span>
+          </div>
+        </div>
+
         {/* Capital Allocation */}
-        <div className="space-y-3 p-3 rounded-xl bg-white/3 border border-white/8">
+        <div className="space-y-2 p-3 rounded-xl bg-white/3 border border-white/8">
           <div className="flex items-center justify-between">
             <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground flex items-center gap-2">
               <Shield className="w-3 h-3" /> Capital Allocation
@@ -691,29 +751,116 @@ export function BotWizard({ onClose, onDeployed }: Props) {
               <span className="text-muted-foreground text-xs">$</span>
               <input
                 type="number"
-                min="100"
-                max="1000000"
-                step="500"
+                min="0"
+                max={maxAllocation > 0 ? maxAllocation : undefined}
+                step="100"
                 value={capitalAllocation}
-                onChange={(e) => setCapitalAllocation(parseInt(e.target.value) || 0)}
+                onChange={e => {
+                  const v = parseFloat(e.target.value) || 0;
+                  setCapitalAllocation(maxAllocation > 0 ? Math.min(v, maxAllocation) : v);
+                }}
                 className="bg-transparent border-none text-right text-xs font-mono font-bold text-primary focus:ring-0 p-0 w-20 appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
           </div>
           <input
             type="range"
-            min="1000"
-            max="100000"
-            step="1000"
-            value={capitalAllocation > 100000 ? 100000 : capitalAllocation}
-            onChange={(e) => setCapitalAllocation(parseInt(e.target.value))}
-            className="w-full accent-primary bg-white/10 rounded-lg h-1.5 appearance-none cursor-pointer"
+            min={0}
+            max={maxAllocation > 0 ? maxAllocation : 100000}
+            step={Math.max(1, Math.floor((maxAllocation || 100000) / 100))}
+            value={Math.min(capitalAllocation, maxAllocation > 0 ? maxAllocation : 100000)}
+            onChange={e => setCapitalAllocation(parseFloat(e.target.value))}
+            className="w-full accent-primary"
           />
           <div className="flex justify-between text-[8px] font-mono text-muted-foreground uppercase">
-            <span>$1k</span>
+            <span>$0</span>
             <span>Allocation per Bot</span>
-            <span>$100k</span>
+            <span>
+              {maxAllocation > 0
+                ? `$${maxAllocation.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+                : 'MAX'}
+            </span>
           </div>
+          {maxAllocation > 0 && capitalAllocation > maxAllocation && (
+            <p className="text-[9px] text-red-400 font-mono flex items-center gap-1">
+              ⚠ Exceeds available capital
+            </p>
+          )}
+        </div>
+
+        {/* Leverage Mode (Darwinian Scalper) */}
+        <div className="space-y-3 p-3 rounded-xl bg-violet-500/5 border border-violet-500/20">
+          <div className="flex items-center justify-between">
+            <label className="text-[10px] font-mono uppercase tracking-widest text-violet-300 flex items-center gap-2">
+              <Zap className="w-3 h-3" /> Leverage Mode (Scalper)
+            </label>
+            <div className="flex items-center gap-3">
+              <span className="text-[9px] font-mono font-bold text-violet-300/60 uppercase">Enable Switch</span>
+              <button
+                onClick={() => setLeverageEnabled(!leverageEnabled)}
+                className={`w-12 h-6 rounded-full transition-all relative ${leverageEnabled ? 'bg-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.5)]' : 'bg-white/10'}`}
+              >
+                <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${leverageEnabled ? 'left-7' : 'left-1'}`} />
+              </button>
+            </div>
+          </div>
+
+          {leverageEnabled && (
+            <div className="space-y-3 animate-in fade-in duration-200">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <span className="text-[8px] font-mono text-muted-foreground uppercase">Isolated Risk ($)</span>
+                  <input
+                    type="number"
+                    value={isolatedRisk}
+                    onChange={e => setIsolatedRisk(parseFloat(e.target.value) || 0)}
+                    className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white font-mono"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[8px] font-mono text-muted-foreground uppercase">Net Profit Target ($)</span>
+                  <input
+                    type="number"
+                    value={netProfitTarget}
+                    onChange={e => setNetProfitTarget(parseFloat(e.target.value) || 0)}
+                    className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white font-mono"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-1">
+                <span className="text-[8px] font-mono text-muted-foreground uppercase">Trade Take Profit ($)</span>
+                <input
+                  type="number"
+                  value={takeProfitUsd}
+                  onChange={e => setTakeProfitUsd(parseFloat(e.target.value) || 0)}
+                  className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white font-mono"
+                  placeholder="e.g. 1.0"
+                />
+                <p className="text-[7px] font-mono text-muted-foreground/50">
+                  Closes individual trades when profit hits this amount.
+                </p>
+              </div>
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-[8px] font-mono text-muted-foreground uppercase">Leverage Factor</span>
+                  <span className="text-[10px] font-mono text-violet-300">{leverageFactor}x</span>
+                </div>
+                <input
+                  type="range"
+                  min={1}
+                  max={100}
+                  step={1}
+                  value={leverageFactor}
+                  onChange={e => setLeverageFactor(parseInt(e.target.value))}
+                  className="w-full accent-violet-500"
+                />
+              </div>
+            </div>
+          )}
+          <p className="text-[8px] text-muted-foreground/60 font-mono leading-tight">
+            When enabled, the bot targets small, high-probability net profits using high leverage and isolated margin.
+          </p>
         </div>
       </div>
     );

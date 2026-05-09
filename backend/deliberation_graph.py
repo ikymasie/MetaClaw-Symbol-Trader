@@ -61,6 +61,7 @@ if LANGGRAPH_AVAILABLE:
         signal_price: float
         vote_cache_ttl: int
         enabled_agents: list
+        market_trends: dict
 
         # ── Accumulated state (reducer: append-only lists) ─────────────
         votes: Annotated[list, operator.add]
@@ -109,6 +110,7 @@ class DeliberationGraph:
         state: dict,
         event_queue: Optional[_stdlib_queue.Queue] = None,
         price_history=None,
+        market_trends: dict = None,
     ) -> Optional["TradeDecision"]:
         """
         Execute the deliberation graph and return a TradeDecision.
@@ -125,6 +127,7 @@ class DeliberationGraph:
         # Attach runtime-only refs to pool (not serialised to state)
         self._price_history = price_history
         self._event_queue = event_queue
+        self._market_trends = market_trends
 
         # Build initial state with reducer defaults
         initial: DeliberationState = {
@@ -418,8 +421,8 @@ class DeliberationGraph:
         total_panel = len(panel_votes)
 
         if total_panel == 0:
-            self._emit("quorum_result", "quorum", score=0.5, met=True)
-            return {"weighted_score": 0.5, "quorum_met": True}
+            self._emit("quorum_result", "quorum", score=0.0, met=False)
+            return {"weighted_score": 0.0, "quorum_met": False, "exit_reason": "no_quorum"}
 
         total_w = sum(v.get("weight", 1.0) * v.get("darwinian_weight", 1.0)
                       for v in panel_votes) or 1.0
@@ -545,6 +548,7 @@ class DeliberationGraph:
             openclaw_model=pool._openclaw_model,
             ollama_base_url=pool._ollama_base_url,
             ollama_model=pool._ollama_model,
+            market_trends=getattr(self, "_market_trends", None) or pool.market_trends or {},
         )
 
     def _emit(self, event_type: str, node: str, **kwargs) -> None:

@@ -81,14 +81,14 @@ class GeminiBudget:
         """
         Check if a Gemini call is permitted right now.
 
-        Returns False if:
-          - Circuit breaker is active (recent 429)
-          - Hourly call budget is exhausted
+        Returns False only if the circuit breaker is active (real 429 from Gemini).
+        The local hourly budget check has been removed — Gemini's own rate limiter
+        is the source of truth.
         """
         with self._lock:
             self._maybe_reset_window()
 
-            # Circuit breaker check
+            # Circuit breaker check (fires only on real 429 responses)
             if self._circuit_open:
                 if time.time() < self._circuit_open_until:
                     self._total_blocked += 1
@@ -102,17 +102,6 @@ class GeminiBudget:
                     self._circuit_open = False
                     self._circuit_open_until = 0.0
                     logger.info("[GeminiBudget] Circuit breaker RESET — Gemini calls re-enabled")
-
-            # Budget check
-            if self._calls_in_window >= self.hourly_limit:
-                self._total_blocked += 1
-                remaining = HOUR_SECONDS - (time.time() - self._window_start)
-                logger.info(
-                    f"[GeminiBudget] BLOCKED (budget exhausted: "
-                    f"{self._calls_in_window}/{self.hourly_limit} calls this hour, "
-                    f"resets in {remaining:.0f}s)"
-                )
-                return False
 
             return True
 

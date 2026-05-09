@@ -63,7 +63,7 @@ class PromptAutoResearcher:
 
     def _start_new_branch(self):
         """Identify worst agent, generate prompt modification, create git branch."""
-        from firebase_store import get_agent_sharpe
+        from postgres_store import get_agent_sharpe
         import asyncio
 
         # Step 1: Find worst-performing agent
@@ -145,7 +145,7 @@ class PromptAutoResearcher:
 
     def _evaluate_and_decide(self):
         """Compare new Sharpe against baseline. Merge or revert."""
-        from firebase_store import get_agent_sharpe
+        from postgres_store import get_agent_sharpe
         import asyncio
 
         agent = self._branch_agent

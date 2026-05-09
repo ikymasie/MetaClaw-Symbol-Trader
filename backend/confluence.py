@@ -367,16 +367,25 @@ def evaluate_confluence(
     rvol_val = compute_rvol(volumes)
     pillar_3 = rvol_val is not None and rvol_val >= rvol_threshold
 
-    # ── BB Re-entry Trigger ───────────────────────────────────────
-    # The "trigger" is NOT price being below the band (that's the setup).
-    # The trigger is price CLOSING BACK INSIDE the band — the reversal candle.
-    # Check: previous bar was below lower BB, current bar is at or above.
+    # ── BB Touch / Re-entry Trigger ───────────────────────────────
+    # Fires on either:
+    #   (a) Price AT or below the lower BB (with 50% band width tolerance - lower half)
+    #   (b) Re-entry: recent ticks were below lower BB, current tick is back inside
     lower_bb = bb.get("lower", 0.0)
+    upper_bb = bb.get("upper", lower_bb)
+    bb_width = upper_bb - lower_bb if upper_bb > lower_bb else 0.0
+    
+    # Add a 50% of band width tolerance (lower half of the channel)
+    bb_tolerance = lower_bb + (bb_width * 0.50)
+    bb_at_band = current_price <= bb_tolerance
+    
     if len(prices) >= 2:
-        prev_price = float(prices.iloc[-2])
-        bb_reentry = prev_price < lower_bb and current_price >= lower_bb
+        # Check if any of the last 5 prices were within the tolerance
+        lookback = min(len(prices), 5)
+        recent_prices_below = any(float(p) <= bb_tolerance for p in prices.iloc[-lookback:])
+        bb_reentry = bb_at_band or (recent_prices_below and current_price >= lower_bb)
     else:
-        bb_reentry = False
+        bb_reentry = bb_at_band
 
     # ── Confluence Decision ───────────────────────────────────────
     pillars_met = sum([pillar_1, pillar_2, pillar_3])
@@ -403,10 +412,10 @@ def evaluate_confluence(
             rvol_str = f"{rvol_val:.2f}" if rvol_val is not None else "N/A"
             failed.append(f"RVOL={rvol_str} (need ≥{rvol_threshold})")
         if not bb_reentry:
-            failed.append("BB re-entry not triggered (price not crossing back inside band)")
+            failed.append(f"BB re-entry not triggered (price={current_price:.2f}, lower_bb={lower_bb:.2f}, tol={bb_tolerance:.2f})")
 
         reason = f"HOLD: {pillars_met}/3 pillars met. Failed: {'; '.join(failed)}"
-        logger.debug(f"[CONFLUENCE] {reason}")
+        logger.info(f"[CONFLUENCE] {reason}")
 
     # ── Bearish Confluence Gate (Short Entry) ─────────────────────
     # Only runs if (a) short selling is enabled AND (b) the bullish gate
@@ -425,12 +434,20 @@ def evaluate_confluence(
         bearish_p3 = pillar_3  # Already computed above
 
         # BB Upper Re-entry: price was above upper BB and crossed back inside
+        # (with 50% band width tolerance - upper half)
         upper_bb = bb.get("upper", float("inf"))
+        lower_bb_val = bb.get("lower", 0.0) if upper_bb != float("inf") else 0.0
+        bb_width_val = upper_bb - lower_bb_val if upper_bb > lower_bb_val and upper_bb != float("inf") else 0.0
+        
+        bb_tolerance_upper = upper_bb - (bb_width_val * 0.50)
+        bb_at_upper = current_price >= bb_tolerance_upper
+        
         if len(prices) >= 2:
-            prev_price = float(prices.iloc[-2])
-            bb_upper_reentry = prev_price > upper_bb and current_price <= upper_bb
+            lookback = min(len(prices), 5)
+            recent_prices_above = any(float(p) >= bb_tolerance_upper for p in prices.iloc[-lookback:])
+            bb_upper_reentry = bb_at_upper or (recent_prices_above and current_price <= upper_bb)
         else:
-            bb_upper_reentry = False
+            bb_upper_reentry = bb_at_upper
 
         bearish_pillars = sum([bearish_p1, bearish_p2, bearish_p3])
 

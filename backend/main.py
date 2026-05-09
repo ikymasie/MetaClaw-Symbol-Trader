@@ -26,7 +26,7 @@ from fleet import fleet
 from mt5_hub import mt5_hub
 
 from config import config
-from firebase_store import (
+from postgres_store import (
     init_db,
     insert_trade,
     insert_equity_snapshot,
@@ -38,6 +38,8 @@ from firebase_store import (
     _legacy_set_bot_state as set_bot_state,
     _legacy_get_bot_state as get_bot_state,
     _legacy_get_ai_decisions as get_ai_decisions,
+    save_fleet_event,
+    save_audit_log,
 )
 from models import (
     BotStatus,
@@ -58,10 +60,8 @@ from vital_signs import vital_signs
 from symbol_service import symbol_service, to_mt5_symbol
 
 # ---- Logging ----
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
-)
+from buffered_logger import setup_buffered_logging
+buffered_handler = setup_buffered_logging("logs/fleet.txt", interval=10.0)
 logger = logging.getLogger("tradeclaw")
 
 
@@ -191,6 +191,26 @@ async def db_flush_loop():
         await asyncio.sleep(2)
 
 
+# ---- Trade Stats Cache (avoids Firestore query every 500ms) ----
+_trade_stats_cache: dict = {"total_trades": 0, "win_rate": 0.0}
+_trade_stats_cache_ts: float = 0.0
+_TRADE_STATS_TTL: float = 30.0  # Refresh every 30 seconds
+
+
+async def _get_cached_trade_stats() -> dict:
+    """Return trade stats from cache, refreshing from Firestore at most every 30s."""
+    global _trade_stats_cache, _trade_stats_cache_ts
+    import time
+    now = time.monotonic()
+    if now - _trade_stats_cache_ts > _TRADE_STATS_TTL:
+        try:
+            _trade_stats_cache = await get_trade_stats_today()
+            _trade_stats_cache_ts = now
+        except Exception:
+            pass  # Use stale cache on error
+    return _trade_stats_cache
+
+
 # ---- WebSocket Broadcast Loop ----
 async def ws_broadcast_loop():
     """
@@ -211,7 +231,7 @@ async def ws_broadcast_loop():
             if not _streaming_paused and "global" in manager.active and manager.active["global"]:
                 state = engine.get_state_snapshot()
                 cfg = config.snapshot()
-                stats = await get_trade_stats_today()
+                stats = await _get_cached_trade_stats()
 
                 starting_eq = state["starting_equity"] or cfg.get("starting_equity", 100000)
                 daily_pnl_pct = 0.0
@@ -344,8 +364,8 @@ class DeployBotRequest(BaseModel):
     animal: str = ""
     category: str = ""
     ai_generated: bool = False
-    demo_mode: bool = True
     qty: float = Field(default=1.0, gt=0)
+    short_selling_enabled: bool = True
     stop_loss_pct: float = Field(default=1.5, ge=0.25, le=5.0)
     max_daily_drawdown_pct: float = Field(default=6.0, ge=0.5, le=25.0)
     bb_period: int = Field(default=20, ge=8, le=100)
@@ -365,14 +385,18 @@ class DeployBotRequest(BaseModel):
     fib_active_levels_raw: str = "23.6,38.2,50.0,61.8"
     smart_routing_min_qty: float = 3.0
     twap_interval_ms: int = 500
-    max_slippage_pct: float = 0.30
+    max_slippage_pct: float = 0.05
     limit_timeout_s: int = 10
     auto_start: bool = True
+    leverage_mode_enabled: bool = True
+    leverage_factor: float = 20.0
+    isolated_risk_usd: float = 40.0
+    net_profit_target_usd: float = 1.0
+    take_profit_usd: float = 0.0
 
 
 class FleetConfigUpdate(BaseModel):
     max_bots: Optional[int] = Field(default=None, ge=1, le=50)
-    # global_demo_mode DEPRECATED
     global_risk_enabled: Optional[bool] = None
     max_fleet_drawdown_pct: Optional[float] = Field(default=None, ge=1.0, le=50.0)
     sub_agents_enabled: Optional[bool] = None
@@ -385,35 +409,44 @@ class FleetConfigUpdate(BaseModel):
 async def lifespan(app: FastAPI):
     """Application lifecycle — init DB, start all subsystems, cleanup on exit."""
     logger.info("TradeClaw starting up...")
-    await init_db()
-
-    # Init Firebase
+    
+    # 1. Initialize DB first
     try:
-        import firebase_store
-        # Resolve the service account key relative to this file's location
-        _backend_dir = os.path.dirname(os.path.abspath(__file__))
-        _sa_candidates = [
-            os.path.join(_backend_dir, "service-account-key.json"),
-            os.path.join(_backend_dir, "..", "service-account-key.json"),
-        ]
-        _sa_path = next((p for p in _sa_candidates if os.path.exists(p)), None)
-        if _sa_path:
-            logger.info(f"Using service account: {os.path.abspath(_sa_path)}")
-        else:
-            logger.warning("No service-account-key.json found — falling back to ADC")
-
-        firebase_store.init_firebase(
-            service_account_path=_sa_path,
-        )
-        fleet.set_firebase_store(firebase_store)
-        await fleet.load_config_from_firebase()
-        await fleet.restore_bots_from_firebase()
-        logger.info("Firebase connected, fleet config and bots loaded")
+        await init_db()
+        await save_fleet_event("SYSTEM_STARTUP", "INFO", "TradeClaw Execution Engine starting up")
     except Exception as e:
-        logger.warning(f"Firebase init skipped (running without it): {e}")
+        logger.error(f"PostgreSQL initialization failed: {e}")
+        # Fatal if DB is down? User wants postgres.
+
+    # Start MT5 Hub (market data) — must happen BEFORE bot restoration so
+    # auto-starting bots find a live terminal_info() on their first tick.
+    mt5_hub.init(
+        login=int(os.getenv("MT5_LOGIN", "0") or "0"),
+        password=os.getenv("MT5_PASSWORD", ""),
+        server=os.getenv("MT5_SERVER", ""),
+    )
+    mt5_hub.start()
+
+    # Init Fleet Persistence (PostgreSQL)
+    try:
+        import postgres_store
+        fleet.set_store(postgres_store)
+        await fleet.load_config_from_store()
+        await fleet.restore_bots_from_store()
+        logger.info("PostgreSQL connected (Neon), fleet config and bots restored")
+    except Exception as e:
+        logger.error(f"Fleet initialization from PostgreSQL failed: {e}")
+
+    # Start Partition Manager
+    try:
+        from database.partition_manager import maintenance_loop
+        asyncio.create_task(maintenance_loop())
+        logger.info("Partition maintenance loop started")
+    except Exception as e:
+        logger.error(f"Failed to start partition maintenance loop: {e}")
 
     # Publish the running event loop to sub_agents so background threads
-    # can schedule async Firestore calls (DarwinianWeightStore, LangGraph graph).
+    # can schedule async PostgreSQL calls (DarwinianWeightStore, LangGraph graph).
     try:
         import sub_agents as _sa
         _sa.set_main_event_loop(asyncio.get_running_loop())
@@ -424,7 +457,7 @@ async def lifespan(app: FastAPI):
     fleet.start_monitor()
 
     # Check for prior CRITICAL_STOP state
-    prior_state = await get_bot_state("last_status")
+    prior_state = await get_bot_state("fleet", "last_status")
     if prior_state == "CRITICAL_STOP":
         engine._status = BotStatus.CRITICAL_STOP
         engine._message = "Prior session ended with CRITICAL_STOP. Reset manually."
@@ -438,14 +471,6 @@ async def lifespan(app: FastAPI):
     # Start AI Brain if enabled
     if config.ai_snapshot()["ai_brain_enabled"]:
         ai_brain.start()
-
-    # Start MT5 Hub (market data)
-    mt5_hub.init(
-        login=int(os.getenv("MT5_LOGIN", "0") or "0"),
-        password=os.getenv("MT5_PASSWORD", ""),
-        server=os.getenv("MT5_SERVER", ""),
-    )
-    mt5_hub.start()
 
     logger.info("TradeClaw ready")
 
@@ -462,7 +487,8 @@ async def lifespan(app: FastAPI):
     fleet_broadcast_task.cancel()
     if engine.status == BotStatus.RUNNING:
         engine.stop()
-    await set_bot_state("last_status", engine.status.value)
+    await set_bot_state("fleet", "last_status", engine.status.value)
+    await save_fleet_event("SYSTEM_SHUTDOWN", "INFO", "TradeClaw Execution Engine shut down gracefully")
     logger.info("TradeClaw shutdown complete")
 
 
@@ -476,12 +502,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3001",
-    ],
+    allow_origins=["*"],  # Robust for dev/production flexibility
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -538,12 +559,11 @@ async def start_bot(request: StartRequest = StartRequest()):
         engine._status = BotStatus.IDLE
         engine._message = ""
         engine.daily_pnl = 0.0
-        await set_bot_state("last_status", "IDLE")
+        await set_bot_state("fleet", "last_status", "IDLE")
 
-    engine.start(demo_mode=request.demo_mode)
-    mode = "DEMO" if request.demo_mode else "LIVE"
-    logger.info(f"Bot started in {mode} mode")
-    return {"status": "started", "mode": mode}
+    engine.start()
+    logger.info("Bot started in MT5 mode")
+    return {"status": "started", "mode": "MT5"}
 
 
 @app.post("/stop")
@@ -553,7 +573,7 @@ async def stop_bot():
         raise HTTPException(status_code=400, detail="Bot is not running")
 
     engine.stop()
-    await set_bot_state("last_status", "IDLE")
+    await set_bot_state("fleet", "last_status", "IDLE")
     logger.info("Bot stopped via API")
     return {"status": "stopped"}
 
@@ -622,6 +642,7 @@ async def update_config(update: ConfigUpdate):
         raise HTTPException(status_code=400, detail="No config values provided")
 
     config.update(**updates)
+    await save_audit_log("UPDATE_CONFIG", "global_config", metadata=updates)
     logger.info(f"Config updated: {updates}")
     return {"status": "updated", "config": config.snapshot()}
 
@@ -900,6 +921,9 @@ async def get_available_symbols(q: Optional[str] = None):
                 "digits": live.get("digits", 0),
                 "spread": live.get("spread", 0),
                 "trade_mode": live.get("trade_mode", 0),
+                "volume_min": live.get("volume_min", 0.01),
+                "volume_max": live.get("volume_max", 100.0),
+                "volume_step": live.get("volume_step", 0.01),
             })
             
         return {"symbols": enriched}
@@ -925,8 +949,8 @@ async def fleet_deploy(request: DeployBotRequest):
             animal=request.animal,
             category=request.category,
             ai_generated=request.ai_generated,
-            demo_mode=request.demo_mode,
             qty=request.qty,
+            short_selling_enabled=request.short_selling_enabled,
             stop_loss_pct=request.stop_loss_pct,
             max_daily_drawdown_pct=request.max_daily_drawdown_pct,
             bb_period=request.bb_period,
@@ -949,6 +973,11 @@ async def fleet_deploy(request: DeployBotRequest):
             max_slippage_pct=request.max_slippage_pct,
             limit_timeout_s=request.limit_timeout_s,
             auto_start=request.auto_start,
+            leverage_mode_enabled=request.leverage_mode_enabled,
+            leverage_factor=request.leverage_factor,
+            isolated_risk_usd=request.isolated_risk_usd,
+            net_profit_target_usd=request.net_profit_target_usd,
+            take_profit_usd=request.take_profit_usd,
         )
         instance = fleet.deploy_bot(cfg)
         return {
@@ -1053,12 +1082,8 @@ async def fleet_start_bot(bot_id: str, request: StartRequest = StartRequest()):
     if not instance.engine:
         raise HTTPException(status_code=400, detail="Bot has no engine")
     
-    # Update demo mode if provided
-    instance.config.demo_mode = request.demo_mode
-    instance.engine.config.demo_mode = request.demo_mode
-    
     instance.engine.start()
-    return {"status": "started", "bot_id": bot_id, "demo_mode": request.demo_mode}
+    return {"status": "started", "bot_id": bot_id}
 
 
 @app.post("/fleet/bot/{bot_id}/stop")
@@ -1075,15 +1100,17 @@ async def fleet_stop_bot(bot_id: str):
 
 @app.patch("/fleet/bot/{bot_id}/config")
 async def fleet_update_bot_config(bot_id: str, updates: dict):
-    """Update a bot's config (e.g. demo_mode, qty, stop_loss_pct)."""
+    """Update a bot's config (e.g. qty, stop_loss_pct)."""
     instance = fleet.get_bot(bot_id)
     if not instance:
         raise HTTPException(status_code=404, detail=f"Bot {bot_id} not found")
 
     ALLOWED_FIELDS = {
-        "demo_mode", "qty", "stop_loss_pct", "bb_period", "bb_std_dev",
+        "qty", "stop_loss_pct", "bb_period", "bb_std_dev",
         "max_daily_drawdown_pct", "fib_enabled", "ai_brain_enabled",
-        "ai_interval_minutes", "capital_allocation",
+        "ai_interval_minutes", "capital_allocation", "kill_zone_enabled",
+        "short_selling_enabled", "leverage_mode_enabled", "leverage_factor",
+        "isolated_risk_usd", "net_profit_target_usd", "take_profit_usd",
     }
     applied = {}
     for key, value in updates.items():
@@ -1093,7 +1120,7 @@ async def fleet_update_bot_config(bot_id: str, updates: dict):
 
     # Persist updated config to Firestore
     try:
-        from firebase_store import update_bot_config
+        from postgres_store import update_bot_config
         await update_bot_config(bot_id, applied)
     except Exception as e:
         logger.warning(f"Failed to persist config update for {bot_id}: {e}")
@@ -1102,7 +1129,6 @@ async def fleet_update_bot_config(bot_id: str, updates: dict):
         "status": "updated",
         "bot_id": bot_id,
         "applied": applied,
-        "demo_mode": instance.config.demo_mode,
     }
 
 
@@ -1138,10 +1164,10 @@ async def fleet_get_ai_decisions(bot_id: str, limit: int = 50):
         raise HTTPException(status_code=404, detail=f"Bot {bot_id} not found")
 
     try:
-        import firebase_store
-        if not firebase_store.is_initialized():
+        import postgres_store
+        if not postgres_store.is_initialized():
             return []
-        decisions = await firebase_store.get_ai_decisions(bot_id, limit=limit)
+        decisions = await postgres_store.get_ai_decisions(bot_id, limit=limit)
         return decisions
     except (ImportError, Exception) as e:
         logger.warning(f"Failed to fetch AI decisions for {bot_id}: {e}")
@@ -1292,7 +1318,7 @@ _WIZARD_PRESETS = {
         "ai_loss_streak_trigger": 4, "agent_vote_cache_ttl_seconds": 2400,
         "sub_agents": ["sentiment", "macro", "earnings", "watchman", "risk_manager"],
         "strategy": "mean_reversion", "smart_routing_min_qty": 6, "twap_interval_ms": 600,
-        "max_slippage_pct": 0.35,
+        "max_slippage_pct": 0.05,
     },
     "buffalo": {
         "qty": 2, "stop_loss_pct": 0.7, "max_daily_drawdown_pct": 4.0,
@@ -1302,7 +1328,7 @@ _WIZARD_PRESETS = {
         "ai_loss_streak_trigger": 3, "agent_vote_cache_ttl_seconds": 1800,
         "sub_agents": ["sentiment", "macro", "earnings", "technical", "watchman", "risk_manager"],
         "strategy": "combined", "smart_routing_min_qty": 5, "twap_interval_ms": 500,
-        "max_slippage_pct": 0.30,
+        "max_slippage_pct": 0.05,
     },
     "rhino": {
         "qty": 4, "stop_loss_pct": 1.0, "max_daily_drawdown_pct": 5.5,
@@ -1312,7 +1338,7 @@ _WIZARD_PRESETS = {
         "ai_loss_streak_trigger": 3, "agent_vote_cache_ttl_seconds": 1200,
         "sub_agents": ["sentiment", "macro", "earnings", "technical", "watchman", "risk_manager"],
         "strategy": "trend_following", "smart_routing_min_qty": 4, "twap_interval_ms": 400,
-        "max_slippage_pct": 0.28,
+        "max_slippage_pct": 0.05,
     },
     "leopard": {
         "qty": 6, "stop_loss_pct": 1.3, "max_daily_drawdown_pct": 7.0,
@@ -1322,7 +1348,7 @@ _WIZARD_PRESETS = {
         "ai_loss_streak_trigger": 2, "agent_vote_cache_ttl_seconds": 900,
         "sub_agents": ["sentiment", "macro", "earnings", "technical", "watchman", "risk_manager"],
         "strategy": "mean_reversion", "smart_routing_min_qty": 3, "twap_interval_ms": 350,
-        "max_slippage_pct": 0.26,
+        "max_slippage_pct": 0.05,
     },
     "lion": {
         "qty": 10, "stop_loss_pct": 1.8, "max_daily_drawdown_pct": 9.0,
@@ -1332,7 +1358,7 @@ _WIZARD_PRESETS = {
         "ai_loss_streak_trigger": 2, "agent_vote_cache_ttl_seconds": 600,
         "sub_agents": ["sentiment", "macro", "earnings", "technical", "watchman", "risk_manager"],
         "strategy": "combined", "smart_routing_min_qty": 3, "twap_interval_ms": 280,
-        "max_slippage_pct": 0.22,
+        "max_slippage_pct": 0.05,
     },
 }
 
@@ -1464,7 +1490,6 @@ Rules:
         "name": llm_name,
         "fib_enabled": True,
         "ai_brain_enabled": True,
-        "demo_mode": True,
         "tags": [req.category.lower(), personality, "mas", "wizard"],
         "status": "DEPLOYMENT_READY",
     })
@@ -1519,142 +1544,6 @@ async def bot_websocket_endpoint(ws: WebSocket, bot_id: str):
     except Exception:
         manager.disconnect(ws, channel=channel)
 
-
-
-# ════════════════════════════════════════════════════════
-# REALTIME TICKER ENDPOINTS
-# ════════════════════════════════════════════════════════
-
-@app.get("/ticker/symbols")
-async def ticker_symbols():
-    """
-    Return list of unique symbols across all deployed bots.
-    Powers the BotSwitcherStrip so the frontend knows which symbols/bots to offer.
-    """
-    bots_data = fleet.get_fleet_status()["bots"]
-    symbols_seen = set()
-    result = []
-    for bot in bots_data:
-        sym = bot.get("symbol", "")
-        if sym and sym not in symbols_seen:
-            symbols_seen.add(sym)
-        result.append({
-            "bot_id": bot["bot_id"],
-            "name": bot["name"],
-            "symbol": sym,
-            "strategy": bot.get("strategy", ""),
-            "demo_mode": bot.get("demo_mode", True),
-            "tags": bot.get("tags", []),
-            "bot_status": bot.get("status", {}).get("bot_status", "IDLE"),
-            "daily_pnl": bot.get("status", {}).get("daily_pnl", 0.0),
-            "equity": bot.get("status", {}).get("equity", 0.0),
-            "current_price": bot.get("status", {}).get("current_price", 0.0),
-            "position_qty": bot.get("status", {}).get("position_qty", 0),
-            "position_side": bot.get("status", {}).get("position_side", ""),
-            "unrealized_pnl": bot.get("status", {}).get("unrealized_pnl", 0.0),
-        })
-    return {"bots": result}
-
-
-@app.websocket("/ws/ticker/{symbol}")
-async def websocket_ticker(ws: WebSocket, symbol: str):
-    """
-    Per-symbol realtime market data stream.
-    - Subscribes to MT5 bars/quotes for the requested symbol
-    - Joins bot state for any fleet bots trading that symbol
-    - Broadcasts { type, bar | quote | tick, bots } to the client
-    Client sends 'ping' for keepalive; server replies 'pong'.
-    """
-    await ws.accept()
-    symbol = symbol.upper()
-    queue: asyncio.Queue = asyncio.Queue(maxsize=200)
-
-    await mt5_hub.subscribe(symbol, queue)
-    logger.info(f"[TickerWS] Client connected for {symbol}")
-
-    async def _send_loop():
-        while True:
-            try:
-                payload = await asyncio.wait_for(queue.get(), timeout=25.0)
-                # Enrich with bot context for this symbol
-                bots_context = _get_bots_for_symbol(symbol)
-                payload["bots"] = bots_context
-                await ws.send_text(json.dumps(payload, default=str))
-            except asyncio.TimeoutError:
-                # No bar for 25s — send keepalive so client knows we're alive
-                await ws.send_text(json.dumps({"type": "keepalive", "symbol": symbol}))
-            except Exception:
-                break
-
-    send_task = asyncio.create_task(_send_loop())
-
-    try:
-        while True:
-            try:
-                msg = await asyncio.wait_for(ws.receive_text(), timeout=60.0)
-                if msg == "ping":
-                    await ws.send_text(json.dumps({"type": "pong"}))
-            except asyncio.TimeoutError:
-                pass
-    except (WebSocketDisconnect, Exception):
-        pass
-    finally:
-        send_task.cancel()
-        await mt5_hub.unsubscribe(symbol, queue)
-        logger.info(f"[TickerWS] Client disconnected from {symbol}")
-
-
-def _get_bots_for_symbol(symbol: str) -> list[dict]:
-    """Return lightweight state snapshots for all bots trading the given symbol."""
-    result = []
-    for instance in fleet.list_bots():
-        if instance.config.symbol.upper() != symbol.upper():
-            continue
-        try:
-            state = instance.engine.get_state_snapshot() if instance.engine else {}
-            result.append({
-                "bot_id": instance.bot_id,
-                "name": instance.config.name,
-                "bot_status": state.get("bot_status", "IDLE"),
-                "current_price": state.get("current_price", 0.0),
-                "daily_pnl": state.get("daily_pnl", 0.0),
-                "equity": state.get("equity", 0.0),
-                "position_qty": state.get("position_qty", 0),
-                "position_side": state.get("position_side", ""),
-                "entry_price": state.get("entry_price", 0.0),
-                "unrealized_pnl": state.get("unrealized_pnl", 0.0),
-                "last_signal": state.get("last_signal", ""),
-                # Bollinger bands (last data point only — chart overlay)
-                "bollinger_last": _get_last_bollinger(instance),
-                # Recent trade markers for chart overlay
-                "markers": _get_recent_markers(instance),
-            })
-        except Exception:
-            pass
-    return result
-
-
-def _get_last_bollinger(instance) -> dict:
-    """Return the latest Bollinger Band values from an engine instance."""
-    try:
-        if instance.engine and instance.engine.bollinger_data:
-            with instance.engine._lock:
-                last = list(instance.engine.bollinger_data)[-1]
-            return last
-    except Exception:
-        pass
-    return {}
-
-
-def _get_recent_markers(instance, limit: int = 50) -> list[dict]:
-    """Return the most recent trade markers from an engine instance."""
-    try:
-        if instance.engine and instance.engine.markers:
-            with instance.engine._lock:
-                return list(instance.engine.markers)[-limit:]
-    except Exception:
-        pass
-    return []
 
 
 @app.get("/health")

@@ -13,7 +13,7 @@ Design decisions:
 """
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
 import pandas as pd
@@ -86,6 +86,7 @@ class TrendStrategistAgent:
     def __init__(self, bot_id: str):
         self.bot_id = bot_id
         self._logger = logging.getLogger(f"tradeclaw.trend[{bot_id}]")
+        self._last_signal_bar: str = ""  # Tracks ISO timestamp of the last bar we signaled on
 
     # ── Public API ─────────────────────────────────────────────────────────
 
@@ -94,6 +95,7 @@ class TrendStrategistAgent:
         prices: pd.Series,
         volumes: Optional[pd.Series],
         regime: str,                # "RANGING" | "TRENDING" | "VOLATILE"
+        adx: Optional[float] = None,  # pre-computed ADX from RegimeDetector (OHLC-based)
     ) -> TrendSignal:
         """
         Analyse the price/volume series and return a TrendSignal.
@@ -102,6 +104,8 @@ class TrendStrategistAgent:
             prices:  Close price series (chronological, oldest first).
             volumes: Volume series aligned to prices (may be None).
             regime:  Current regime from RegimeDetector.
+            adx:     ADX already computed by RegimeDetector (preferred — uses full OHLC).
+                     When provided, skips the close-only proxy computation inside _compute.
         """
         if regime != "TRENDING":
             return TrendSignal(
@@ -118,7 +122,25 @@ class TrendStrategistAgent:
             )
 
         try:
-            return self._compute(prices, volumes)
+            # Get the current bar timestamp for dedup (if available in prices index or passed)
+            # Since prices is usually a Series, we check the last index entry
+            current_bar_ts = str(prices.index[-1]) if hasattr(prices.index, "iloc") else ""
+            
+            signal = self._compute(prices, volumes, adx)
+            
+            # Deduplication: Only allow one BUY/SELL per bar.
+            # HOLD is always allowed.
+            if signal.vote in (VOTE_BUY, VOTE_SELL):
+                if current_bar_ts == self._last_signal_bar:
+                    self._logger.debug(f"Trend signal {signal.vote} already issued for bar {current_bar_ts} — suppressing.")
+                    return TrendSignal(
+                        vote=VOTE_HOLD,
+                        confidence=0.0,
+                        reasoning=f"Deduplicated: already signaled {signal.vote} this bar.",
+                    )
+                self._last_signal_bar = current_bar_ts
+                
+            return signal
         except Exception as e:
             self._logger.exception(f"TrendStrategist compute error: {e}")
             return TrendSignal(
@@ -130,7 +152,8 @@ class TrendStrategistAgent:
     # ── Internal computation ───────────────────────────────────────────────
 
     def _compute(
-        self, prices: pd.Series, volumes: Optional[pd.Series]
+        self, prices: pd.Series, volumes: Optional[pd.Series],
+        adx: Optional[float] = None,
     ) -> TrendSignal:
 
         # ── EMA crossover ──────────────────────────────────────────────────
@@ -146,7 +169,9 @@ class TrendStrategistAgent:
         ema_crossed_dn = prev_fast >= prev_slow and cur_fast < cur_slow
 
         # ── ADX (trend strength) ───────────────────────────────────────────
-        adx = self._compute_adx(prices)
+        # Prefer caller-supplied ADX (OHLC-based, accurate) over close-only proxy
+        if adx is None:
+            adx = self._compute_adx(prices)
 
         # ── Breakout detection ─────────────────────────────────────────────
         lookback = prices.iloc[-(self.BREAKOUT_LOOKBACK + 1):-1]
@@ -175,7 +200,7 @@ class TrendStrategistAgent:
         # direction.  This prevents the strategist from sitting idle during
         # sustained trends where the crossover happened many bars ago.
         ema_gap_pct = (cur_fast - cur_slow) / cur_slow * 100 if cur_slow != 0 else 0
-        MOMENTUM_GAP_PCT = 0.15  # minimum EMA gap (%) to consider momentum
+        MOMENTUM_GAP_PCT = 0.015  # minimum EMA gap (%) to consider momentum — 0.05 was too high for BTC 1-min
 
         momentum_buy = (not ema_crossed_up and not breakout_up
                         and adx_ok and ema_gap_pct > MOMENTUM_GAP_PCT)
@@ -232,8 +257,12 @@ class TrendStrategistAgent:
                 f"ADX={adx:.1f}, no breakout."
             )
 
-        self._logger.debug(
+        log_fn = self._logger.info if vote == VOTE_HOLD else self._logger.debug
+        log_fn(
             f"[{self.bot_id}] TrendStrategist → {vote} @ {conf:.0%} | {reasoning}"
+            f" | crossed_up={ema_crossed_up} crossed_dn={ema_crossed_dn} gap={ema_gap_pct:+.3f}%"
+            f" breakout_up={breakout_up} breakout_dn={breakout_dn}"
+            f" momentum_buy={momentum_buy} momentum_sell={momentum_sell}"
         )
 
         return TrendSignal(

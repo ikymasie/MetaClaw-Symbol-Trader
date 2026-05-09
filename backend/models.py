@@ -3,9 +3,24 @@ TradeClaw Pydantic Models
 Request/Response schemas for the FastAPI endpoints.
 """
 
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, Field
+from typing import Optional, List
 from enum import Enum
+
+
+class MT5Credentials(BaseModel):
+    login: int
+    password: str
+    server: str
+
+
+class BrokerAccount(BaseModel):
+    id: str = Field(..., description="Unique ID for this broker account")
+    name: str = Field(..., description="User-friendly name (e.g., 'Weltrade Live')")
+    login: int
+    server: str
+    is_active: bool = True
+    created_at: str = ""
 
 
 class BotStatus(str, Enum):
@@ -28,7 +43,7 @@ class SignalType(str, Enum):
 # ---- Request Models ----
 
 class StartRequest(BaseModel):
-    demo_mode: bool = True
+    pass
 
 
 class ConfigUpdate(BaseModel):
@@ -46,9 +61,9 @@ class ConfigSnapshot(BaseModel):
     bb_period: int
     bb_std_dev: float
     max_daily_drawdown_pct: float
-    demo_mode: bool
-    
+
     # Capital / Identity
+    account_id: Optional[str] = None
     capital_allocation: Optional[float] = 0.0
     description: str = ""
     personality: str = ""

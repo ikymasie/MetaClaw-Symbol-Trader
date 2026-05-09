@@ -88,6 +88,7 @@ export function BotCard({ bot, onSelect }: Props) {
         >
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-white truncate">{bot.name}</span>
+            {bot.leverage_mode_enabled && <Zap className="w-3 h-3 text-violet-400 fill-violet-400/20 shrink-0" />}
             <span className="text-[9px] font-mono px-1.5 py-0.5 rounded-md bg-white/10 text-muted-foreground border border-white/8">
               ${(bot.capital_allocation / 1000).toFixed(0)}K
             </span>
