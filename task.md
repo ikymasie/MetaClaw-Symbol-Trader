@@ -65,3 +65,10 @@ This task list tracks the progress of the four-phase ATLAS Gap implementation pl
 - [ ] **Event streaming**: `deliberation_event` messages appear in WS client during active deliberation
 - [ ] **Autoresearch**: Git branch creation, Sharpe eval, merge/revert flow on local repo
 - [ ] **Prompt files**: `_load_prompt("macro")` returns correct system + user_template content
+
+## Phase 6: Darwinian Scalper (Leverage Mode)
+- [x] Add leverage settings to `BotConfig` (`leverage_mode_enabled`, `leverage_factor`, `isolated_risk_usd`, `net_profit_target_usd`)
+- [x] Implement `calculate_leverage_qty` in `PositionSizer`
+- [x] Update `BotEngine._live_tick` to use leverage-based sizing when enabled
+- [x] Update `BotEngine._close_profitable_positions` to handle $1 NET target and $40 isolated risk stop-out
+- [x] Add verification script for leverage math in `scratch/verify_leverage_math.py`

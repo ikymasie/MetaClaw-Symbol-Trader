@@ -210,6 +210,9 @@ class MT5Hub:
                 "digits": getattr(s, "digits", 0),
                 "spread": getattr(s, "spread", 0),
                 "trade_mode": getattr(s, "trade_mode", 0),
+                "volume_min": getattr(s, "volume_min", 0.01) or 0.01,
+                "volume_max": getattr(s, "volume_max", 100.0) or 100.0,
+                "volume_step": getattr(s, "volume_step", 0.01) or 0.01,
             })
         return result
 
@@ -286,6 +289,10 @@ class MT5Hub:
                 logger.error(f"[MT5Hub] Bar poll error: {e}")
 
             await asyncio.sleep(BAR_POLL_INTERVAL_S)
+
+    def get_recent_news(self, symbol: str) -> List[dict]:  # noqa: ARG002
+        """MT5 does not provide news; returns empty list so callers fall through to web search."""
+        return []
 
     # ── Internal ──────────────────────────────────────────────────────────────
 

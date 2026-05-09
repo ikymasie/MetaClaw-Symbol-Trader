@@ -233,3 +233,28 @@ class PositionSizer:
         })
 
         return qty, diag
+
+    def calculate_leverage_qty(
+        self,
+        price: float,
+        isolated_risk_usd: float,
+        leverage_factor: float,
+        contract_size: float = 1.0,
+    ) -> float:
+        """
+        Calculate quantity based on fixed isolated dollar risk and leverage.
+        Formula: Qty = (Risk * Leverage) / (Price * ContractSize)
+        
+        Example: $40 risk @ 50x = $2000 buying power. 
+        If Price is $60,000 (BTC) and contract_size is 1.0:
+        Qty = 2000 / 60000 = 0.033
+        """
+        if price <= 0:
+            return 0.0
+        
+        notional_value = isolated_risk_usd * leverage_factor
+        qty = notional_value / (price * contract_size)
+        
+        # Round to 2 decimal places (standard for most MT5 lots)
+        # Some symbols might need more/less, but 0.01 is the usual min lot increment.
+        return round(qty, 2)

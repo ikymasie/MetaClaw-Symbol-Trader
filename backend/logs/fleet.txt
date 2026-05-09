@@ -1,0 +1,906 @@
+2026-05-09 23:04:15,427 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:04:15,427 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:04:21,239 [tradeclaw.postgres_store] ERROR: PostgreSQL Connection Failed: relation "users" does not exist
+2026-05-09 23:04:21,239 [tradeclaw] ERROR: PostgreSQL initialization failed: relation "users" does not exist
+2026-05-09 23:04:21,279 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:04:21,294 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:04:21,317 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:04:21,317 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:04:21,318 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:04:21,318 [tradeclaw.fleet] WARNING: Could not load FleetConfig from PostgreSQL: module 'postgres_store' has no attribute 'load_fleet_config'
+2026-05-09 23:04:21,318 [tradeclaw.fleet] ERROR: Bot restoration failed: module 'postgres_store' has no attribute 'list_bot_ids'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 205, in restore_bots_from_store
+    bot_ids = await self._store.list_bot_ids()
+AttributeError: module 'postgres_store' has no attribute 'list_bot_ids'
+2026-05-09 23:04:21,326 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:04:21,383 [tradeclaw] ERROR: Failed to start partition maintenance loop: No module named 'database.partition_manager'; 'database' is not a package
+2026-05-09 23:04:21,396 [tradeclaw.fleet] WARNING: Telemetry push failed: module 'postgres_store' has no attribute 'push_fleet_telemetry'
+2026-05-09 23:04:21,396 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:04:21,396 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:04:21,396 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:04:21,396 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:04:21,396 [tradeclaw.fleet] ERROR: Fleet monitor error: module 'postgres_store' has no attribute 'prune_old_telemetry'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 566, in _monitor_loop
+    asyncio.run_coroutine_threadsafe(self._store.prune_old_telemetry(48), self._main_loop)
+AttributeError: module 'postgres_store' has no attribute 'prune_old_telemetry'
+2026-05-09 23:04:15,427 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:04:15,427 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:04:21,239 [tradeclaw.postgres_store] ERROR: PostgreSQL Connection Failed: relation "users" does not exist
+2026-05-09 23:04:21,239 [tradeclaw] ERROR: PostgreSQL initialization failed: relation "users" does not exist
+2026-05-09 23:04:21,279 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:04:21,294 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:04:21,317 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:04:21,317 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:04:21,318 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:04:21,318 [tradeclaw.fleet] WARNING: Could not load FleetConfig from PostgreSQL: module 'postgres_store' has no attribute 'load_fleet_config'
+2026-05-09 23:04:21,318 [tradeclaw.fleet] ERROR: Bot restoration failed: module 'postgres_store' has no attribute 'list_bot_ids'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 205, in restore_bots_from_store
+    bot_ids = await self._store.list_bot_ids()
+AttributeError: module 'postgres_store' has no attribute 'list_bot_ids'
+2026-05-09 23:04:21,326 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:04:21,383 [tradeclaw] ERROR: Failed to start partition maintenance loop: No module named 'database.partition_manager'; 'database' is not a package
+2026-05-09 23:04:21,396 [tradeclaw.fleet] WARNING: Telemetry push failed: module 'postgres_store' has no attribute 'push_fleet_telemetry'
+2026-05-09 23:04:21,396 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:04:21,396 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:04:21,396 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:04:21,396 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:04:21,396 [tradeclaw.fleet] ERROR: Fleet monitor error: module 'postgres_store' has no attribute 'prune_old_telemetry'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 566, in _monitor_loop
+    asyncio.run_coroutine_threadsafe(self._store.prune_old_telemetry(48), self._main_loop)
+AttributeError: module 'postgres_store' has no attribute 'prune_old_telemetry'
+2026-05-09 23:05:12,217 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:05:12,218 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:05:17,133 [tradeclaw.postgres_store] ERROR: PostgreSQL Connection Failed: relation "users" does not exist
+2026-05-09 23:05:17,134 [tradeclaw] ERROR: PostgreSQL initialization failed: relation "users" does not exist
+2026-05-09 23:05:17,147 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:05:17,150 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:05:17,155 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:05:17,155 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:05:17,155 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:05:17,155 [tradeclaw.fleet] WARNING: Could not load FleetConfig from PostgreSQL: module 'postgres_store' has no attribute 'load_fleet_config'
+2026-05-09 23:05:17,155 [tradeclaw.fleet] ERROR: Bot restoration failed: module 'postgres_store' has no attribute 'list_bot_ids'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 205, in restore_bots_from_store
+    bot_ids = await self._store.list_bot_ids()
+AttributeError: module 'postgres_store' has no attribute 'list_bot_ids'
+2026-05-09 23:05:17,159 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:05:17,192 [tradeclaw] ERROR: Failed to start partition maintenance loop: No module named 'database.partition_manager'; 'database' is not a package
+2026-05-09 23:05:17,195 [tradeclaw.fleet] WARNING: Telemetry push failed: module 'postgres_store' has no attribute 'push_fleet_telemetry'
+2026-05-09 23:05:17,195 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:05:17,195 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:05:17,196 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:05:17,196 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:05:17,196 [tradeclaw.fleet] ERROR: Fleet monitor error: module 'postgres_store' has no attribute 'prune_old_telemetry'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 566, in _monitor_loop
+    asyncio.run_coroutine_threadsafe(self._store.prune_old_telemetry(48), self._main_loop)
+AttributeError: module 'postgres_store' has no attribute 'prune_old_telemetry'
+2026-05-09 23:05:12,217 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:05:12,218 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:05:17,133 [tradeclaw.postgres_store] ERROR: PostgreSQL Connection Failed: relation "users" does not exist
+2026-05-09 23:05:17,134 [tradeclaw] ERROR: PostgreSQL initialization failed: relation "users" does not exist
+2026-05-09 23:05:17,147 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:05:17,150 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:05:17,155 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:05:17,155 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:05:17,155 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:05:17,155 [tradeclaw.fleet] WARNING: Could not load FleetConfig from PostgreSQL: module 'postgres_store' has no attribute 'load_fleet_config'
+2026-05-09 23:05:17,155 [tradeclaw.fleet] ERROR: Bot restoration failed: module 'postgres_store' has no attribute 'list_bot_ids'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 205, in restore_bots_from_store
+    bot_ids = await self._store.list_bot_ids()
+AttributeError: module 'postgres_store' has no attribute 'list_bot_ids'
+2026-05-09 23:05:17,159 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:05:17,192 [tradeclaw] ERROR: Failed to start partition maintenance loop: No module named 'database.partition_manager'; 'database' is not a package
+2026-05-09 23:05:17,195 [tradeclaw.fleet] WARNING: Telemetry push failed: module 'postgres_store' has no attribute 'push_fleet_telemetry'
+2026-05-09 23:05:17,195 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:05:17,195 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:05:17,196 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:05:17,196 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:05:17,196 [tradeclaw.fleet] ERROR: Fleet monitor error: module 'postgres_store' has no attribute 'prune_old_telemetry'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 566, in _monitor_loop
+    asyncio.run_coroutine_threadsafe(self._store.prune_old_telemetry(48), self._main_loop)
+AttributeError: module 'postgres_store' has no attribute 'prune_old_telemetry'
+2026-05-09 23:07:25,514 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:07:25,514 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:07:30,422 [tradeclaw.postgres_store] ERROR: PostgreSQL Connection Failed: relation "users" does not exist
+2026-05-09 23:07:30,423 [tradeclaw] ERROR: PostgreSQL initialization failed: relation "users" does not exist
+2026-05-09 23:07:30,440 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:07:30,442 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:07:30,447 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:07:30,447 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:07:30,447 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:07:30,447 [tradeclaw.fleet] WARNING: Could not load FleetConfig from PostgreSQL: module 'postgres_store' has no attribute 'load_fleet_config'
+2026-05-09 23:07:30,447 [tradeclaw.fleet] ERROR: Bot restoration failed: module 'postgres_store' has no attribute 'list_bot_ids'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 205, in restore_bots_from_store
+    bot_ids = await self._store.list_bot_ids()
+AttributeError: module 'postgres_store' has no attribute 'list_bot_ids'
+2026-05-09 23:07:30,454 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:07:30,491 [tradeclaw] ERROR: Failed to start partition maintenance loop: No module named 'database.partition_manager'; 'database' is not a package
+2026-05-09 23:07:30,493 [tradeclaw.fleet] WARNING: Telemetry push failed: module 'postgres_store' has no attribute 'push_fleet_telemetry'
+2026-05-09 23:07:30,493 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:07:30,494 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:07:30,494 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:07:30,494 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:07:25,514 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:07:25,514 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:07:30,422 [tradeclaw.postgres_store] ERROR: PostgreSQL Connection Failed: relation "users" does not exist
+2026-05-09 23:07:30,423 [tradeclaw] ERROR: PostgreSQL initialization failed: relation "users" does not exist
+2026-05-09 23:07:30,440 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:07:30,442 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:07:30,447 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:07:30,447 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:07:30,447 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:07:30,447 [tradeclaw.fleet] WARNING: Could not load FleetConfig from PostgreSQL: module 'postgres_store' has no attribute 'load_fleet_config'
+2026-05-09 23:07:30,447 [tradeclaw.fleet] ERROR: Bot restoration failed: module 'postgres_store' has no attribute 'list_bot_ids'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 205, in restore_bots_from_store
+    bot_ids = await self._store.list_bot_ids()
+AttributeError: module 'postgres_store' has no attribute 'list_bot_ids'
+2026-05-09 23:07:30,454 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:07:30,491 [tradeclaw] ERROR: Failed to start partition maintenance loop: No module named 'database.partition_manager'; 'database' is not a package
+2026-05-09 23:07:30,493 [tradeclaw.fleet] WARNING: Telemetry push failed: module 'postgres_store' has no attribute 'push_fleet_telemetry'
+2026-05-09 23:07:30,493 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:07:30,494 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:07:30,494 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:07:30,494 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:09:57,399 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:09:57,399 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:10:02,239 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:10:02,240 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:10:03,114 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:10:03,117 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:10:03,123 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:10:03,123 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:10:03,123 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:10:03,123 [tradeclaw.fleet] WARNING: Could not load FleetConfig from PostgreSQL: module 'postgres_store' has no attribute 'load_fleet_config'
+2026-05-09 23:10:03,123 [tradeclaw.fleet] ERROR: Bot restoration failed: module 'postgres_store' has no attribute 'list_bot_ids'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 205, in restore_bots_from_store
+    bot_ids = await self._store.list_bot_ids()
+AttributeError: module 'postgres_store' has no attribute 'list_bot_ids'
+2026-05-09 23:10:03,132 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:10:03,184 [tradeclaw] ERROR: Failed to start partition maintenance loop: No module named 'database.partition_manager'; 'database' is not a package
+2026-05-09 23:10:03,187 [tradeclaw.fleet] WARNING: Telemetry push failed: module 'postgres_store' has no attribute 'push_fleet_telemetry'
+2026-05-09 23:10:03,187 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:10:03,187 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:10:03,187 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:10:03,187 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:10:04,027 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:10:04,027 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:10:04,027 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:10:04,027 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:10:04,588 [tradeclaw.ai_brain] ERROR: _run_async: coroutine dispatch failed: invalid input for query argument $1: 200 (expected str, got int)
+2026-05-09 23:10:05,148 [tradeclaw.ai_brain] ERROR: _run_async: coroutine dispatch failed: invalid input for query argument $1: 50 (expected str, got int)
+2026-05-09 23:10:05,435 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:09:57,399 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:09:57,399 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:10:02,239 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:10:02,240 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:10:03,114 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:10:03,117 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:10:03,123 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:10:03,123 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:10:03,123 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:10:03,123 [tradeclaw.fleet] WARNING: Could not load FleetConfig from PostgreSQL: module 'postgres_store' has no attribute 'load_fleet_config'
+2026-05-09 23:10:03,123 [tradeclaw.fleet] ERROR: Bot restoration failed: module 'postgres_store' has no attribute 'list_bot_ids'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 205, in restore_bots_from_store
+    bot_ids = await self._store.list_bot_ids()
+AttributeError: module 'postgres_store' has no attribute 'list_bot_ids'
+2026-05-09 23:10:03,132 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:10:03,184 [tradeclaw] ERROR: Failed to start partition maintenance loop: No module named 'database.partition_manager'; 'database' is not a package
+2026-05-09 23:10:03,187 [tradeclaw.fleet] WARNING: Telemetry push failed: module 'postgres_store' has no attribute 'push_fleet_telemetry'
+2026-05-09 23:10:03,187 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:10:03,187 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:10:03,187 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:10:03,187 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:10:04,027 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:10:04,027 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:10:04,027 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:10:04,027 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:10:04,588 [tradeclaw.ai_brain] ERROR: _run_async: coroutine dispatch failed: invalid input for query argument $1: 200 (expected str, got int)
+2026-05-09 23:10:05,148 [tradeclaw.ai_brain] ERROR: _run_async: coroutine dispatch failed: invalid input for query argument $1: 50 (expected str, got int)
+2026-05-09 23:10:05,435 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:30:56,213 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:30:56,213 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:31:01,425 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:31:01,425 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:31:02,319 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:31:02,336 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:31:02,349 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:31:02,349 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:31:02,349 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:31:04,069 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:31:04,069 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:31:04,073 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:31:04,083 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:31:04,084 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:31:04,084 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:31:04,084 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:31:04,955 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:31:04,956 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:31:04,956 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:31:04,956 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:31:06,172 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:30:56,213 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:30:56,213 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:31:01,425 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:31:01,425 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:31:02,319 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:31:02,336 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:31:02,349 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:31:02,349 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:31:02,349 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:31:04,069 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:31:04,069 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:31:04,073 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:31:04,083 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:31:04,084 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:31:04,084 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:31:04,084 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:31:04,955 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:31:04,956 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:31:04,956 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:31:04,956 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:31:06,172 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:30:56,213 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:30:56,213 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:31:01,425 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:31:01,425 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:31:02,319 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:31:02,336 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:31:02,349 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:31:02,349 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:31:02,349 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:31:04,069 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:31:04,069 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:31:04,073 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:31:04,083 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:31:04,084 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:31:04,084 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:31:04,084 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:31:04,955 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:31:04,956 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:31:04,956 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:31:04,956 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:31:06,172 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:31:06,421 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:31:06,481 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:31:06,780 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:31:07,073 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:31:07,382 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:31:07,681 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:31:07,984 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:31:08,283 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:31:08,582 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:31:08,881 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:31:09,179 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:31:09,472 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:31:10,401 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:31:11,009 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:31:11,590 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:31:15,027 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:31:06,421 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:31:06,481 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:31:06,780 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:31:07,073 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:31:07,382 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:31:07,681 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:31:07,984 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:31:08,283 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:31:08,582 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:31:08,881 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:31:09,179 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:31:09,472 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:31:10,401 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:31:11,009 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:31:11,590 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:31:15,027 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:31:06,421 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:31:06,481 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:31:06,780 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:31:07,073 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:31:07,382 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:31:07,681 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:31:07,984 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:31:08,283 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:31:08,582 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:31:08,881 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:31:09,179 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:31:09,472 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:31:10,401 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:31:11,009 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:31:11,590 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:31:15,027 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:31:44,705 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:31:44,705 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:31:44,705 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:32:14,683 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:32:14,683 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:32:14,683 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:32:28,366 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:32:28,366 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:32:33,528 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:32:33,529 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:32:34,459 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:32:34,622 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:32:34,631 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:32:34,631 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:32:34,631 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:32:36,386 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:32:36,386 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:32:36,389 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:32:36,396 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:32:37,232 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:32:37,232 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:32:37,233 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:32:37,268 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:32:37,268 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:32:37,268 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:32:37,269 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:32:38,341 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:32:28,366 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:32:28,366 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:32:33,528 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:32:33,529 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:32:34,459 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:32:34,622 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:32:34,631 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:32:34,631 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:32:34,631 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:32:36,386 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:32:36,386 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:32:36,389 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:32:36,396 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:32:37,232 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:32:37,232 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:32:37,233 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:32:37,268 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:32:37,268 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:32:37,268 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:32:37,269 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:32:38,341 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:32:28,366 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:32:28,366 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:32:33,528 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:32:33,529 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:32:34,459 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:32:34,622 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:32:34,631 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:32:34,631 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:32:34,631 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:32:36,386 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:32:36,386 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:32:36,389 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:32:36,396 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:32:37,232 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:32:37,232 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:32:37,233 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:32:37,268 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:32:37,268 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:32:37,268 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:32:37,269 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:32:38,341 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:32:52,800 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:32:52,800 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:32:57,500 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:32:57,501 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:32:58,301 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:32:58,303 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:32:58,307 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:32:58,307 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:32:58,307 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:32:59,880 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:32:59,880 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:32:59,883 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:32:59,889 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:33:00,669 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:33:00,669 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:33:00,669 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:33:00,669 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:33:00,765 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:33:00,765 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:33:00,765 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:33:01,949 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:33:02,237 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:33:02,535 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:32:52,800 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:32:52,800 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:32:57,500 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:32:57,501 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:32:58,301 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:32:58,303 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:32:58,307 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:32:58,307 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:32:58,307 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:32:59,880 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:32:59,880 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:32:59,883 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:32:59,889 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:33:00,669 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:33:00,669 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:33:00,669 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:33:00,669 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:33:00,765 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:33:00,765 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:33:00,765 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:33:01,949 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:33:02,237 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:33:02,535 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:32:52,800 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:32:52,800 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:32:57,500 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:32:57,501 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:32:58,301 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:32:58,303 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:32:58,307 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:32:58,307 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:32:58,307 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:32:59,880 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:32:59,880 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:32:59,883 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:32:59,889 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:33:00,669 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:33:00,669 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:33:00,669 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:33:00,669 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:33:00,765 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:33:00,765 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:33:00,765 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:33:01,949 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:33:02,237 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:33:02,535 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:33:02,823 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:33:03,084 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:33:03,117 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:33:03,410 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:33:03,703 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:33:03,986 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:33:04,285 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:33:04,573 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:33:04,866 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:33:05,154 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:33:06,013 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:33:06,583 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:33:07,155 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:33:02,823 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:33:03,084 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:33:03,117 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:33:03,410 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:33:03,703 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:33:03,986 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:33:04,285 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:33:04,573 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:33:04,866 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:33:05,154 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:33:06,013 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:33:06,583 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:33:07,155 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:33:02,823 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:33:03,084 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:33:03,117 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:33:03,410 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:33:03,703 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:33:03,986 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:33:04,285 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:33:04,573 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:33:04,866 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:33:05,154 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:33:06,013 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:33:06,583 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:33:07,155 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:37:05,670 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:37:05,671 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:37:10,721 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:37:10,721 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:37:11,669 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:37:11,671 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:37:11,676 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:37:11,676 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:37:11,676 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:37:13,443 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:37:13,443 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:37:13,445 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:37:13,448 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:37:14,317 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:37:14,317 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:37:14,317 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:37:14,317 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:37:14,327 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:37:14,327 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:37:14,328 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:37:15,395 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:37:15,671 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:37:05,670 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:37:05,671 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:37:10,721 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:37:10,721 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:37:11,669 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:37:11,671 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:37:11,676 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:37:11,676 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:37:11,676 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:37:13,443 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:37:13,443 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:37:13,445 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:37:13,448 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:37:14,317 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:37:14,317 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:37:14,317 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:37:14,317 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:37:14,327 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:37:14,327 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:37:14,328 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:37:15,395 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:37:15,671 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:37:05,670 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:37:05,671 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:37:10,721 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:37:10,721 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:37:11,669 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:37:11,671 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:37:11,676 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:37:11,676 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:37:11,676 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:37:13,443 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:37:13,443 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:37:13,445 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:37:13,448 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:37:14,317 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:37:14,317 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:37:14,317 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:37:14,317 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:37:14,327 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:37:14,327 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:37:14,328 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:37:15,395 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:37:15,671 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:37:15,950 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:37:16,227 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:37:16,505 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:37:16,637 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:37:16,781 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:37:17,058 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:37:17,336 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:37:17,607 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:37:17,875 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:37:18,141 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:37:18,419 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:37:19,229 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:37:19,781 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:37:20,354 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:37:15,950 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:37:16,227 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:37:16,505 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:37:16,637 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:37:16,781 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:37:17,058 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:37:17,336 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:37:17,607 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:37:17,875 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:37:18,141 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:37:18,419 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:37:19,229 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:37:19,781 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:37:20,354 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:37:15,950 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:37:16,227 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:37:16,505 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:37:16,637 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:37:16,781 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:37:17,058 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:37:17,336 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:37:17,607 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:37:17,875 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:37:18,141 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:37:18,419 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:37:19,229 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:37:19,781 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:37:20,354 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:37:53,819 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 1
+2026-05-09 23:37:54,378 [tradeclaw] WARNING: [MarketData] Data unavailable for BTCUSD: pickling is disabled
+2026-05-09 23:37:54,412 [tradeclaw] WARNING: [MarketData] Data unavailable for EURUSD: pickling is disabled
+2026-05-09 23:37:53,819 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 1
+2026-05-09 23:37:54,378 [tradeclaw] WARNING: [MarketData] Data unavailable for BTCUSD: pickling is disabled
+2026-05-09 23:37:54,412 [tradeclaw] WARNING: [MarketData] Data unavailable for EURUSD: pickling is disabled
+2026-05-09 23:37:53,819 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 1
+2026-05-09 23:37:54,378 [tradeclaw] WARNING: [MarketData] Data unavailable for BTCUSD: pickling is disabled
+2026-05-09 23:37:54,412 [tradeclaw] WARNING: [MarketData] Data unavailable for EURUSD: pickling is disabled
+2026-05-09 23:38:29,974 [tradeclaw.fleet] INFO: [bot-846eab13] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-09 23:38:34,976 [tradeclaw.darwin[bot-846eab13]] WARNING: Darwinian weights load timed out or failed: 
+2026-05-09 23:38:34,976 [tradeclaw.agents.pool[bot-846eab13]] INFO: Sub-agent loop starting
+2026-05-09 23:38:34,976 [tradeclaw.agents.sentiment[bot-846eab13]] INFO: SentimentAgent running for ETHUSD
+2026-05-09 23:38:34,976 [tradeclaw.agents.pool[bot-846eab13]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-09 23:38:34,976 [tradeclaw.engine[bot-846eab13|Phantom Leopard ETHUSD]] INFO: [bot-846eab13] SubAgentPool wired (6 agents)
+2026-05-09 23:38:34,976 [tradeclaw] ERROR: Bot deploy error: __init__() got an unexpected keyword argument 'persistence_store'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/main.py", line 982, in fleet_deploy
+    instance = fleet.deploy_bot(cfg)
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 326, in deploy_bot
+    instance = self._build_bot_instance(effective_config)
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 948, in _build_bot_instance
+    ai_brain = BotAIBrainScheduler(
+TypeError: __init__() got an unexpected keyword argument 'persistence_store'
+2026-05-09 23:38:34,979 [tradeclaw.agents.macro[bot-846eab13]] INFO: MacroAgent running for ETHUSD
+2026-05-09 23:38:34,979 [tradeclaw.agents.earnings[bot-846eab13]] INFO: EarningsAgent running for ETHUSD
+2026-05-09 23:38:34,979 [tradeclaw.agents.technical[bot-846eab13]] INFO: TechnicalAgent running for ETHUSD
+2026-05-09 23:38:34,980 [tradeclaw.agents.sentiment[bot-846eab13]] INFO: No buffered headlines for ETHUSD. Using web search.
+2026-05-09 23:38:37,455 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 1/10 this hour
+2026-05-09 23:38:37,455 [tradeclaw.agents.pool[bot-846eab13]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-09 23:38:42,929 [tradeclaw.agents.earnings[bot-846eab13]] WARNING: Failed to parse signal JSON: No JSON found in: **No.**
+
+**Reasoning:** 
+ETHUSD is a trading pair representing the price of Ether (a cryptocurrency) relative to the US Dollar. Cryptocurrencies are decentralized digital assets; they are not corporat
+2026-05-09 23:38:29,974 [tradeclaw.fleet] INFO: [bot-846eab13] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-09 23:38:34,976 [tradeclaw.darwin[bot-846eab13]] WARNING: Darwinian weights load timed out or failed: 
+2026-05-09 23:38:34,976 [tradeclaw.agents.pool[bot-846eab13]] INFO: Sub-agent loop starting
+2026-05-09 23:38:34,976 [tradeclaw.agents.sentiment[bot-846eab13]] INFO: SentimentAgent running for ETHUSD
+2026-05-09 23:38:34,976 [tradeclaw.agents.pool[bot-846eab13]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-09 23:38:34,976 [tradeclaw.engine[bot-846eab13|Phantom Leopard ETHUSD]] INFO: [bot-846eab13] SubAgentPool wired (6 agents)
+2026-05-09 23:38:34,976 [tradeclaw] ERROR: Bot deploy error: __init__() got an unexpected keyword argument 'persistence_store'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/main.py", line 982, in fleet_deploy
+    instance = fleet.deploy_bot(cfg)
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 326, in deploy_bot
+    instance = self._build_bot_instance(effective_config)
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 948, in _build_bot_instance
+    ai_brain = BotAIBrainScheduler(
+TypeError: __init__() got an unexpected keyword argument 'persistence_store'
+2026-05-09 23:38:34,979 [tradeclaw.agents.macro[bot-846eab13]] INFO: MacroAgent running for ETHUSD
+2026-05-09 23:38:34,979 [tradeclaw.agents.earnings[bot-846eab13]] INFO: EarningsAgent running for ETHUSD
+2026-05-09 23:38:34,979 [tradeclaw.agents.technical[bot-846eab13]] INFO: TechnicalAgent running for ETHUSD
+2026-05-09 23:38:34,980 [tradeclaw.agents.sentiment[bot-846eab13]] INFO: No buffered headlines for ETHUSD. Using web search.
+2026-05-09 23:38:36,654 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-09 23:38:37,449 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-09 23:38:37,455 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 1/10 this hour
+2026-05-09 23:38:37,455 [tradeclaw.agents.pool[bot-846eab13]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-09 23:38:42,929 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-09 23:38:42,929 [tradeclaw.agents.earnings[bot-846eab13]] WARNING: Failed to parse signal JSON: No JSON found in: **No.**
+
+**Reasoning:** 
+ETHUSD is a trading pair representing the price of Ether (a cryptocurrency) relative to the US Dollar. Cryptocurrencies are decentralized digital assets; they are not corporat
+2026-05-09 23:38:29,974 [tradeclaw.fleet] INFO: [bot-846eab13] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-09 23:38:34,976 [tradeclaw.darwin[bot-846eab13]] WARNING: Darwinian weights load timed out or failed: 
+2026-05-09 23:38:34,976 [tradeclaw.agents.pool[bot-846eab13]] INFO: Sub-agent loop starting
+2026-05-09 23:38:34,976 [tradeclaw.agents.sentiment[bot-846eab13]] INFO: SentimentAgent running for ETHUSD
+2026-05-09 23:38:34,976 [tradeclaw.agents.pool[bot-846eab13]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-09 23:38:34,976 [tradeclaw.engine[bot-846eab13|Phantom Leopard ETHUSD]] INFO: [bot-846eab13] SubAgentPool wired (6 agents)
+2026-05-09 23:38:34,976 [tradeclaw] ERROR: Bot deploy error: __init__() got an unexpected keyword argument 'persistence_store'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/main.py", line 982, in fleet_deploy
+    instance = fleet.deploy_bot(cfg)
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 326, in deploy_bot
+    instance = self._build_bot_instance(effective_config)
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 948, in _build_bot_instance
+    ai_brain = BotAIBrainScheduler(
+TypeError: __init__() got an unexpected keyword argument 'persistence_store'
+2026-05-09 23:38:34,979 [tradeclaw.agents.macro[bot-846eab13]] INFO: MacroAgent running for ETHUSD
+2026-05-09 23:38:34,979 [tradeclaw.agents.earnings[bot-846eab13]] INFO: EarningsAgent running for ETHUSD
+2026-05-09 23:38:34,979 [tradeclaw.agents.technical[bot-846eab13]] INFO: TechnicalAgent running for ETHUSD
+2026-05-09 23:38:34,980 [tradeclaw.agents.sentiment[bot-846eab13]] INFO: No buffered headlines for ETHUSD. Using web search.
+2026-05-09 23:38:36,654 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-09 23:38:37,449 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-09 23:38:37,455 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 1/10 this hour
+2026-05-09 23:38:37,455 [tradeclaw.agents.pool[bot-846eab13]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-09 23:38:42,929 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-09 23:38:42,929 [tradeclaw.agents.earnings[bot-846eab13]] WARNING: Failed to parse signal JSON: No JSON found in: **No.**
+
+**Reasoning:** 
+ETHUSD is a trading pair representing the price of Ether (a cryptocurrency) relative to the US Dollar. Cryptocurrencies are decentralized digital assets; they are not corporat
+2026-05-09 23:39:21,777 [tradeclaw.agents.macro[bot-846eab13]] WARNING: Failed to parse signal JSON: No JSON found in: *Disclaimer: This analysis is a simulated macro-read based on the hypothetical date of May 9, 2026. Since we are currently in 2024, this represents a forward-looking scenario based on projected econom
+2026-05-09 23:39:21,777 [tradeclaw.agents.pool[bot-846eab13]] INFO: [macro] sentiment=+0.00 confidence=0.00
+2026-05-09 23:39:21,777 [tradeclaw.agents.pool[bot-846eab13]] INFO: [earnings] sentiment=+0.00 confidence=0.00
+2026-05-09 23:39:21,777 [tradeclaw.agents.pool[bot-846eab13]] INFO: [technical] sentiment=+0.00 confidence=0.00
+2026-05-09 23:39:21,777 [tradeclaw.agents.pool[bot-846eab13]] INFO: [watchman] sentiment=+1.00 confidence=1.00
+2026-05-09 23:39:21,777 [tradeclaw.agents.pool[bot-846eab13]] INFO: [risk_manager] sentiment=+0.00 confidence=0.00
+2026-05-09 23:40:18,088 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:40:24,563 [tradeclaw.fleet] INFO: [bot-ada7a16d] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-09 23:40:29,567 [tradeclaw.darwin[bot-ada7a16d]] WARNING: Darwinian weights load timed out or failed: 
+2026-05-09 23:40:29,568 [tradeclaw.agents.pool[bot-ada7a16d]] INFO: Sub-agent loop starting
+2026-05-09 23:40:29,568 [tradeclaw.agents.sentiment[bot-ada7a16d]] INFO: SentimentAgent running for ETHUSD
+2026-05-09 23:40:29,569 [tradeclaw.agents.pool[bot-ada7a16d]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-09 23:40:29,569 [tradeclaw.engine[bot-ada7a16d|Phantom Leopard ETHUSD]] INFO: [bot-ada7a16d] SubAgentPool wired (6 agents)
+2026-05-09 23:40:29,569 [tradeclaw] ERROR: Bot deploy error: __init__() got an unexpected keyword argument 'persistence_store'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/main.py", line 982, in fleet_deploy
+    instance = fleet.deploy_bot(cfg)
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 326, in deploy_bot
+    instance = self._build_bot_instance(effective_config)
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 948, in _build_bot_instance
+    ai_brain = BotAIBrainScheduler(
+TypeError: __init__() got an unexpected keyword argument 'persistence_store'
+2026-05-09 23:40:29,572 [tradeclaw.agents.macro[bot-ada7a16d]] INFO: MacroAgent running for ETHUSD
+2026-05-09 23:40:29,572 [tradeclaw.agents.earnings[bot-ada7a16d]] INFO: EarningsAgent running for ETHUSD
+2026-05-09 23:40:29,572 [tradeclaw.agents.technical[bot-ada7a16d]] INFO: TechnicalAgent running for ETHUSD
+2026-05-09 23:40:29,573 [tradeclaw.agents.sentiment[bot-ada7a16d]] INFO: No buffered headlines for ETHUSD. Using web search.
+2026-05-09 23:40:31,502 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 2/10 this hour
+2026-05-09 23:40:31,503 [tradeclaw.agents.pool[bot-ada7a16d]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-09 23:40:34,243 [tradeclaw.agents.earnings[bot-ada7a16d]] WARNING: Failed to parse signal JSON: No JSON found in: No.
+
+**Reasoning:** ETHUSD represents the exchange rate between Ethereum (a decentralized cryptocurrency) and the US Dollar. Cryptocurrencies are not corporations and do not have earnings reports, qua
+2026-05-09 23:39:21,776 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-09 23:39:21,777 [tradeclaw.agents.macro[bot-846eab13]] WARNING: Failed to parse signal JSON: No JSON found in: *Disclaimer: This analysis is a simulated macro-read based on the hypothetical date of May 9, 2026. Since we are currently in 2024, this represents a forward-looking scenario based on projected econom
+2026-05-09 23:39:21,777 [tradeclaw.agents.pool[bot-846eab13]] INFO: [macro] sentiment=+0.00 confidence=0.00
+2026-05-09 23:39:21,777 [tradeclaw.agents.pool[bot-846eab13]] INFO: [earnings] sentiment=+0.00 confidence=0.00
+2026-05-09 23:39:21,777 [tradeclaw.agents.pool[bot-846eab13]] INFO: [technical] sentiment=+0.00 confidence=0.00
+2026-05-09 23:39:21,777 [tradeclaw.agents.pool[bot-846eab13]] INFO: [watchman] sentiment=+1.00 confidence=1.00
+2026-05-09 23:39:21,777 [tradeclaw.agents.pool[bot-846eab13]] INFO: [risk_manager] sentiment=+0.00 confidence=0.00
+2026-05-09 23:40:18,088 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:40:24,563 [tradeclaw.fleet] INFO: [bot-ada7a16d] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-09 23:40:29,567 [tradeclaw.darwin[bot-ada7a16d]] WARNING: Darwinian weights load timed out or failed: 
+2026-05-09 23:40:29,568 [tradeclaw.agents.pool[bot-ada7a16d]] INFO: Sub-agent loop starting
+2026-05-09 23:40:29,568 [tradeclaw.agents.sentiment[bot-ada7a16d]] INFO: SentimentAgent running for ETHUSD
+2026-05-09 23:40:29,569 [tradeclaw.agents.pool[bot-ada7a16d]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-09 23:40:29,569 [tradeclaw.engine[bot-ada7a16d|Phantom Leopard ETHUSD]] INFO: [bot-ada7a16d] SubAgentPool wired (6 agents)
+2026-05-09 23:40:29,569 [tradeclaw] ERROR: Bot deploy error: __init__() got an unexpected keyword argument 'persistence_store'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/main.py", line 982, in fleet_deploy
+    instance = fleet.deploy_bot(cfg)
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 326, in deploy_bot
+    instance = self._build_bot_instance(effective_config)
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 948, in _build_bot_instance
+    ai_brain = BotAIBrainScheduler(
+TypeError: __init__() got an unexpected keyword argument 'persistence_store'
+2026-05-09 23:40:29,572 [tradeclaw.agents.macro[bot-ada7a16d]] INFO: MacroAgent running for ETHUSD
+2026-05-09 23:40:29,572 [tradeclaw.agents.earnings[bot-ada7a16d]] INFO: EarningsAgent running for ETHUSD
+2026-05-09 23:40:29,572 [tradeclaw.agents.technical[bot-ada7a16d]] INFO: TechnicalAgent running for ETHUSD
+2026-05-09 23:40:29,573 [tradeclaw.agents.sentiment[bot-ada7a16d]] INFO: No buffered headlines for ETHUSD. Using web search.
+2026-05-09 23:40:31,176 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-09 23:40:31,500 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-09 23:40:31,502 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 2/10 this hour
+2026-05-09 23:40:31,503 [tradeclaw.agents.pool[bot-ada7a16d]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-09 23:40:34,243 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-09 23:40:34,243 [tradeclaw.agents.earnings[bot-ada7a16d]] WARNING: Failed to parse signal JSON: No JSON found in: No.
+
+**Reasoning:** ETHUSD represents the exchange rate between Ethereum (a decentralized cryptocurrency) and the US Dollar. Cryptocurrencies are not corporations and do not have earnings reports, qua
+2026-05-09 23:39:21,776 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-09 23:39:21,777 [tradeclaw.agents.macro[bot-846eab13]] WARNING: Failed to parse signal JSON: No JSON found in: *Disclaimer: This analysis is a simulated macro-read based on the hypothetical date of May 9, 2026. Since we are currently in 2024, this represents a forward-looking scenario based on projected econom
+2026-05-09 23:39:21,777 [tradeclaw.agents.pool[bot-846eab13]] INFO: [macro] sentiment=+0.00 confidence=0.00
+2026-05-09 23:39:21,777 [tradeclaw.agents.pool[bot-846eab13]] INFO: [earnings] sentiment=+0.00 confidence=0.00
+2026-05-09 23:39:21,777 [tradeclaw.agents.pool[bot-846eab13]] INFO: [technical] sentiment=+0.00 confidence=0.00
+2026-05-09 23:39:21,777 [tradeclaw.agents.pool[bot-846eab13]] INFO: [watchman] sentiment=+1.00 confidence=1.00
+2026-05-09 23:39:21,777 [tradeclaw.agents.pool[bot-846eab13]] INFO: [risk_manager] sentiment=+0.00 confidence=0.00
+2026-05-09 23:40:18,088 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:40:24,563 [tradeclaw.fleet] INFO: [bot-ada7a16d] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-09 23:40:29,567 [tradeclaw.darwin[bot-ada7a16d]] WARNING: Darwinian weights load timed out or failed: 
+2026-05-09 23:40:29,568 [tradeclaw.agents.pool[bot-ada7a16d]] INFO: Sub-agent loop starting
+2026-05-09 23:40:29,568 [tradeclaw.agents.sentiment[bot-ada7a16d]] INFO: SentimentAgent running for ETHUSD
+2026-05-09 23:40:29,569 [tradeclaw.agents.pool[bot-ada7a16d]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-09 23:40:29,569 [tradeclaw.engine[bot-ada7a16d|Phantom Leopard ETHUSD]] INFO: [bot-ada7a16d] SubAgentPool wired (6 agents)
+2026-05-09 23:40:29,569 [tradeclaw] ERROR: Bot deploy error: __init__() got an unexpected keyword argument 'persistence_store'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/main.py", line 982, in fleet_deploy
+    instance = fleet.deploy_bot(cfg)
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 326, in deploy_bot
+    instance = self._build_bot_instance(effective_config)
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 948, in _build_bot_instance
+    ai_brain = BotAIBrainScheduler(
+TypeError: __init__() got an unexpected keyword argument 'persistence_store'
+2026-05-09 23:40:29,572 [tradeclaw.agents.macro[bot-ada7a16d]] INFO: MacroAgent running for ETHUSD
+2026-05-09 23:40:29,572 [tradeclaw.agents.earnings[bot-ada7a16d]] INFO: EarningsAgent running for ETHUSD
+2026-05-09 23:40:29,572 [tradeclaw.agents.technical[bot-ada7a16d]] INFO: TechnicalAgent running for ETHUSD
+2026-05-09 23:40:29,573 [tradeclaw.agents.sentiment[bot-ada7a16d]] INFO: No buffered headlines for ETHUSD. Using web search.
+2026-05-09 23:40:31,176 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-09 23:40:31,500 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-09 23:40:31,502 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 2/10 this hour
+2026-05-09 23:40:31,503 [tradeclaw.agents.pool[bot-ada7a16d]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-09 23:40:34,243 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-09 23:40:34,243 [tradeclaw.agents.earnings[bot-ada7a16d]] WARNING: Failed to parse signal JSON: No JSON found in: No.
+
+**Reasoning:** ETHUSD represents the exchange rate between Ethereum (a decentralized cryptocurrency) and the US Dollar. Cryptocurrencies are not corporations and do not have earnings reports, qua
+2026-05-09 23:41:15,203 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-09 23:41:15,204 [tradeclaw.agents.macro[bot-ada7a16d]] WARNING: Failed to parse signal JSON: No JSON found in: ***Disclaimer:** This analysis is a simulated macro-projection for the requested date of May 9, 2026. As this date is in the future, the following is a systemic model of how these variables interact t
+2026-05-09 23:41:15,204 [tradeclaw.agents.pool[bot-ada7a16d]] INFO: [macro] sentiment=+0.00 confidence=0.00
+2026-05-09 23:41:15,204 [tradeclaw.agents.pool[bot-ada7a16d]] INFO: [earnings] sentiment=+0.00 confidence=0.00
+2026-05-09 23:41:15,204 [tradeclaw.agents.pool[bot-ada7a16d]] INFO: [technical] sentiment=+0.00 confidence=0.00
+2026-05-09 23:41:15,205 [tradeclaw.agents.pool[bot-ada7a16d]] INFO: [watchman] sentiment=+1.00 confidence=1.00
+2026-05-09 23:41:15,205 [tradeclaw.agents.pool[bot-ada7a16d]] INFO: [risk_manager] sentiment=+0.00 confidence=0.00
+2026-05-09 23:42:50,652 [tradeclaw] INFO: [WS] Client disconnected from channel 'global'.
+2026-05-09 23:42:50,750 [tradeclaw] INFO: TradeClaw shutting down...
+2026-05-09 23:42:50,751 [tradeclaw.fleet] INFO: Fleet monitor stopped
+2026-05-09 23:42:50,753 [tradeclaw.mt5_hub] INFO: [MT5Hub] Stopped
+2026-05-09 23:42:50,753 [tradeclaw.ai_brain] INFO: AI Brain scheduler stopped
+2026-05-09 23:43:15,321 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:43:15,321 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:43:20,350 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:43:20,351 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:43:21,237 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:43:21,239 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:43:21,244 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:43:21,244 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:43:21,244 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:43:22,934 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:43:22,934 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:43:22,939 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:43:23,009 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:43:23,865 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:43:23,866 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:43:23,866 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:43:23,866 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:43:23,905 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:43:23,905 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:43:23,905 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:43:24,946 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:43:25,217 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:43:15,321 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:43:15,321 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:43:20,350 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:43:20,351 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:43:21,237 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:43:21,239 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:43:21,244 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:43:21,244 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:43:21,244 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:43:22,934 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:43:22,934 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:43:22,939 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:43:23,009 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:43:23,865 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:43:23,866 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:43:23,866 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:43:23,866 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:43:23,905 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:43:23,905 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:43:23,905 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:43:24,946 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:43:25,217 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:43:25,494 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:43:25,761 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:43:26,033 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:43:26,201 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:43:26,302 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:43:26,573 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:43:26,850 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:43:27,134 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:43:27,426 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:43:27,735 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:43:27,760 [tradeclaw] WARNING: [MarketData] Data unavailable for BTCUSD: pickling is disabled
+2026-05-09 23:43:27,774 [tradeclaw] WARNING: [MarketData] Data unavailable for EURUSD: pickling is disabled
+2026-05-09 23:43:27,997 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:43:28,936 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:43:29,496 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:43:30,052 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:43:30,262 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 1
+2026-05-09 23:43:35,200 [tradeclaw] INFO: [WS] Client disconnected from channel 'global'.
+2026-05-09 23:43:35,301 [tradeclaw] INFO: TradeClaw shutting down...
+2026-05-09 23:43:35,301 [tradeclaw.fleet] INFO: Fleet monitor stopped
+2026-05-09 23:43:35,302 [tradeclaw.mt5_hub] INFO: [MT5Hub] Stopped
+2026-05-09 23:43:35,302 [tradeclaw.ai_brain] INFO: AI Brain scheduler stopped
+2026-05-09 23:43:25,494 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:43:25,761 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:43:26,033 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:43:26,201 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:43:26,302 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:43:26,573 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:43:26,850 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:43:27,134 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:43:27,426 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:43:27,735 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:43:27,760 [tradeclaw] WARNING: [MarketData] Data unavailable for BTCUSD: pickling is disabled
+2026-05-09 23:43:27,774 [tradeclaw] WARNING: [MarketData] Data unavailable for EURUSD: pickling is disabled
+2026-05-09 23:43:27,997 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:43:28,936 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:43:29,496 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:43:30,052 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:43:30,262 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 1
+2026-05-09 23:43:35,200 [tradeclaw] INFO: [WS] Client disconnected from channel 'global'.
+2026-05-09 23:43:35,301 [tradeclaw] INFO: TradeClaw shutting down...
+2026-05-09 23:43:35,301 [tradeclaw.fleet] INFO: Fleet monitor stopped
+2026-05-09 23:43:35,302 [tradeclaw.mt5_hub] INFO: [MT5Hub] Stopped
+2026-05-09 23:43:35,302 [tradeclaw.ai_brain] INFO: AI Brain scheduler stopped

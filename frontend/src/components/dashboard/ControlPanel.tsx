@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Play, Square, Settings, RefreshCcw } from "lucide-react";
 import { useStartBot, useStopBot, useUpdateConfig } from "@/hooks/useTrading";
 
@@ -20,7 +19,6 @@ export function ControlPanel({ config, status }: ControlPanelProps) {
 
   const [stopLoss, setStopLoss] = useState(config?.stop_loss_pct || 1.0);
   const [bbPeriod, setBbPeriod] = useState(config?.bb_period || 20);
-  const [demoMode, setDemoMode] = useState(config?.demo_mode ?? true);
   const [symbol, setSymbol] = useState(config?.symbol || "SPY");
 
   const startMutation = useStartBot();
@@ -34,7 +32,6 @@ export function ControlPanel({ config, status }: ControlPanelProps) {
     if (config) {
       setStopLoss(config.stop_loss_pct);
       setBbPeriod(config.bb_period);
-      setDemoMode(config.demo_mode);
       setSymbol(config.symbol);
     }
   }, [config]);
@@ -58,7 +55,7 @@ export function ControlPanel({ config, status }: ControlPanelProps) {
           {!isRunning ? (
             <Button 
               className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold"
-              onClick={() => startMutation.mutate(demoMode)}
+              onClick={() => startMutation.mutate(false)}
               disabled={startMutation.isPending}
             >
               <Play className="w-4 h-4 mr-2 fill-current" />
@@ -75,21 +72,6 @@ export function ControlPanel({ config, status }: ControlPanelProps) {
               PANIC STOP
             </Button>
           )}
-        </div>
-
-        <div className="flex items-center justify-between space-x-2 py-2 border-y border-border/50">
-          <div className="space-y-0.5">
-            <Label htmlFor="demo-mode">Demo Trading</Label>
-            <p className="text-[10px] text-muted-foreground">
-              Use simulated price feed and execution
-            </p>
-          </div>
-          <Switch 
-            id="demo-mode" 
-            checked={demoMode} 
-            onCheckedChange={setDemoMode}
-            disabled={isRunning}
-          />
         </div>
 
         <div className="space-y-4 pt-2">

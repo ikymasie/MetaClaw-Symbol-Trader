@@ -95,7 +95,7 @@ class BotAIBrainScheduler:
         openclaw_model: str = "google/gemini-flash-latest",
         ollama_base_url: str = "http://localhost:11434",
         ollama_model: str = "gemma4:e4b",
-        firebase_store=None,
+        store=None,
         main_loop: Optional[asyncio.AbstractEventLoop] = None,
     ):
         self.bot_id = bot_id
@@ -107,7 +107,7 @@ class BotAIBrainScheduler:
         self._openclaw_model = openclaw_model
         self._ollama_base_url = ollama_base_url
         self._ollama_model = ollama_model
-        self._firebase_store = firebase_store
+        self._store = store
         self._main_loop = main_loop
         self._logger = logging.getLogger(f"tradeclaw.bot_ai_brain[{bot_id}]")
 
@@ -243,8 +243,11 @@ class BotAIBrainScheduler:
         # Build RAG context from Firebase
         rag_context = self._get_rag_context()
 
+        # Build Market Context (Multi-timeframe trends)
+        market_context = self._get_market_context()
+
         # Build prompt
-        prompt = self._build_prompt(metrics, current_params, trigger, agent_context, rag_context)
+        prompt = self._build_prompt(metrics, current_params, trigger, agent_context, rag_context, market_context)
         system_prompt = self._get_system_prompt()
 
         # Call LLM
@@ -265,14 +268,14 @@ class BotAIBrainScheduler:
                 "agent_context": agent_context,
             }
             self._logger.warning(f"AI cycle degraded: {result.get('error')}")
-            if self._firebase_store and self._main_loop and self._main_loop.is_running():
+            if self._store and self._main_loop and self._main_loop.is_running():
                 try:
                     future = asyncio.run_coroutine_threadsafe(
-                        self._firebase_store.save_ai_decision(self.bot_id, degraded_decision),
+                        self._store.save_ai_decision(self.bot_id, degraded_decision),
                         self._main_loop,
                     )
                     future.result(timeout=10)
-                    self._logger.info(f"Degraded AI decision saved to Firestore (trigger={trigger})")
+                    self._logger.info(f"Degraded AI decision saved to Postgres (trigger={trigger})")
                 except Exception as e:
                     self._logger.error(f"Failed to save degraded decision: {e}")
             with self._lock:
@@ -303,23 +306,24 @@ class BotAIBrainScheduler:
             "model_used": result.get("model_used", "unknown"),
             "applied": result.get("applied", False),
             "agent_context": agent_context,
+            "market_context": market_context,
         }
 
-        if self._firebase_store and self._main_loop and self._main_loop.is_running():
+        if self._store and self._main_loop and self._main_loop.is_running():
             try:
                 future = asyncio.run_coroutine_threadsafe(
-                    self._firebase_store.save_ai_decision(self.bot_id, decision),
+                    self._store.save_ai_decision(self.bot_id, decision),
                     self._main_loop,
                 )
                 future.result(timeout=10)
-                self._logger.info(f"AI decision saved to Firestore (trigger={trigger})")
+                self._logger.info(f"AI decision saved to Postgres (trigger={trigger})")
             except Exception as e:
-                self._logger.error(f"Failed to save AI decision to Firestore: {e}", exc_info=True)
+                self._logger.error(f"Failed to save AI decision to Postgres: {e}", exc_info=True)
 
             # Save strategy context for RAG
             try:
                 rag_future = asyncio.run_coroutine_threadsafe(
-                    self._firebase_store.save_strategy_context(
+                    self._store.save_strategy_context(
                         bot_id=self.bot_id,
                         context={
                             "metrics": metrics,
@@ -335,7 +339,7 @@ class BotAIBrainScheduler:
                 rag_future.result(timeout=10)
             except Exception as e:
                 self._logger.warning(f"Failed to save RAG strategy context: {e}")
-        elif self._firebase_store:
+        elif self._store:
             self._logger.warning("Cannot save AI decision — main event loop not available or not running")
 
         with self._lock:
@@ -366,12 +370,12 @@ class BotAIBrainScheduler:
             return {}
 
     def _get_rag_context(self) -> list[dict]:
-        """Retrieve recent strategy contexts from Firebase for RAG grounding."""
-        if not self._firebase_store or not self._main_loop or not self._main_loop.is_running():
+        """Retrieve recent strategy contexts from Postgres for RAG grounding."""
+        if not self._store or not self._main_loop or not self._main_loop.is_running():
             return []
         try:
             future = asyncio.run_coroutine_threadsafe(
-                self._firebase_store.retrieve_recent_strategy_contexts(
+                self._store.retrieve_recent_strategy_contexts(
                     bot_id=self.bot_id, limit=3
                 ),
                 self._main_loop,
@@ -381,6 +385,29 @@ class BotAIBrainScheduler:
             self._logger.warning(f"RAG context fetch failed: {e}")
             return []
 
+    def _get_market_context(self) -> dict:
+        """Fetch multi-timeframe trend summaries from Postgres."""
+        if not self._store or not self._main_loop or not self._main_loop.is_running():
+            return {}
+        
+        symbol = self.bot_config.symbol
+        timeframes = ["1m", "15m", "1h", "1d"]
+        context = {}
+        
+        for tf in timeframes:
+            try:
+                future = asyncio.run_coroutine_threadsafe(
+                    self._store.get_trend_summary(symbol, tf),
+                    self._main_loop,
+                )
+                summary = future.result(timeout=5)
+                if summary:
+                    context[tf] = summary
+            except Exception as e:
+                self._logger.warning(f"Failed to fetch {tf} trend for {symbol}: {e}")
+        
+        return context
+
     def _build_prompt(
         self,
         metrics: dict,
@@ -388,6 +415,7 @@ class BotAIBrainScheduler:
         trigger: str,
         agent_context: dict,
         rag_context: list,
+        market_context: dict,
     ) -> str:
         vs = self._vital_signs.get_status()
         survival_directive = ""
@@ -428,7 +456,21 @@ MARKET INTELLIGENCE (sub-agent aggregate):
                     f"Reasoning: {c.get('reasoning','')[:100]}"
                 )
 
+        # Market context block
+        market_block = ""
+        if market_context:
+            market_block = "\nMARKET CONTEXT (Multi-Timeframe):"
+            for tf in ["1d", "1h", "15m", "1m"]:
+                if tf in market_context:
+                    s = market_context[tf]
+                    market_block += (
+                        f"\n  · {tf.upper()}: {s.get('regime','?')} | "
+                        f"Trend: {s.get('trend_direction','?')} | "
+                        f"ADX: {s.get('adx',0):.1f} | RSI: {s.get('rsi',0):.1f}"
+                    )
+
         return f"""ANALYSIS TRIGGER: {trigger}{survival_directive}
+{market_block}
 {agent_block}
 {rag_block}
 

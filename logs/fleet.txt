@@ -1,0 +1,1011 @@
+2026-05-09 23:11:49,764 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:11:49,765 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:11:54,730 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:11:54,730 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:11:55,612 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:11:55,616 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:11:55,621 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:11:55,621 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:11:55,621 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:11:55,621 [tradeclaw.fleet] WARNING: Could not load FleetConfig from PostgreSQL: module 'postgres_store' has no attribute 'load_fleet_config'
+2026-05-09 23:11:55,621 [tradeclaw.fleet] ERROR: Bot restoration failed: module 'postgres_store' has no attribute 'list_bot_ids'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 205, in restore_bots_from_store
+    bot_ids = await self._store.list_bot_ids()
+AttributeError: module 'postgres_store' has no attribute 'list_bot_ids'
+2026-05-09 23:11:55,629 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:11:55,636 [tradeclaw] ERROR: Failed to start partition maintenance loop: No module named 'database.partition_manager'; 'database' is not a package
+2026-05-09 23:11:55,639 [tradeclaw.fleet] WARNING: Telemetry push failed: module 'postgres_store' has no attribute 'push_fleet_telemetry'
+2026-05-09 23:11:55,639 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:11:55,639 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:11:55,639 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:11:55,639 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:11:56,489 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:11:56,490 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:11:56,490 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:11:56,490 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:11:57,894 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:11:49,764 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:11:49,765 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:11:54,730 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:11:54,730 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:11:55,612 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:11:55,616 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:11:55,621 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:11:55,621 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:11:55,621 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:11:55,621 [tradeclaw.fleet] WARNING: Could not load FleetConfig from PostgreSQL: module 'postgres_store' has no attribute 'load_fleet_config'
+2026-05-09 23:11:55,621 [tradeclaw.fleet] ERROR: Bot restoration failed: module 'postgres_store' has no attribute 'list_bot_ids'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 205, in restore_bots_from_store
+    bot_ids = await self._store.list_bot_ids()
+AttributeError: module 'postgres_store' has no attribute 'list_bot_ids'
+2026-05-09 23:11:55,629 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:11:55,636 [tradeclaw] ERROR: Failed to start partition maintenance loop: No module named 'database.partition_manager'; 'database' is not a package
+2026-05-09 23:11:55,639 [tradeclaw.fleet] WARNING: Telemetry push failed: module 'postgres_store' has no attribute 'push_fleet_telemetry'
+2026-05-09 23:11:55,639 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:11:55,639 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:11:55,639 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:11:55,639 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:11:56,489 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:11:56,490 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:11:56,490 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:11:56,490 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:11:57,894 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:11:49,764 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:11:49,765 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:11:54,730 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:11:54,730 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:11:55,612 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:11:55,616 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:11:55,621 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:11:55,621 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:11:55,621 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:11:55,621 [tradeclaw.fleet] WARNING: Could not load FleetConfig from PostgreSQL: module 'postgres_store' has no attribute 'load_fleet_config'
+2026-05-09 23:11:55,621 [tradeclaw.fleet] ERROR: Bot restoration failed: module 'postgres_store' has no attribute 'list_bot_ids'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 205, in restore_bots_from_store
+    bot_ids = await self._store.list_bot_ids()
+AttributeError: module 'postgres_store' has no attribute 'list_bot_ids'
+2026-05-09 23:11:55,629 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:11:55,636 [tradeclaw] ERROR: Failed to start partition maintenance loop: No module named 'database.partition_manager'; 'database' is not a package
+2026-05-09 23:11:55,639 [tradeclaw.fleet] WARNING: Telemetry push failed: module 'postgres_store' has no attribute 'push_fleet_telemetry'
+2026-05-09 23:11:55,639 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:11:55,639 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:11:55,639 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:11:55,639 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:11:56,489 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:11:56,490 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:11:56,490 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:11:56,490 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:11:57,894 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:12:30,498 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:12:30,498 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:12:35,581 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:12:35,582 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:12:36,486 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:12:36,490 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:12:36,498 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:12:36,498 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:12:36,498 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:12:38,311 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:12:38,311 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:12:38,313 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:12:38,318 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:12:38,318 [tradeclaw.partition_manager] ERROR: Partition maintenance error: 'TradingConfig' object has no attribute 'DATABASE_URL'
+2026-05-09 23:12:38,318 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:12:38,318 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:12:38,318 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:12:39,201 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:12:39,201 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:12:39,202 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:12:39,202 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:12:30,498 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:12:30,498 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:12:35,581 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:12:35,582 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:12:36,486 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:12:36,490 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:12:36,498 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:12:36,498 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:12:36,498 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:12:38,311 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:12:38,311 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:12:38,313 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:12:38,318 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:12:38,318 [tradeclaw.partition_manager] ERROR: Partition maintenance error: 'TradingConfig' object has no attribute 'DATABASE_URL'
+2026-05-09 23:12:38,318 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:12:38,318 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:12:38,318 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:12:39,201 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:12:39,201 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:12:39,202 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:12:39,202 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:12:30,498 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:12:30,498 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:12:35,581 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:12:35,582 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:12:36,486 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:12:36,490 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:12:36,498 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:12:36,498 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:12:36,498 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:12:38,311 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:12:38,311 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:12:38,313 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:12:38,318 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:12:38,318 [tradeclaw.partition_manager] ERROR: Partition maintenance error: 'TradingConfig' object has no attribute 'DATABASE_URL'
+2026-05-09 23:12:38,318 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:12:38,318 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:12:38,318 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:12:39,201 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:12:39,201 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:12:39,202 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:12:39,202 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:12:40,626 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:12:49,228 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:12:40,626 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:12:49,228 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:12:40,626 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:12:49,228 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:12:58,457 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:12:58,457 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:13:03,495 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:13:03,495 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:13:04,352 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:13:04,354 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:13:04,358 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:13:04,358 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:13:04,358 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:13:06,063 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:13:06,063 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:13:06,066 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:13:06,070 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:13:06,071 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:13:06,072 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:13:06,072 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:13:06,918 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:13:06,918 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:13:06,919 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:13:06,919 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:13:08,074 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:13:08,358 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:13:08,361 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:12:58,457 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:12:58,457 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:13:03,495 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:13:03,495 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:13:04,352 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:13:04,354 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:13:04,358 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:13:04,358 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:13:04,358 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:13:06,063 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:13:06,063 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:13:06,066 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:13:06,070 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:13:06,071 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:13:06,072 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:13:06,072 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:13:06,918 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:13:06,918 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:13:06,919 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:13:06,919 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:13:08,074 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:13:08,358 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:13:08,361 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:12:58,457 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:12:58,457 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:13:03,495 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:13:03,495 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:13:04,352 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:13:04,354 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:13:04,358 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:13:04,358 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:13:04,358 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:13:06,063 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:13:06,063 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:13:06,066 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:13:06,070 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:13:06,071 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:13:06,072 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:13:06,072 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:13:06,918 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:13:06,918 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:13:06,919 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:13:06,919 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:13:08,074 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:13:08,358 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:13:08,361 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:13:08,650 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:13:08,938 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:13:09,227 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:13:09,515 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:13:09,803 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:13:10,194 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:13:10,487 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:13:10,778 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:13:11,071 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:13:11,363 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:13:12,250 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:13:12,807 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:13:13,368 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:13:16,915 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:13:08,650 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:13:08,938 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:13:09,227 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:13:09,515 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:13:09,803 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:13:10,194 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:13:10,487 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:13:10,778 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:13:11,071 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:13:11,363 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:13:12,250 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:13:12,807 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:13:13,368 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:13:16,915 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:13:08,650 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:13:08,938 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:13:09,227 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:13:09,515 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:13:09,803 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:13:10,194 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:13:10,487 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:13:10,778 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:13:11,071 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:13:11,363 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:13:12,250 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:13:12,807 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:13:13,368 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:13:16,915 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:13:46,669 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:13:46,669 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:13:46,669 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:14:17,382 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:14:17,382 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:14:22,241 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:14:22,242 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:14:23,098 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:14:23,103 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:14:23,110 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:14:23,110 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:14:23,110 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:14:24,780 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:14:24,781 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:14:24,784 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:14:24,791 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:14:24,793 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:14:24,793 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:14:24,793 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:14:25,649 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:14:25,650 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:14:25,650 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:14:25,651 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:14:26,698 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:14:26,970 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:14:27,085 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:14:27,241 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:14:17,382 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:14:17,382 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:14:22,241 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:14:22,242 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:14:23,098 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:14:23,103 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:14:23,110 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:14:23,110 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:14:23,110 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:14:24,780 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:14:24,781 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:14:24,784 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:14:24,791 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:14:24,793 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:14:24,793 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:14:24,793 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:14:25,649 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:14:25,650 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:14:25,650 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:14:25,651 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:14:26,698 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:14:26,970 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:14:27,085 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:14:27,241 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:14:17,382 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:14:17,382 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:14:22,241 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:14:22,242 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:14:23,098 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:14:23,103 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:14:23,110 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:14:23,110 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:14:23,110 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:14:24,780 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:14:24,781 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:14:24,784 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:14:24,791 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:14:24,793 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:14:24,793 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:14:24,793 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:14:25,649 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:14:25,650 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:14:25,650 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:14:25,651 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:14:26,698 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:14:26,970 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:14:27,085 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:14:27,241 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:14:27,509 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:14:27,777 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:14:28,045 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:14:28,313 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:14:28,581 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:14:28,850 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:14:29,122 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:14:29,379 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:14:29,650 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:14:30,438 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:14:30,958 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:14:31,481 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:14:35,651 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:14:27,509 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:14:27,777 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:14:28,045 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:14:28,313 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:14:28,581 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:14:28,850 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:14:29,122 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:14:29,379 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:14:29,650 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:14:30,438 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:14:30,958 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:14:31,481 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:14:35,651 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:14:27,509 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:14:27,777 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:14:28,045 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:14:28,313 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:14:28,581 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:14:28,850 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:14:29,122 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:14:29,379 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:14:29,650 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:14:30,438 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:14:30,958 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:14:31,481 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:14:35,651 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:15:05,849 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:15:05,850 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:15:10,866 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:15:10,866 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:15:11,749 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:15:11,752 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:15:11,758 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:15:11,758 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:15:11,758 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:15:13,494 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:15:13,495 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:15:13,497 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:15:13,502 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:15:13,503 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:15:13,504 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:15:13,504 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:15:14,354 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:15:14,354 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:15:14,354 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:15:14,354 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:15:15,473 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:15:15,686 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:15:15,756 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:15:05,849 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:15:05,850 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:15:10,866 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:15:10,866 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:15:11,749 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:15:11,752 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:15:11,758 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:15:11,758 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:15:11,758 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:15:13,494 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:15:13,495 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:15:13,497 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:15:13,502 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:15:13,503 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:15:13,504 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:15:13,504 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:15:14,354 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:15:14,354 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:15:14,354 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:15:14,354 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:15:15,473 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:15:15,686 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:15:15,756 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:15:05,849 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:15:05,850 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:15:10,866 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:15:10,866 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:15:11,749 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:15:11,752 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:15:11,758 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:15:11,758 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:15:11,758 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:15:13,494 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:15:13,495 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:15:13,497 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:15:13,502 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:15:13,503 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:15:13,504 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:15:13,504 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:15:14,354 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:15:14,354 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:15:14,354 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:15:14,354 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:15:15,473 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:15:15,686 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:15:15,756 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:15:16,039 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:15:16,321 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:15:16,659 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:15:16,934 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:15:17,217 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:15:17,505 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:15:17,785 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:15:18,054 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:15:18,342 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:15:18,625 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:15:19,526 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:15:20,070 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:15:20,604 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:15:24,423 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:15:16,039 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:15:16,321 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:15:16,659 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:15:16,934 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:15:17,217 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:15:17,505 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:15:17,785 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:15:18,054 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:15:18,342 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:15:18,625 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:15:19,526 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:15:20,070 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:15:20,604 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:15:24,423 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:15:16,039 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:15:16,321 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:15:16,659 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:15:16,934 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:15:17,217 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:15:17,505 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:15:17,785 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:15:18,054 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:15:18,342 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:15:18,625 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:15:19,526 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:15:20,070 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:15:20,604 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:15:24,423 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:15:32,204 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:15:32,204 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:15:37,039 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:15:37,040 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:15:37,848 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:15:37,852 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:15:37,858 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:15:37,858 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:15:37,859 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:15:39,487 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:15:39,488 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:15:39,491 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:15:39,496 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:15:39,498 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:15:39,498 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:15:39,498 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:15:40,284 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:15:40,284 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:15:40,284 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:15:40,284 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:15:41,513 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:15:41,815 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:15:41,839 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:15:42,103 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:15:32,204 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:15:32,204 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:15:37,039 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:15:37,040 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:15:37,848 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:15:37,852 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:15:37,858 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:15:37,858 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:15:37,859 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:15:39,487 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:15:39,488 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:15:39,491 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:15:39,496 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:15:39,498 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:15:39,498 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:15:39,498 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:15:40,284 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:15:40,284 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:15:40,284 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:15:40,284 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:15:41,513 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:15:41,815 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:15:41,839 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:15:42,103 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:15:32,204 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:15:32,204 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:15:37,039 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:15:37,040 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:15:37,848 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:15:37,852 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:15:37,858 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:15:37,858 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:15:37,859 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:15:39,487 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:15:39,488 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:15:39,491 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:15:39,496 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:15:39,498 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:15:39,498 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:15:39,498 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:15:40,284 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:15:40,284 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:15:40,284 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:15:40,284 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:15:41,513 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:15:41,815 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:15:41,839 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:15:42,103 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:15:42,382 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:15:42,682 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:15:42,978 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:15:43,263 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:15:43,554 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:15:43,842 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:15:44,118 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:15:44,419 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:15:44,714 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:15:45,578 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:15:46,158 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:15:46,754 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:15:50,406 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:15:42,382 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:15:42,682 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:15:42,978 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:15:43,263 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:15:43,554 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:15:43,842 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:15:44,118 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:15:44,419 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:15:44,714 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:15:45,578 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:15:46,158 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:15:46,754 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:15:50,406 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:15:42,382 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:15:42,682 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:15:42,978 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:15:43,263 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:15:43,554 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:15:43,842 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:15:44,118 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:15:44,419 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:15:44,714 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:15:45,578 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:15:46,158 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:15:46,754 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:15:50,406 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:16:15,713 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:16:15,713 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:16:20,687 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:16:20,688 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:16:21,596 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:16:21,613 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:16:21,625 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:16:21,625 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:16:21,625 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:16:23,316 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:16:23,316 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:16:23,322 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:16:23,327 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:16:23,329 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:16:23,329 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:16:23,329 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:16:24,171 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:16:24,171 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:16:24,172 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:16:24,172 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:16:25,334 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:16:25,614 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:16:25,626 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:16:15,713 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:16:15,713 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:16:20,687 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:16:20,688 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:16:21,596 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:16:21,613 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:16:21,625 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:16:21,625 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:16:21,625 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:16:23,316 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:16:23,316 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:16:23,322 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:16:23,327 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:16:23,329 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:16:23,329 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:16:23,329 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:16:24,171 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:16:24,171 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:16:24,172 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:16:24,172 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:16:25,334 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:16:25,614 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:16:25,626 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:16:15,713 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:16:15,713 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:16:20,687 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:16:20,688 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:16:21,596 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:16:21,613 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:16:21,625 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:16:21,625 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:16:21,625 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:16:23,316 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:16:23,316 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:16:23,322 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:16:23,327 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:16:23,329 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:16:23,329 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:16:23,329 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:16:24,171 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:16:24,171 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:16:24,172 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:16:24,172 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:16:25,334 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:16:25,614 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:16:25,626 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:16:25,902 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:16:26,191 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:16:26,471 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:16:26,759 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:16:27,070 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:16:27,349 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:16:27,629 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:16:27,905 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:16:28,194 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:16:28,487 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:16:29,348 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:16:29,959 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:16:30,520 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:16:34,197 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:16:25,902 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:16:26,191 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:16:26,471 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:16:26,759 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:16:27,070 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:16:27,349 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:16:27,629 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:16:27,905 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:16:28,194 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:16:28,487 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:16:29,348 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:16:29,959 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:16:30,520 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:16:34,197 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:16:25,902 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:16:26,191 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:16:26,471 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:16:26,759 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:16:27,070 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:16:27,349 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:16:27,629 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:16:27,905 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:16:28,194 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:16:28,487 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:16:29,348 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:16:29,959 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:16:30,520 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:16:34,197 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:17:03,923 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:17:03,923 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:17:03,923 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:17:28,594 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:17:28,595 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:17:33,350 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:17:33,350 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:17:34,277 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:17:34,280 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:17:34,284 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:17:34,284 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:17:34,284 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:17:35,996 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:17:35,997 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:17:35,999 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:17:36,004 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:17:36,006 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:17:36,006 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:17:36,006 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:17:36,893 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:17:36,893 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:17:36,893 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:17:36,893 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:17:37,920 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:17:38,184 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:17:38,188 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:17:38,456 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:17:28,594 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:17:28,595 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:17:33,350 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:17:33,350 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:17:34,277 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:17:34,280 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:17:34,284 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:17:34,284 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:17:34,284 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:17:35,996 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:17:35,997 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:17:35,999 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:17:36,004 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:17:36,006 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:17:36,006 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:17:36,006 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:17:36,893 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:17:36,893 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:17:36,893 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:17:36,893 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:17:37,920 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:17:38,184 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:17:38,188 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:17:38,456 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:17:28,594 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-09 23:17:28,595 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-09 23:17:33,350 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-09 23:17:33,350 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-09 23:17:34,277 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-09 23:17:34,280 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-09 23:17:34,284 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-09 23:17:34,284 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-09 23:17:34,284 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-09 23:17:35,996 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-09 23:17:35,997 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-09 23:17:35,999 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-09 23:17:36,004 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-09 23:17:36,006 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-09 23:17:36,006 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-09 23:17:36,006 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:17:36,893 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-09 23:17:36,893 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-09 23:17:36,893 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-09 23:17:36,893 [tradeclaw] INFO: TradeClaw ready
+2026-05-09 23:17:37,920 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-09 23:17:38,184 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-09 23:17:38,188 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-09 23:17:38,456 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-09 23:17:38,729 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:17:39,005 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:17:39,269 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:17:39,610 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:17:39,917 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:17:40,184 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:17:40,457 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:17:40,736 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:17:41,009 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:17:41,817 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:17:42,374 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:17:42,935 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:17:46,927 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:17:38,729 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:17:39,005 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:17:39,269 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:17:39,610 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:17:39,917 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:17:40,184 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:17:40,457 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:17:40,736 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:17:41,009 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:17:41,817 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:17:42,374 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:17:42,935 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:17:46,927 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:17:38,729 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-09 23:17:39,005 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-09 23:17:39,269 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-09 23:17:39,610 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-09 23:17:39,917 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-09 23:17:40,184 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-09 23:17:40,457 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-09 23:17:40,736 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-09 23:17:41,009 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-09 23:17:41,817 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-09 23:17:42,374 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-09 23:17:42,935 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-09 23:17:46,927 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:18:16,605 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:18:16,605 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:18:16,605 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:18:46,618 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:18:46,618 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:18:46,618 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:19:16,664 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:19:16,664 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:19:16,664 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:19:46,683 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:19:46,683 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:19:46,683 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:20:16,667 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:20:16,667 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:20:16,667 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:20:36,120 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:20:46,776 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:20:36,120 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:20:46,776 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:20:36,120 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:20:46,776 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:21:17,015 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:21:17,015 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:21:17,015 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:21:46,705 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:21:46,705 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:21:46,705 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:22:16,730 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:22:16,730 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:22:16,730 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:22:46,741 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:22:46,741 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:22:46,741 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:23:16,752 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:23:16,752 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:23:16,752 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:23:36,239 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:23:46,777 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:23:36,239 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:23:46,777 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:23:36,239 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:23:46,777 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:24:16,805 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:24:16,805 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:24:16,805 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:24:46,818 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:24:46,818 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:24:46,818 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:25:16,826 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:25:16,826 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:25:16,826 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:25:46,910 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:25:46,910 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:25:46,910 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:26:16,900 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:26:16,900 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:26:16,900 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:26:36,361 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:26:48,476 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:26:36,361 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:26:48,476 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:26:36,361 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:26:48,476 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:27:16,924 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:27:16,924 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:27:16,924 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:27:46,926 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:27:46,926 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:27:46,926 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:28:17,052 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:28:17,052 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:28:17,052 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:28:47,054 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:28:47,054 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:28:47,054 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:29:17,033 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:29:17,033 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:29:17,033 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:29:36,463 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:29:47,000 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:29:36,463 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:29:47,000 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:29:36,463 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-09 23:29:47,000 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:30:17,042 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:30:17,042 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-09 23:30:17,042 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".

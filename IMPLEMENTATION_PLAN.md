@@ -1126,4 +1126,4 @@ Week 4+ │ Monitor Darwinian weights in production
 | `prompt_autoresearcher.py` | New file |
 | `backend/prompts/*.md` | New directory with one prompt file per LLM agent |
 
-**Files NOT touched:** `confluence.py`, `vital_signs.py`, `bot_vital_signs.py`, `executioner.py`, `fib_retracement.py`, `regime_detector.py`, `trend_strategist.py`, `alpaca_hub.py`, `main.py`
+**Files NOT touched:** `confluence.py`, `vital_signs.py`, `bot_vital_signs.py`, `executioner.py`, `fib_retracement.py`, `regime_detector.py`, `trend_strategist.py`, `main.py`

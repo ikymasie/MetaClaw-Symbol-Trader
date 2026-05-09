@@ -11,7 +11,7 @@ import {
 import { BotDeployRequest } from '@/lib/api';
 import {
   X, Rocket, ChevronDown, ChevronUp, Bot,
-  BrainCircuit, Shield, BarChart2, Wifi, AlertTriangle
+  BrainCircuit, Shield, BarChart2, Wifi, AlertTriangle, Zap
 } from 'lucide-react';
 
 const STRATEGIES = ['mean_reversion', 'momentum', 'breakout', 'scalp'];
@@ -23,6 +23,7 @@ const DEFAULT_FORM: BotDeployRequest = {
   strategy: 'mean_reversion',
   capital_allocation: 10000.0,
   qty: 1,
+  short_selling_enabled: true,
   stop_loss_pct: 1.5,
   bb_period: 20,
   bb_std_dev: 2.0,
@@ -32,7 +33,11 @@ const DEFAULT_FORM: BotDeployRequest = {
   tags: [],
   fib_enabled: true,
   auto_start: true,
-  demo_mode: true,
+  leverage_mode_enabled: false,
+  leverage_factor: 20,
+  isolated_risk_usd: 40.0,
+  net_profit_target_usd: 1.0,
+  take_profit_usd: 1.0,
 };
 
 interface Props {
@@ -55,24 +60,27 @@ export function DeployWizard({ onClose, onDeployed }: Props) {
   // Calculate max available allocation
   const totalAllocated = fleetStatus?.bots?.reduce((sum, b) => sum + b.capital_allocation, 0) || 0;
   // Include paper PnL so max available reflects paper profits/losses
-  const paperPnl = fleetStatus?.bots
-    ?.filter(b => b.demo_mode)
-    .reduce((sum, b) => sum + (b.status?.daily_pnl || 0), 0) || 0;
-
-  const displayEquity = accountInfo ? accountInfo.equity + paperPnl : 0;
+  const displayEquity = accountInfo ? accountInfo.equity : 0;
   const maxAllocation = accountInfo ? Math.max(0, displayEquity - totalAllocated) : 0;
   // Initialize default symbol once loaded
   const [initialized, setInitialized] = useState(false);
   if (!initialized && symbolsData?.symbols?.length && !form.symbol) {
-    setForm(prev => ({ ...prev, symbol: symbolsData.symbols[0].name }));
+    const first = symbolsData.symbols[0];
+    setForm(prev => ({ ...prev, symbol: first.name, qty: first.volume_min ?? 0.01 }));
     setInitialized(true);
   }
 
-  const filteredSymbols = symbolsData?.symbols.filter(s => 
+  const filteredSymbols = symbolsData?.symbols.filter(s =>
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.category.toLowerCase().includes(searchTerm.toLowerCase())
   ).slice(0, 50) || []; // Performance limit
+
+  const selectedSymbolInfo = symbolsData?.symbols.find(s => s.name === form.symbol);
+  const volMin = selectedSymbolInfo?.volume_min ?? 0.01;
+  const volMax = selectedSymbolInfo?.volume_max ?? 100.0;
+  const volStep = selectedSymbolInfo?.volume_step ?? 0.01;
+  const volDecimals = volStep < 1 ? String(volStep).split('.')[1]?.length ?? 2 : 0;
 
 
   const set = <K extends keyof BotDeployRequest>(key: K, value: BotDeployRequest[K]) =>
@@ -106,7 +114,8 @@ export function DeployWizard({ onClose, onDeployed }: Props) {
     );
   };
 
-  const canDeploy = !deployBot.isPending;
+  const overAllocated = maxAllocation > 0 && form.capital_allocation > maxAllocation;
+  const canDeploy = !deployBot.isPending && !overAllocated;
   const atCap = fleetConfig && fleetConfig.max_bots !== undefined;
 
   return (
@@ -188,7 +197,7 @@ export function DeployWizard({ onClose, onDeployed }: Props) {
                             <button
                               key={s.name}
                               onClick={() => {
-                                set('symbol', s.name);
+                                setForm(prev => ({ ...prev, symbol: s.name, qty: s.volume_min ?? 0.01 }));
                                 setSearchTerm('');
                                 setIsOpen(false);
                               }}
@@ -227,6 +236,29 @@ export function DeployWizard({ onClose, onDeployed }: Props) {
                 <p className="text-[9px] text-muted-foreground mt-1 font-mono">STRATEGY</p>
               </div>
             </div>
+
+            {/* Volume Slider */}
+            <div className="px-3 py-3 rounded-xl bg-white/3 border border-white/6 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Volume (Lot Size)</span>
+                <span className="text-sm font-mono font-semibold text-white tabular-nums">
+                  {form.qty.toFixed(volDecimals)}
+                </span>
+              </div>
+              <input
+                type="range"
+                min={volMin}
+                max={volMax}
+                step={volStep}
+                value={form.qty}
+                onChange={e => set('qty', parseFloat(e.target.value))}
+                className="w-full accent-primary"
+              />
+              <div className="flex justify-between text-[9px] font-mono text-muted-foreground">
+                <span>MIN {volMin.toFixed(volDecimals)}</span>
+                <span>MAX {volMax.toFixed(volDecimals)}</span>
+              </div>
+            </div>
           </section>
 
           {/* Allocation & Risk */}
@@ -235,48 +267,12 @@ export function DeployWizard({ onClose, onDeployed }: Props) {
               <Shield className="w-3 h-3" /> Allocation & Risk
             </label>
             <div className="space-y-3">
-              {/* Demo / Live Mode Toggle */}
-              <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
-                form.demo_mode
-                  ? 'bg-amber-500/5 border-amber-500/20'
-                  : 'bg-red-500/5 border-red-500/30'
-              }`}>
-                <div className="flex items-center gap-2">
-                  {!form.demo_mode && <AlertTriangle className="w-3.5 h-3.5 text-red-400" />}
-                  <div>
-                    <span className={`text-[11px] font-mono font-semibold ${
-                      form.demo_mode ? 'text-amber-400' : 'text-red-400'
-                    }`}>
-                      {form.demo_mode ? '📋 PAPER MODE' : '🔴 LIVE MODE'}
-                    </span>
-                    <p className="text-[9px] font-mono text-muted-foreground mt-0.5">
-                      {form.demo_mode
-                        ? 'Simulated trading — no real money at risk'
-                        : 'Real capital — executes on MT5'}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => set('demo_mode', !form.demo_mode)}
-                  className={`w-10 h-5 rounded-full transition-all relative ${
-                    form.demo_mode ? 'bg-amber-500' : 'bg-red-500'
-                  }`}
-                >
-                  <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${
-                    form.demo_mode ? 'left-0.5' : 'left-5'
-                  }`} />
-                </button>
-              </div>
-
-              {!form.demo_mode && (
-                <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-red-500/5 border border-red-500/15">
-                  <AlertTriangle className="w-3 h-3 text-red-400 mt-0.5 shrink-0" />
-                  <p className="text-[9px] font-mono text-red-400/80 leading-relaxed">
-                    Live mode will execute real trades using your MT5 account.
-                    Ensure API keys are configured and capital allocation is correct.
+              <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-emerald-500/5 border border-emerald-500/15">
+                  <Wifi className="w-3 h-3 text-emerald-400 mt-0.5 shrink-0" />
+                  <p className="text-[9px] font-mono text-emerald-400/80 leading-relaxed">
+                    Trades execute on the MT5 account currently authenticated in your terminal.
                   </p>
                 </div>
-              )}
 
               <div className="relative">
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-muted-foreground">$</div>
@@ -284,19 +280,101 @@ export function DeployWizard({ onClose, onDeployed }: Props) {
                   type="number"
                   placeholder="Capital Allocation"
                   value={form.capital_allocation}
-                  onChange={e => set('capital_allocation', parseFloat(e.target.value))}
-                  className="w-full pl-7 pr-3 py-2.5 rounded-xl bg-white/5 border border-white/8 text-sm text-white placeholder-muted-foreground focus:outline-none focus:border-primary/50 transition-all font-mono"
+                  min={0}
+                  max={maxAllocation > 0 ? maxAllocation : undefined}
+                  onChange={e => {
+                    const val = parseFloat(e.target.value) || 0;
+                    set('capital_allocation', maxAllocation > 0 ? Math.min(val, maxAllocation) : val);
+                  }}
+                  className={`w-full pl-7 pr-3 py-2.5 rounded-xl bg-white/5 border text-sm text-white placeholder-muted-foreground focus:outline-none transition-all font-mono ${
+                    overAllocated
+                      ? 'border-red-500/60 focus:border-red-500 focus:ring-1 focus:ring-red-500/20'
+                      : 'border-white/8 focus:border-primary/50 focus:ring-1 focus:ring-primary/20'
+                  }`}
                 />
                 <div className="flex justify-between mt-1 px-1">
                   <p className="text-[9px] text-muted-foreground font-mono uppercase">CAPITAL ALLOCATION</p>
                   {accountInfo && (
-                    <p className="text-[9px] text-primary/60 font-mono">
+                    <p className={`text-[9px] font-mono ${overAllocated ? 'text-red-400' : 'text-primary/60'}`}>
                       MAX AVAIL: ${maxAllocation.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                     </p>
                   )}
                 </div>
+                {overAllocated && (
+                  <p className="text-[9px] text-red-400 font-mono mt-1 flex items-center gap-1">
+                    <AlertTriangle className="w-2.5 h-2.5" /> Exceeds available capital
+                  </p>
+                )}
               </div>
             </div>
+          </section>
+
+          {/* Leverage Settings */}
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Zap className="w-3 h-3 text-violet-400" />
+                <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">Scalper Leverage Mode</span>
+              </div>
+              <button
+                onClick={() => set('leverage_mode_enabled', !form.leverage_mode_enabled)}
+                className={`w-10 h-5 rounded-full transition-all relative ${form.leverage_mode_enabled ? 'bg-violet-500' : 'bg-white/10'}`}
+              >
+                <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${form.leverage_mode_enabled ? 'left-5' : 'left-0.5'}`} />
+              </button>
+            </div>
+
+            {form.leverage_mode_enabled && (
+              <div className="space-y-3 p-3 rounded-xl bg-violet-500/5 border border-violet-500/10 animate-in slide-in-from-top-1 duration-200">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-mono text-muted-foreground uppercase">Isolated Risk ($)</span>
+                    <input
+                      type="number"
+                      value={form.isolated_risk_usd}
+                      onChange={e => set('isolated_risk_usd', parseFloat(e.target.value) || 0)}
+                      className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/8 text-sm text-white font-mono focus:outline-none focus:border-violet-500/50"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-mono text-muted-foreground uppercase">Net Profit Target ($)</span>
+                    <input
+                      type="number"
+                      value={form.net_profit_target_usd}
+                      onChange={e => set('net_profit_target_usd', parseFloat(e.target.value) || 0)}
+                      className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/8 text-sm text-white font-mono focus:outline-none focus:border-violet-500/50"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[9px] font-mono text-muted-foreground uppercase">Trade Take Profit ($)</span>
+                  <input
+                    type="number"
+                    value={form.take_profit_usd}
+                    onChange={e => set('take_profit_usd', parseFloat(e.target.value) || 0)}
+                    className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/8 text-sm text-white font-mono focus:outline-none focus:border-violet-500/50"
+                  />
+                  <p className="text-[8px] font-mono text-muted-foreground/60 italic mt-0.5">
+                    Closes individual trades when profit hits this amount.
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-[9px] font-mono text-muted-foreground uppercase">Leverage Factor</span>
+                    <span className="text-xs font-mono text-violet-400">{form.leverage_factor}x</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={1}
+                    max={100}
+                    step={1}
+                    value={form.leverage_factor}
+                    onChange={e => set('leverage_factor', parseInt(e.target.value))}
+                    className="w-full accent-violet-500"
+                  />
+                </div>
+              </div>
+            )}
           </section>
 
           {/* Sub-Agents */}
@@ -362,7 +440,6 @@ export function DeployWizard({ onClose, onDeployed }: Props) {
           {advanced && (
             <section className="space-y-3 animate-in fade-in duration-200">
               {[
-                { key: 'qty' as const, label: 'Position Qty', min: 1, max: 50, step: 1, type: 'int' },
                 { key: 'stop_loss_pct' as const, label: 'Stop Loss %', min: 0.25, max: 5.0, step: 0.25, type: 'float' },
                 { key: 'bb_period' as const, label: 'BB Period', min: 8, max: 100, step: 1, type: 'int' },
                 { key: 'bb_std_dev' as const, label: 'BB Std Dev', min: 1.0, max: 3.5, step: 0.1, type: 'float' },
@@ -401,6 +478,15 @@ export function DeployWizard({ onClose, onDeployed }: Props) {
                 </button>
               </div>
               <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono text-muted-foreground">Short Selling</span>
+                <button
+                  onClick={() => set('short_selling_enabled', !form.short_selling_enabled)}
+                  className={`w-10 h-5 rounded-full transition-all relative ${form.short_selling_enabled ? 'bg-orange-500' : 'bg-white/10'}`}
+                >
+                  <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${form.short_selling_enabled ? 'left-5' : 'left-0.5'}`} />
+                </button>
+              </div>
+              <div className="flex items-center justify-between">
                 <span className="text-[10px] font-mono text-muted-foreground">Auto-start on deployment</span>
                 <button
                   onClick={() => set('auto_start', !form.auto_start)}
@@ -409,6 +495,8 @@ export function DeployWizard({ onClose, onDeployed }: Props) {
                   <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${form.auto_start ? 'left-5' : 'left-0.5'}`} />
                 </button>
               </div>
+
+
             </section>
           )}
         </div>

@@ -3,7 +3,6 @@
 import { BotSnapshot } from '@/lib/api';
 import { Bot, Rocket } from 'lucide-react';
 import { BotCard } from '@/components/fleet/BotCard';
-import { GlobalPulse } from './GlobalPulse';
 
 type Filter = 'all' | 'running' | 'stopped';
 
@@ -61,8 +60,6 @@ export function FleetBotGrid({ bots, filter, onFilterChange, onSelectBot, onDepl
       {/* Empty state */}
       {filtered.length === 0 && (
         <div className="space-y-6">
-          {filter === 'all' && <GlobalPulse />}
-          
           <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-white/5 rounded-2xl bg-white/[0.01]">
             <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-5">
               <Bot className="w-6 h-6 text-primary/60" />

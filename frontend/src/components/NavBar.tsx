@@ -3,8 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Zap, Bot, LayoutDashboard, Radio, Activity, 
-  ChevronDown, Wallet, TrendingUp, TrendingDown, 
+import { Zap, Bot, LayoutDashboard, Radio,
+  ChevronDown, Wallet, TrendingUp, TrendingDown,
   DollarSign, CreditCard, Power, Loader2, Coffee
 } from 'lucide-react';
 import { useFleetStatus, useMT5Account } from '@/hooks/useFleet';
@@ -17,7 +17,6 @@ const links = [
   { href: '/',               label: 'DASHBOARD',     icon: <LayoutDashboard className="w-3.5 h-3.5" /> },
   { href: '/bnb',            label: 'BNB PULSE',     icon: <Zap className="w-3.5 h-3.5 text-amber-400" /> },
   { href: '/fleet',          label: 'FLEET COMMAND', icon: <Bot className="w-3.5 h-3.5" /> },
-  { href: '/ticker',         label: 'LIVE TICKER',   icon: <Activity className="w-3.5 h-3.5" /> },
   { href: '/situation-room', label: 'SITUATION ROOM',icon: <Radio className="w-3.5 h-3.5" /> },
 ];
 

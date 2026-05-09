@@ -10,6 +10,8 @@ import threading
 
 load_dotenv()
 
+DATABASE_URL = os.getenv("DATABASE_URL")
+
 
 @dataclass
 class TradingConfig:
@@ -37,9 +39,6 @@ class TradingConfig:
     bb_std_dev: float = field(
         default_factory=lambda: float(os.getenv("DEFAULT_BB_STD_DEV", "2.0"))
     )
-
-    # Mode
-    demo_mode: bool = True
 
     # ── Fibonacci Retracement Config ──────────────────────────────────────
     fib_enabled: bool = field(
@@ -174,7 +173,6 @@ class TradingConfig:
                 "bb_period": self.bb_period,
                 "bb_std_dev": self.bb_std_dev,
                 "max_daily_drawdown_pct": self.max_daily_drawdown_pct,
-                "demo_mode": self.demo_mode,
                 # Fibonacci Retracement Config
                 "fib_enabled": self.fib_enabled,
                 "fib_lookback_bars": self.fib_lookback_bars,
@@ -214,6 +212,11 @@ class TradingConfig:
                 "ai_min_trades_trigger": self.ai_min_trades_trigger,
                 "ai_loss_streak_trigger": self.ai_loss_streak_trigger,
             }
+
+    # ── Database ──────────────────────────────────────────────────────────
+    database_url: str = field(
+        default_factory=lambda: os.getenv("DATABASE_URL", "")
+    )
 
 
 # Singleton config instance

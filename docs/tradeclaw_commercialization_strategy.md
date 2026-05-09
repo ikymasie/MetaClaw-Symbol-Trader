@@ -1,6 +1,6 @@
 # TradeClaw — Commercialization Strategy
 
-> **Platform Summary**: TradeClaw is an AI-powered, multi-agent algorithmic trading system built on a stack of Bollinger Band mean-reversion, Fibonacci retracement, ADX regime detection, VWAP analysis, Kelly Criterion position sizing, and a self-evolving AI Brain (Gemini/Ollama). Six specialised sub-agents deliberate via a quorum protocol before every order. A "Vital Signs" organism model governs survival states and dynamically escalates LLM model tier as profitability grows. The frontend is a real-time Next.js dashboard (the "Situation Room") backed by Firebase/Firestore and an Alpaca brokerage integration.
+> **Platform Summary**: TradeClaw is an AI-powered, multi-agent algorithmic trading system built on a stack of Bollinger Band mean-reversion, Fibonacci retracement, ADX regime detection, VWAP analysis, Kelly Criterion position sizing, and a self-evolving AI Brain (Gemini/Ollama). Six specialised sub-agents deliberate via a quorum protocol before every order. A "Vital Signs" organism model governs survival states and dynamically escalates LLM model tier as profitability grows. The frontend is a real-time Next.js dashboard (the "Situation Room") backed by Firebase/Firestore and an MetaTrader 5 brokerage integration.
 
 ---
 
@@ -8,12 +8,12 @@
 
 > [!CAUTION]
 > **This is the non-negotiable constraint across every strategy below.**  
-> Your API credentials — Alpaca keys, Gemini/OpenClaw tokens, Firebase service accounts — **must never leave your infrastructure**. Users should interact only with outputs and controls that your backend exposes, not with the raw credential layer.
+> Your API credentials — MetaTrader 5 keys, Gemini/OpenClaw tokens, Firebase service accounts — **must never leave your infrastructure**. Users should interact only with outputs and controls that your backend exposes, not with the raw credential layer.
 
 The key architectural principle is **server-side credential isolation**:
 
-- All calls to Alpaca, Gemini, OpenClaw, Ollama, and Firebase are made **from your backend**, never from the client.
-- Users bring their **own Alpaca brokerage credentials** (which you store encrypted server-side) — you never commingle their broker credentials with yours.
+- All calls to MetaTrader 5, Gemini, OpenClaw, Ollama, and Firebase are made **from your backend**, never from the client.
+- Users bring their **own MetaTrader 5 brokerage credentials** (which you store encrypted server-side) — you never commingle their broker credentials with yours.
 - Your **AI inference layer** (Gemini/OpenClaw/Ollama) remains invisible to all users. It is a cost-of-goods-sold, not a user-facing service.
 - Your **Firebase project** is never client-accessible; only your Python backend has the service account key.
 
@@ -23,7 +23,7 @@ The key architectural principle is **server-side credential isolation**:
 
 ### The Concept
 
-Deploy TradeClaw as a **fully managed, multi-tenant cloud platform**. Users sign up, connect their own Alpaca brokerage account (paper or live), configure their bot fleet through the existing Situation Room UI, and pay a monthly subscription. Your infrastructure runs all the AI, all the signals, and all the execution — they never see a key or a model.
+Deploy TradeClaw as a **fully managed, multi-tenant cloud platform**. Users sign up, connect their own MetaTrader 5 brokerage account (paper or live), configure their bot fleet through the existing Situation Room UI, and pay a monthly subscription. Your infrastructure runs all the AI, all the signals, and all the execution — they never see a key or a model.
 
 ### How It Works Technically
 
@@ -32,7 +32,7 @@ User (Browser) → TradeClaw SaaS Frontend (Next.js on Vercel/Cloud Run)
                           ↓
               TradeClaw API (FastAPI — YOUR infrastructure)
             /          |           \           \
-    User's Alpaca   YOUR Gemini   YOUR Ollama   YOUR Firebase
+    User's MetaTrader 5   YOUR Gemini   YOUR Ollama   YOUR Firebase
     (their keys,    (your API     (your          (your service
      stored AES-    key, never    server,        account,
      encrypted in   exposed)      not theirs)    not theirs)
@@ -41,7 +41,7 @@ User (Browser) → TradeClaw SaaS Frontend (Next.js on Vercel/Cloud Run)
 
 **Key Technical Steps:**
 
-1. **Multi-tenant bot isolation**: Each user's bot instance runs in an isolated `BotEngine` context. Their Alpaca API key is stored AES-256 encrypted in your database and decrypted only server-side at order execution time. It is never returned to the browser.
+1. **Multi-tenant bot isolation**: Each user's bot instance runs in an isolated `BotEngine` context. Their MetaTrader 5 API key is stored AES-256 encrypted in your database and decrypted only server-side at order execution time. It is never returned to the browser.
 2. **Your AI keys stay server-side**: The `OPENCLAW_TOKEN`, `GEMINI_API_KEY`, and Ollama endpoint are environment variables on your Cloud Run / VM. They are consumed by the `StrategyEvolver` and `SubAgentPool` purely in-process. No user-facing endpoint exposes them.
 3. **Your Firebase stays private**: The `service-account-key.json` never leaves your backend. All Firestore reads/writes (trades, AI decisions, telemetry) flow through your Python server; the frontend polls your REST API, not Firestore directly.
 4. **Rate limiting per plan**: Use a middleware layer (Redis + token bucket) to enforce per-user bot count, polling frequency, and AI Brain evolution cycle limits based on subscription tier.
@@ -59,7 +59,7 @@ User (Browser) → TradeClaw SaaS Frontend (Next.js on Vercel/Cloud Run)
 
 - The entire `ai_brain.py`, `sub_agents.py`, `strategy.py`, `regime_detector.py` stack runs in **your** container, not theirs.
 - Users receive *signals and executed trades*, not the code or credentials that produce them.
-- Your Alpaca paper/live account is **never used** for user trades — they bring their own broker relationship.
+- Your MetaTrader 5 paper/live account is **never used** for user trades — they bring their own broker relationship.
 
 ---
 
@@ -93,7 +93,7 @@ Licensee's Users → Licensee's White-Labeled UI
                           ↓
               YOUR TradeClaw Backend (dedicated tenant)
             /
-    Licensee's Alpaca Enterprise Agreement
+    Licensee's MetaTrader 5 Enterprise Agreement
     (their broker keys, their account, your engine)
 ```
 
@@ -163,7 +163,7 @@ Subscriber's System (their code, their broker, their choice)
 ```
 
 **Key protection mechanisms:**
-- All LLM calls, Alpaca data fetches, and regime computations happen server-side.
+- All LLM calls, MetaTrader 5 data fetches, and regime computations happen server-side.
 - Subscribers receive **only the structured signal output** — never the prompt, model name, temperature settings, or raw LLM response.
 - API keys are issued per-subscriber (JWT-based), scoped to specific symbols and rate-limited by tier.
 - Your `sub_agents.py` deliberation logic, Fibonacci mathematics, and AI Brain prompts are never transmitted.
@@ -191,13 +191,13 @@ Instead of licensing the software, you **manage capital directly** — clients a
 ### Structure
 
 ```
-Client deposits funds into their Alpaca account
+Client deposits funds into their MetaTrader 5 account
          ↓
 Client grants TradeClaw Limited POA (Power of Attorney)
-   via Alpaca's third-party advisor framework
+   via MetaTrader 5's third-party advisor framework
          ↓
 TradeClaw Engine manages the account autonomously
-using the client's Alpaca keys (stored encrypted, server-side)
+using the client's MetaTrader 5 keys (stored encrypted, server-side)
          ↓
 Client views read-only Situation Room dashboard
 (their equity curve, their trades, your AI decisions)
@@ -221,7 +221,7 @@ Maximum per bot:  $500,000 (until regulatory capacity is verified)
 
 > [!WARNING]
 > Managing third-party capital **requires regulatory licensing** in most jurisdictions:
-> - **USA**: Register as an **Investment Advisor (RIA)** with the SEC (if >$100M AUM) or state regulators. Use a **FINRA-registered broker-dealer** (like Alpaca's partner program) as the custodian. Consult a securities attorney *before* accepting client funds.
+> - **USA**: Register as an **Investment Advisor (RIA)** with the SEC (if >$100M AUM) or state regulators. Use a **FINRA-registered broker-dealer** (like MetaTrader 5's partner program) as the custodian. Consult a securities attorney *before* accepting client funds.
 > - **UK**: FCA authorisation required.
 > - **South Africa**: FSP (Financial Services Provider) licence from the FSCA.
 > - **EU**: MiFID II AIFM registration.
@@ -230,7 +230,7 @@ Maximum per bot:  $500,000 (until regulatory capacity is verified)
 
 ### API Key Protection
 
-The most elegant aspect: clients provide their Alpaca account details once during onboarding. Your encrypted vault (AWS KMS or HashiCorp Vault) stores them. The `config.py` `TradingConfig` layer is extended to fetch credentials from the vault at runtime. **No human on your team ever sees a client's Alpaca secret key in plaintext.**
+The most elegant aspect: clients provide their MetaTrader 5 account details once during onboarding. Your encrypted vault (AWS KMS or HashiCorp Vault) stores them. The `config.py` `TradingConfig` layer is extended to fetch credentials from the vault at runtime. **No human on your team ever sees a client's MetaTrader 5 secret key in plaintext.**
 
 ---
 
@@ -308,7 +308,7 @@ This is a unified technical standard that applies regardless of which strategy y
 ### 1. Credential Vault
 Store every secret in a proper vault — not `.env` files on a shared server:
 - **AWS Secrets Manager** or **HashiCorp Vault** for production
-- Rotate Alpaca keys annually; rotate LLM keys quarterly
+- Rotate MetaTrader 5 keys annually; rotate LLM keys quarterly
 - Use IAM role-based access so only the TradeClaw process can read secrets
 
 ### 2. API Gateway with Auth
@@ -324,13 +324,13 @@ Put a reverse proxy in front of all endpoints:
 - Use `openclaw_token` and `openclaw_base_url` only in backend env vars
 
 ### 4. Separate Brokerage Accounts
-- **Your Alpaca account** is used only for system testing, demos, and your own capital.
-- **Client Alpaca accounts** are separate legal entities — their P&L is their own.
-- Never co-mingle these. Use Alpaca's "Sub-Accounts" or "Advisor Accounts" framework for managed-account strategies.
+- **Your MetaTrader 5 account** is used only for system testing, demos, and your own capital.
+- **Client MetaTrader 5 accounts** are separate legal entities — their P&L is their own.
+- Never co-mingle these. Use MetaTrader 5's "Sub-Accounts" or "Advisor Accounts" framework for managed-account strategies.
 
 ### 5. Frontend Never Touches Secrets
 The Next.js frontend should:
-- Call **only your own FastAPI backend** — never Alpaca, Gemini, or Firebase directly
+- Call **only your own FastAPI backend** — never MetaTrader 5, Gemini, or Firebase directly
 - Use `NEXT_PUBLIC_API_BASE_URL` pointing to your backend, not any third-party services
 - Receive only sanitised, user-specific data — never global config snapshots, model names, or token values
 
@@ -374,4 +374,4 @@ timeline
 | 5. B2B API | $10k–$100k+ | 4–8 weeks | Low (data/API) | None (server-side only) |
 
 > [!IMPORTANT]
-> **Across all strategies**: Your Alpaca keys, Gemini tokens, OpenClaw credentials, Ollama server URL, and Firebase service account never leave your server environment. Users interact with outputs — signals, dashboards, trade results — not with the infrastructure that produces them. That is the commercial moat.
+> **Across all strategies**: Your MetaTrader 5 keys, Gemini tokens, OpenClaw credentials, Ollama server URL, and Firebase service account never leave your server environment. Users interact with outputs — signals, dashboards, trade results — not with the infrastructure that produces them. That is the commercial moat.

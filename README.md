@@ -57,7 +57,7 @@ TradeClaw is an AI-powered algorithmic trading platform built on a **Multi-Agent
 │  │  Fibonacci · Bollinger · Kelly Sizing   │        │
 │  └─────────────────────────────────────────┘        │
 │                     │                                │
-│          Alpaca API (Paper/Live)                      │
+│          MetaTrader 5 API (Paper/Live)                      │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -112,26 +112,40 @@ This launches **both** backend and frontend with a branded console:
 # — or press Ctrl+C in the start.sh terminal
 ```
 
----
+## 🚀 Quick Start (Production/Deployment)
 
-## Environment Variables
+1. **Prerequisites**: Docker, MetaTrader 5 Account (Demo or Live).
+2. **Setup**: Run `./setup.sh`. It will prompt for your MT5 broker credentials and AI API keys.
+3. **Launch**: `./start_all.sh`.
+4. **Access**: `http://localhost:3000`.
 
-### Backend (`backend/.env`)
+## 🛠 Tech Stack
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `ALPACA_API_KEY` | Alpaca paper trading API key | — |
-| `ALPACA_SECRET_KEY` | Alpaca paper trading secret | — |
-| `ALPACA_BASE_URL` | Alpaca API endpoint | `https://paper-api.alpaca.markets` |
-| `GEMINI_API_KEY` | Google Gemini API key (cloud LLM) | — |
-| `GEMINI_MODEL` | Gemini model name | `gemini-2.5-flash-lite-preview` |
-| `OLLAMA_BASE_URL` | Local Ollama server URL | `http://localhost:11434` |
+- **Frontend**: Next.js 14 (App Router), TailwindCSS, Framer Motion, React Query, Lucide Icons.
+- **Backend**: Python (FastAPI), MetaTrader5 (Python SDK), LangGraph (Agentic Framework).
+- **AI Brain**: Google Gemini 1.5 Pro, Ollama (Local LLM fallback).
+- **Persistence**: Firestore (Decision Logs, Fleet State).
+- **Terminal**: MT5 Windows Terminal running in Wine/Docker (linux/amd64).
+
+## 🔑 Environment Variables
+
+The `./setup.sh` script generates a `.env` file for you. If you need to configure it manually:
+
+| Variable | Description | Default / Example |
+| :--- | :--- | :--- |
+| `MT5_LOGIN` | MetaTrader 5 Account Number | — |
+| `MT5_PASSWORD` | MetaTrader 5 Password | — |
+| `MT5_SERVER` | MetaTrader 5 Server Name | `MetaQuotes-Demo` |
+| `MT5_SYMBOL_SUFFIX` | Broker symbol suffix (e.g. `_i`, `.m`) | (Optional) |
+| `GEMINI_API_KEY` | Google AI Studio Key | — |
+| `FIRESTORE_PROJECT_ID` | Firebase Project ID | — |
+| `WS_URL` | WebSocket endpoint for data feed | `ws://backend:8000/ws` |
+| `BACKEND_URL` | REST API endpoint | `http://backend:8000` |
 | `OLLAMA_MODEL_NAME` | Ollama model for inference | `gemma4:e4b` |
 | `AI_BRAIN_ENABLED` | Enable AI strategy evolution | `true` |
 | `HOST` | Backend bind address | `0.0.0.0` |
 | `PORT` | Backend port | `8000` |
 
-### Frontend (`frontend/.env.local`)
 
 | Variable | Description |
 |----------|-------------|

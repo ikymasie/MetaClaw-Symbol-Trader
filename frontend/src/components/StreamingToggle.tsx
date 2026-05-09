@@ -63,17 +63,6 @@ export function StreamingToggle() {
         <span>{isStreaming ? 'STREAMING' : 'PAUSED'}</span>
       </button>
 
-      {/* Stats tooltip area */}
-      {stats.ticker && (
-        <span className="text-[10px] font-mono text-zinc-500 hidden lg:inline">
-          {stats.ticker.messages_received.toLocaleString()} msgs
-          {stats.ticker.messages_dropped > 0 && (
-            <span className="text-amber-500 ml-1">
-              ({stats.ticker.messages_dropped} dropped)
-            </span>
-          )}
-        </span>
-      )}
     </div>
   );
 }

@@ -185,14 +185,33 @@ class RegimeDetector:
             adx_series, plus_di, minus_di = _compute_adx(df, self.adx_period)
             atr_series = _compute_atr(df, self.atr_period)
 
+            adx_clean = adx_series.dropna()
+            plus_di_clean = plus_di.dropna()
+            minus_di_clean = minus_di.dropna()
+            atr_clean = atr_series.dropna()
+
+            if adx_clean.empty or plus_di_clean.empty or minus_di_clean.empty or atr_clean.empty:
+                state = RegimeState(
+                    regime=REGIME_UNKNOWN,
+                    adx=0.0,
+                    atr=0.0,
+                    atr_zscore=0.0,
+                    trend_direction="flat",
+                    can_mean_revert=False,  # Conservative: block trading until regime is known
+                    confidence="LOW",
+                    reason="Insufficient valid indicator data after calculation.",
+                )
+                self._last_state = state
+                return state
+
             # Latest valid values
-            adx_val    = float(adx_series.dropna().iloc[-1])
-            plus_di_v  = float(plus_di.dropna().iloc[-1])
-            minus_di_v = float(minus_di.dropna().iloc[-1])
-            atr_val    = float(atr_series.dropna().iloc[-1])
+            adx_val    = float(adx_clean.iloc[-1])
+            plus_di_v  = float(plus_di_clean.iloc[-1])
+            minus_di_v = float(minus_di_clean.iloc[-1])
+            atr_val    = float(atr_clean.iloc[-1])
 
             # ATR z-score (how abnormal is current volatility vs. its own history?)
-            atr_window = atr_series.dropna().iloc[-self.atr_zscore_window:]
+            atr_window = atr_clean.iloc[-self.atr_zscore_window:]
             atr_mean   = float(atr_window.mean())
             atr_std    = float(atr_window.std())
             atr_zscore = (atr_val - atr_mean) / atr_std if atr_std > 0 else 0.0
@@ -278,7 +297,7 @@ class RegimeDetector:
                 atr=0.0,
                 atr_zscore=0.0,
                 trend_direction="flat",
-                can_mean_revert=True,
+                can_mean_revert=False,  # Conservative: block trading until regime is known
                 confidence="LOW",
                 reason=f"Detection error: {e}",
             )

@@ -26,10 +26,10 @@ import httpx
 from openai import OpenAI
 
 from config import config
-from firebase_store import (
+from postgres_store import (
     get_recent_trades_for_analysis,
     _legacy_get_equity_history as get_equity_history,
-    insert_ai_decision,
+    save_ai_decision,
 )
 from vital_signs import vital_signs
 
@@ -433,7 +433,7 @@ class StrategyEvolver:
                 from strategy import engine as _engine
                 _regime  = getattr(_engine, '_regime_state', None)
                 _mom     = getattr(_engine, '_momentum_state', None)
-                _trades  = _run_async(get_recent_trades_for_analysis(limit=20))
+                _trades  = _run_async(get_recent_trades_for_analysis("fleet", limit=20))
                 sentiment_report = self._sentiment_builder.build(
                     df=None,  # df not available here; VIX proxy skipped at AI cycle time
                     regime_state=_regime,
@@ -725,8 +725,8 @@ class AIBrainScheduler:
         cfg = config.ai_snapshot()
 
         # Fetch data from Firestore via the main event loop
-        trades = _run_async(get_recent_trades_for_analysis(200))
-        equity = _run_async(get_equity_history(50))
+        trades = _run_async(get_recent_trades_for_analysis("fleet", limit=200))
+        equity = _run_async(get_equity_history("fleet", limit=50))
 
         if not trades:
             logger.debug("No trade data available from Firestore — skipping trigger check")
@@ -794,8 +794,8 @@ class AIBrainScheduler:
 
         # Fetch data if not provided
         if trades is None or equity is None:
-            trades = _run_async(get_recent_trades_for_analysis(200))
-            equity = _run_async(get_equity_history(50))
+            trades = _run_async(get_recent_trades_for_analysis("fleet", limit=200))
+            equity = _run_async(get_equity_history("fleet", limit=50))
 
         # Compute metrics
         analyser = PerformanceAnalyser(trades, equity)
@@ -819,17 +819,20 @@ class AIBrainScheduler:
         params_after = json.dumps(result.get("new_params", {}))
 
         _run_async(
-            insert_ai_decision(
-                timestamp=now_str,
-                trigger=trigger,
-                trades_analysed=metrics["total_trades"],
-                win_rate_before=metrics["win_rate"],
-                daily_pnl_before=metrics["daily_pnl"],
-                params_before=params_before,
-                params_after=params_after,
-                reasoning=result.get("reasoning", ""),
-                model_used=result.get("model_used", "unknown"),
-                applied=1 if result.get("applied") else 0,
+            save_ai_decision(
+                "fleet",
+                {
+                    "timestamp": now_str,
+                    "trigger": trigger,
+                    "trades_analysed": metrics["total_trades"],
+                    "win_rate_before": metrics["win_rate"],
+                    "daily_pnl_before": metrics["daily_pnl"],
+                    "params_before": params_before,
+                    "params_after": params_after,
+                    "reasoning": result.get("reasoning", ""),
+                    "model_used": result.get("model_used", "unknown"),
+                    "applied": 1 if result.get("applied") else 0,
+                }
             )
         )
 

@@ -1,12 +1,11 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Shield, Wallet, TrendingUp, TrendingDown, Landmark, Zap } from 'lucide-react';
-import { useMT5Account, useFleetStatus } from '@/hooks/useFleet';
+import { Shield, Wallet, TrendingUp, TrendingDown, Landmark } from 'lucide-react';
+import { useMT5Account } from '@/hooks/useFleet';
 
 export function AccountVitalsCard() {
   const { data: account, isLoading, error } = useMT5Account();
-  const { data: fleetStatus } = useFleetStatus();
 
   if (isLoading) {
     return (
@@ -23,14 +22,8 @@ export function AccountVitalsCard() {
 
   if (error || !account) return null;
 
-  // Include paper trading P&L so the user sees real-time changes
-  // even when bots are in demo_mode
-  const paperPnl = fleetStatus?.bots
-    ?.filter(b => b.demo_mode)
-    .reduce((sum, b) => sum + (b.status?.daily_pnl || 0), 0) || 0;
-
-  const displayEquity = account.equity + paperPnl;
-  const displayDailyPnl = account.daily_pnl + paperPnl;
+  const displayEquity = account.equity;
+  const displayDailyPnl = account.daily_pnl;
   // Recalculate drift (pct) against the starting balance
   const startingBalance = account.equity - account.daily_pnl; 
   const drift = startingBalance > 0 ? (displayDailyPnl / startingBalance) * 100 : 0;
@@ -52,12 +45,6 @@ export function AccountVitalsCard() {
               Account Vitals
             </h3>
           </div>
-          {paperPnl !== 0 && (
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20">
-              <Zap className="w-2.5 h-2.5 text-primary" />
-              <span className="text-[9px] font-mono text-primary font-bold">PAPER ACTIVE</span>
-            </div>
-          )}
         </div>
 
         {/* Main Value */}

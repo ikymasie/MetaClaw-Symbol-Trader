@@ -1,4 +1,5 @@
 import sys
+import json as _json
 import logging
 import rpyc
 from rpyc.utils.server import ThreadedServer
@@ -19,14 +20,28 @@ class MT5Service(rpyc.Service):
     """
     def on_connect(self, conn):
         print("Connected to client")
-        
+
     def on_disconnect(self, conn):
         print("Disconnected from client")
-        
+
     def exposed_get_mt5(self):
         if not MT5_AVAILABLE:
             raise ImportError("MetaTrader5 package is not installed in the server environment.")
         return MetaTrader5
+
+    def exposed_order_send(self, request_json: str):
+        """
+        Accept a JSON-serialised trade request and call MetaTrader5.order_send().
+
+        MT5's C extension requires a native Python dict — passing an RPyC netref
+        proxy causes retcode=-2 'Unnamed arguments not allowed'. The client
+        serialises the request to JSON; we reconstruct a native dict here and
+        call MT5 directly, bypassing the proxy issue entirely.
+        """
+        if not MT5_AVAILABLE:
+            raise ImportError("MetaTrader5 not available on this server.")
+        request = _json.loads(request_json)
+        return MetaTrader5.order_send(request)
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)

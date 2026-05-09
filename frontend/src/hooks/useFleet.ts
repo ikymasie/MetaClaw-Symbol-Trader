@@ -79,7 +79,7 @@ export function useUpdateFleetConfig() {
   });
 }
 
-/** Update a single bot's config (e.g. demo_mode, qty, stop_loss_pct) */
+/** Update a single bot's config (e.g. qty, stop_loss_pct) */
 export function useUpdateBotConfig() {
   const qc = useQueryClient();
   return useMutation({

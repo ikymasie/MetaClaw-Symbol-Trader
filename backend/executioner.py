@@ -29,6 +29,7 @@ MT5 notes:
 
 import logging
 import time
+import zlib
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -119,7 +120,7 @@ class ExecutionerAgent:
             symbol="EURUSD",
             smart_routing_min_qty=3,
             twap_interval_ms=500,
-            max_slippage_pct=0.30,
+            max_slippage_pct=0.05,
             limit_timeout_s=10,
         )
         result = executioner.execute(
@@ -139,8 +140,9 @@ class ExecutionerAgent:
         symbol: str,
         smart_routing_min_qty: float = 3,
         twap_interval_ms: int = 500,
-        max_slippage_pct: float = 0.30,
+        max_slippage_pct: float = 0.05,
         limit_timeout_s: int = 10,
+        bot_name: str = "",
         # legacy param kept for call-site compatibility — ignored
         _trading_client=None,
     ):
@@ -151,9 +153,13 @@ class ExecutionerAgent:
         self.twap_interval_ms = twap_interval_ms
         self.max_slippage_pct = max_slippage_pct
         self.limit_timeout_s = limit_timeout_s
-        # Stable unique magic number per bot (MT5 uses this to identify EA orders)
-        self._magic = abs(hash(bot_id)) % 2_147_483_647
-        self._logger = logging.getLogger(f"tradeclaw.executioner[{bot_id}]")
+        # Deterministic magic number — zlib.crc32 not hash() (hash is randomised per-process)
+        self._magic = max(1, zlib.crc32(bot_id.encode()) % 2_147_483_647)
+        _label = f"{bot_id}|{bot_name}" if bot_name and bot_name != "Unnamed Bot" else bot_id
+        self._logger = logging.getLogger(f"tradeclaw.executioner[{_label}]")
+        # Cached per-symbol info (avoids repeated RPyC round-trips)
+        self._filling_mode: Optional[int] = None
+        self._price_digits: Optional[int] = None
 
     # ── Public API ─────────────────────────────────────────────────────────
 
@@ -225,23 +231,66 @@ class ExecutionerAgent:
             return ExecutionMode.TWAP
         return ExecutionMode.LIMIT
 
+    # ── Symbol info helpers ────────────────────────────────────────────────
+
+    def _get_filling_mode(self) -> int:
+        """
+        Return the broker-supported filling mode for this symbol.
+
+        MT5 filling_mode bitmask on SymbolInfo:
+          bit 0 (value 1) = FOK supported  → ORDER_FILLING_FOK (0)
+          bit 1 (value 2) = IOC supported  → ORDER_FILLING_IOC (1)
+          neither         → ORDER_FILLING_RETURN (2) as fallback
+
+        Result is cached after first call to avoid repeated RPyC round-trips.
+        """
+        if self._filling_mode is not None:
+            return self._filling_mode
+        try:
+            info = mt5.symbol_info(self.symbol)
+            if info is not None:
+                fm = int(getattr(info, "filling_mode", 0))
+                if fm & 1:
+                    self._filling_mode = mt5.ORDER_FILLING_FOK
+                elif fm & 2:
+                    self._filling_mode = mt5.ORDER_FILLING_IOC
+                else:
+                    self._filling_mode = mt5.ORDER_FILLING_RETURN
+                self._logger.debug(
+                    f"[{self.bot_id}] Filling mode for {self.symbol}: "
+                    f"bitmask={fm} → {self._filling_mode}"
+                )
+                return self._filling_mode
+        except Exception as e:
+            self._logger.debug(f"filling_mode lookup failed ({e}), using RETURN")
+        self._filling_mode = mt5.ORDER_FILLING_RETURN
+        return self._filling_mode
+
+    def _round_price(self, price: float) -> float:
+        """Round price to the symbol's required decimal precision."""
+        if self._price_digits is None:
+            try:
+                info = mt5.symbol_info(self.symbol)
+                self._price_digits = int(getattr(info, "digits", 5)) if info else 5
+            except Exception:
+                self._price_digits = 5
+        return round(price, self._price_digits)
+
     # ── Lot sizing ─────────────────────────────────────────────────────────
 
     def _to_lots(self, qty: float) -> float:
         """
-        Convert qty units to MT5 lot volume.
-        Each qty unit maps to min_lot (e.g. 0.01 for forex).
-        Result is clamped to [volume_min, volume_max] and rounded to volume_step.
+        Clamp and round qty (in lots) to broker constraints [volume_min, volume_max],
+        snapped to volume_step.
         """
         info = mt5.symbol_info(self.symbol)
         if info is None:
-            return max(0.01, round(qty * 0.01, 2))
+            return max(0.01, round(qty, 2))
         min_lot = info.volume_min
         step = info.volume_step
         max_lot = info.volume_max
-        raw = qty * min_lot
         # Round to nearest step
-        lots = round(round(raw / step) * step, 8)
+        lots = round(round(qty / step) * step, 8)
         return max(min_lot, min(lots, max_lot))
 
     # ── Market Order ───────────────────────────────────────────────────────
@@ -267,7 +316,7 @@ class ExecutionerAgent:
             "magic":       self._magic,
             "comment":     f"TC_{self.bot_id[:8]}",
             "type_time":   mt5.ORDER_TIME_GTC,
-            "type_filling": mt5.ORDER_FILLING_IOC,
+            "type_filling": self._get_filling_mode(),
         }
         result = mt5.order_send(request)
 
@@ -276,7 +325,12 @@ class ExecutionerAgent:
             comment = result.comment if result else str(mt5.last_error())
             raise RuntimeError(f"MT5 market order failed: retcode={retcode} — {comment}")
 
-        fill_price = result.price if result.price else price
+        # Materialize RPyC netref values to plain Python floats immediately.
+        # MT5 order_send() returns a C-extension OrderSendResult over RPyC as a
+        # netref proxy. Storing netrefs in trade records causes JSON serialization
+        # failures in FastAPI history endpoints — trades appear empty in the UI.
+        fill_price = float(result.price) if result.price else float(price)
+        filled_qty = float(result.volume)
         slippage = self._calc_slippage(side, signal_price, fill_price)
 
         return ExecutionResult(
@@ -285,12 +339,12 @@ class ExecutionerAgent:
             symbol=self.symbol,
             side=side,
             total_qty_requested=qty,
-            total_qty_filled=result.volume,
+            total_qty_filled=filled_qty,
             avg_fill_price=fill_price,
             signal_price=signal_price,
             total_slippage_pct=slippage,
             latency_ms=0.0,
-            fills=[ChildFill(0, result.volume, fill_price, slippage,
+            fills=[ChildFill(0, filled_qty, fill_price, slippage,
                              datetime.now(timezone.utc).isoformat()).__dict__],
         )
 
@@ -301,9 +355,9 @@ class ExecutionerAgent:
     ) -> ExecutionResult:
         improvement = 0.0005
         if side == "buy":
-            limit_price = round(signal_price * (1 - improvement), 5)
+            limit_price = self._round_price(signal_price * (1 - improvement))
         else:
-            limit_price = round(signal_price * (1 + improvement), 5)
+            limit_price = self._round_price(signal_price * (1 + improvement))
 
         order_type = mt5.ORDER_TYPE_BUY_LIMIT if side == "buy" else mt5.ORDER_TYPE_SELL_LIMIT
         volume = self._to_lots(qty)
@@ -318,7 +372,7 @@ class ExecutionerAgent:
             "magic":       self._magic,
             "comment":     f"TC_{self.bot_id[:8]}",
             "type_time":   mt5.ORDER_TIME_GTC,
-            "type_filling": mt5.ORDER_FILLING_RETURN,
+            "type_filling": self._get_filling_mode(),
         }
         result = mt5.order_send(request)
 
@@ -335,29 +389,41 @@ class ExecutionerAgent:
 
         while time.monotonic() < deadline:
             time.sleep(0.5)
-            orders = mt5.orders_get(ticket=ticket)
+            # Fetch all pending orders then filter by ticket in Python.
+            # orders_get(ticket=ticket) uses a keyword arg which fails over RPyC
+            # against the C-extension MT5 API ("Unnamed arguments not allowed").
+            all_orders_raw = mt5.orders_get()
+            all_orders = list(all_orders_raw) if all_orders_raw is not None else []
+            orders = [o for o in all_orders if int(o.ticket) == int(ticket)]
             if not orders:
-                # Order gone from pending — check if it filled as a position
-                positions = mt5.positions_get(magic=self._magic)
+                # Order gone from pending — check if it filled as a position.
+                # Same RPyC fix: fetch all positions, filter in Python.
+                all_pos_raw = mt5.positions_get()
+                all_pos = list(all_pos_raw) if all_pos_raw is not None else []
+                positions = [
+                    p for p in all_pos
+                    if int(p.magic) == self._magic and str(p.symbol) == self.symbol
+                ]
                 if positions:
                     for pos in positions:
-                        if pos.magic == self._magic and pos.symbol == self.symbol:
-                            fill_p = pos.price_open
-                            slip = self._calc_slippage(side, signal_price, fill_p)
-                            return ExecutionResult(
-                                success=True,
-                                mode=ExecutionMode.LIMIT,
-                                symbol=self.symbol,
-                                side=side,
-                                total_qty_requested=qty,
-                                total_qty_filled=pos.volume,
-                                avg_fill_price=fill_p,
-                                signal_price=signal_price,
-                                total_slippage_pct=slip,
-                                latency_ms=0.0,
-                                fills=[ChildFill(0, pos.volume, fill_p, slip,
-                                                 datetime.now(timezone.utc).isoformat()).__dict__],
-                            )
+                        # Materialize RPyC netrefs to plain floats before storing.
+                        fill_p = float(pos.price_open)
+                        vol = float(pos.volume)
+                        slip = self._calc_slippage(side, signal_price, fill_p)
+                        return ExecutionResult(
+                            success=True,
+                            mode=ExecutionMode.LIMIT,
+                            symbol=self.symbol,
+                            side=side,
+                            total_qty_requested=qty,
+                            total_qty_filled=vol,
+                            avg_fill_price=fill_p,
+                            signal_price=signal_price,
+                            total_slippage_pct=slip,
+                            latency_ms=0.0,
+                            fills=[ChildFill(0, vol, fill_p, slip,
+                                             datetime.now(timezone.utc).isoformat()).__dict__],
+                        )
                 break  # order gone but no position found — treat as failed
 
         # Cancel stale limit order and fall back to market

@@ -73,12 +73,32 @@ class SymbolService:
         """Read broker suffix lazily so dotenv is loaded before we check it."""
         return os.getenv("MT5_SYMBOL_SUFFIX", "")
 
+    def _get_suffix_for(self, clean_name: str) -> str:
+        """
+        Return the correct suffix for this symbol.
+        Crypto symbols on Weltrade use no suffix; all others use MT5_SYMBOL_SUFFIX.
+        Override via MT5_CRYPTO_SYMBOL_SUFFIX env var (default: empty string).
+        """
+        default_suffix = self._get_suffix()
+        if not default_suffix:
+            return ""
+
+        # Look up the symbol's category
+        upper = clean_name.upper()
+        for sym in self._symbols:
+            if sym["name"].upper() == upper:
+                if sym.get("category", "").lower() == "crypto":
+                    return os.getenv("MT5_CRYPTO_SYMBOL_SUFFIX", "")
+                break
+
+        return default_suffix
+
     def get_broker_symbol(self, clean_name: str) -> str:
         """
         Maps a 'clean' symbol name (e.g. EURUSD) to the broker-specific symbol (e.g. EURUSD_i).
-        Uses the MT5_SYMBOL_SUFFIX environment variable (read at call time).
+        Category-aware: Crypto symbols skip the default suffix.
         """
-        suffix = self._get_suffix()
+        suffix = self._get_suffix_for(clean_name)
         if not suffix:
             return clean_name
 

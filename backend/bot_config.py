@@ -6,7 +6,6 @@ FleetConfig is the portal-editable fleet-wide settings stored in Firestore.
 """
 
 from dataclasses import dataclass, field, asdict
-from typing import Optional
 import uuid
 
 
@@ -75,15 +74,14 @@ class BotConfig:
     animal: str = ""
     category: str = ""
     ai_generated: bool = False
-    demo_mode: bool = True
 
     # Position & Risk
     qty: float = 1.0
     stop_loss_pct: float = 1.0
     max_daily_drawdown_pct: float = 6.0
 
-    # Short selling — opt-in only (existing bots remain long-only)
-    short_selling_enabled: bool = False
+    # Short selling — enabled by default so bots trade both directions
+    short_selling_enabled: bool = True
 
     # Trailing stop-loss — dynamic exit floor/ceiling that locks in profit
     trailing_stop_enabled: bool = True    # Enable trailing stop alongside hard stop
@@ -96,7 +94,7 @@ class BotConfig:
     # 3-Pillar Confluence params (Mean Reversion entry gate)
     confluence_enabled: bool = True        # Master switch — disable to fall back to raw BB
     rsi_period: int = 14                   # RSI lookback period (Wilder's smoothing)
-    rsi_oversold: float = 30.0            # RSI threshold for Pillar 2 (seller exhaustion)
+    rsi_oversold: float = 45.0            # RSI threshold for Pillar 2 (seller exhaustion)
     rvol_threshold: float = 1.5           # Min Relative Volume for Pillar 3 (institutional participation)
 
     # ICT Kill Zone time filter (UTC hours)
@@ -151,13 +149,43 @@ class BotConfig:
     # Increased from 30min to 60min to reduce Gemini API calls.
     agent_vote_cache_ttl_seconds: int = 3600
 
+    # Multi-Position / Scale-In (Scenario 3 & 5)
+    # Each confirmed signal opens one slot; up to max_position_slots can be open at once.
+    # Kelly qty is split evenly: each slot gets base_qty / max_position_slots.
+    scale_in_enabled: bool = True
+    max_position_slots: int = 5
+
+    # Per-position take-profit in USD. When a single MT5 position's floating profit
+    # exceeds this threshold it is closed immediately, regardless of other signals.
+    # 0.0 = disabled.
+    take_profit_usd: float = 0.0
+
+    # Leverage Mode (Darwinian Scalper)
+    # Target: Snatch and grab small net profits using high leverage.
+    leverage_mode_enabled: bool = True
+    leverage_factor: float = 20.0       # e.g. 20x, 50x
+    isolated_risk_usd: float = 40.0     # Total dollar amount at risk/margin per trade
+    net_profit_target_usd: float = 1.0  # Target net profit (after fees) per trade
+
+    # Capital-proportional position sizing.
+    # When enabled, lot size is derived from capital_allocation and risk_pct_per_trade
+    # rather than the raw qty field.  This prevents over-leveraging small accounts.
+    #
+    # Formula:
+    #   dollar_risk = capital_allocation × (risk_pct_per_trade / 100)
+    #   lot_size    = dollar_risk / (stop_loss_pct / 100 × current_price × contract_size)
+    #
+    # The raw qty field is used as an UPPER BOUND (never exceed it).
+    auto_size_qty: bool = True
+    risk_pct_per_trade: float = 1.0   # Max % of capital risked on a single entry
+
     # Smart Order Routing (ExecutionerAgent)
     # Minimum qty before TWAP routing is used (below threshold → LIMIT/MARKET).
     smart_routing_min_qty: float = 3.0
     # Delay between TWAP child order slices (milliseconds).
     twap_interval_ms: int = 500
     # Maximum acceptable slippage as a % of signal price before aborting.
-    max_slippage_pct: float = 0.30
+    max_slippage_pct: float = 0.05
     # Maximum seconds to wait for a LIMIT order fill before converting to MARKET.
     limit_timeout_s: int = 10
 
@@ -186,9 +214,18 @@ class BotConfig:
     @classmethod
     def from_dict(cls, data: dict) -> "BotConfig":
         """Deserialise from a Firestore document dict."""
+        # Clean up legacy mode flags
+        data.pop("demo_mode", None)
+        data.pop("simulated_mode", None)
+
         # Only pass known fields to avoid errors from extra Firestore fields
         known = {f.name for f in cls.__dataclass_fields__.values()}
         filtered = {k: v for k, v in data.items() if k in known}
+
+        # Migrate: original default was 30.0 — too strict for crypto ranging markets.
+        # Auto-upgrade existing bots so they start trading without manual reconfiguration.
+        if filtered.get("rsi_oversold") in (30.0, 40.0, 60.0):
+            filtered["rsi_oversold"] = 45.0
         
         # Backwards compatibility for old saved configs missing auto_start
         if "auto_start" not in filtered:
@@ -216,12 +253,12 @@ class FleetConfig:
     # Bot ceiling — portal configurable (1–50)
     max_bots: int = 10
 
+    # Hard cap on simultaneous open positions across the entire fleet (Scenario 2 & 3).
+    # CRO issues a hard VETO when this limit is reached, blocking new entries.
+    max_open_positions: int = 6
+
     # Fleet-wide kill switch — halt all bots if combined drawdown exceeds this
     max_fleet_drawdown_pct: float = 10.0
-
-    # Force all bots into demo mode regardless of individual bot config
-    # DEPRECATED: Standardizing on MT5 account-wide mode (Paper keys = Demo).
-    # global_demo_mode: bool = False
 
     # Sub-agent master switch
     sub_agents_enabled: bool = True
@@ -242,6 +279,8 @@ class FleetConfig:
     def validate(self):
         if not (1 <= self.max_bots <= 50):
             raise ValueError("max_bots must be between 1 and 50")
+        if not (1 <= self.max_open_positions <= 50):
+            raise ValueError("max_open_positions must be between 1 and 50")
         if not (1.0 <= self.max_fleet_drawdown_pct <= 50.0):
             raise ValueError("max_fleet_drawdown_pct must be between 1 and 50")
         if self.sub_agent_interval_minutes < 1:

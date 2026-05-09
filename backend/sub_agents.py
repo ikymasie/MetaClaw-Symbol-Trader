@@ -39,9 +39,14 @@ from prompt_loader import PromptLoader
 
 logger = logging.getLogger("tradeclaw.sub_agents")
 
+# Module-level flag: once we discover Ollama doesn't support /api/generate for
+# a given model, mark it so every subsequent ephemeral agent skips the call
+# without retrying.  Key = (base_url, model_name).
+_ollama_generate_unsupported: set[tuple[str, str]] = set()
+
 # Module-level reference to the main asyncio event loop.
 # Set by main.py at startup so background threads can schedule async coroutines
-# (e.g. Firestore writes from DarwinianWeightStore).
+# (e.g. PostgreSQL writes from DarwinianWeightStore).
 _main_event_loop: Optional[asyncio.AbstractEventLoop] = None
 
 
@@ -141,6 +146,7 @@ class BaseAgent:
         openclaw_model: str,
         ollama_base_url: str = "http://localhost:11434",
         ollama_model: str = "gemma4:e4b",
+        market_trends: dict = None,
     ):
         self.bot_id = bot_id
         self.symbol = symbol
@@ -148,6 +154,7 @@ class BaseAgent:
         self._openclaw_model = openclaw_model
         self._ollama_base_url = ollama_base_url
         self._ollama_model = ollama_model
+        self.market_trends = market_trends or {}
         self._logger = logging.getLogger(f"tradeclaw.agents.{self.AGENT_NAME}[{bot_id}]")
 
     def run(self) -> AgentSignal:
@@ -195,7 +202,10 @@ class BaseAgent:
             return None
 
     def _call_ollama(self, prompt: str) -> Optional[str]:
-        """Call local Ollama for fast, offline analysis."""
+        """Call local Ollama via /api/generate."""
+        key = (self._ollama_base_url, self._ollama_model)
+        if key in _ollama_generate_unsupported:
+            return None
         try:
             resp = httpx.post(
                 f"{self._ollama_base_url}/api/generate",
@@ -207,6 +217,15 @@ class BaseAgent:
                 },
                 timeout=self.TIMEOUT_SECONDS,
             )
+            if resp.status_code in (400, 404):
+                body = resp.json() if resp.status_code == 400 else {}
+                err = body.get("error", "Not Found")
+                _ollama_generate_unsupported.add(key)
+                self._logger.warning(
+                    f"Ollama model {self._ollama_model!r} generate unavailable ({err}) "
+                    f"— disabling Ollama for this session."
+                )
+                return None
             resp.raise_for_status()
             return resp.json().get("response", "")
         except Exception as e:
@@ -269,31 +288,35 @@ class SentimentAgent(BaseAgent):
         # 1. Get real-time headlines from MT5Hub buffer
         recent_news = mt5_hub.get_recent_news(self.symbol)
         
-        if not recent_news:
-            self._logger.info(f"No headlines buffered for {self.symbol}. Returning neutral.")
-            return AgentSignal.neutral(self.AGENT_NAME, f"No recent news headlines buffered for {self.symbol}")
-
-        # 2. Format headlines for the LLM
-        news_text = "\n".join([
-            f"- [{n['timestamp']}] {n['headline']}: {n['summary'][:150]}..."
-            for n in recent_news
-        ])
-
         system, user_tpl = PromptLoader.get_agent_prompts(self.AGENT_NAME)
-        prompt = user_tpl.replace(
-            "{symbol}", self.symbol
-        ).replace(
-            "{news_text}", news_text
-        ).replace(
-            "{now}", datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
-        )
-        
-        # 3. Primary: Ollama (local, fast, no API cost)
-        raw = self._call_ollama(prompt)
-        if raw:
-            return self._parse_signal_from_json(raw, self.AGENT_NAME)
-        # Fallback: Gemini via OpenClaw (budget-gated)
-        raw = self._call_openclaw(system, prompt, include_search=False)
+        now_str = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+
+        if recent_news:
+            # 2a. Buffered headlines available — no external search needed
+            news_text = "\n".join([
+                f"- [{n['timestamp']}] {n['headline']}: {n['summary'][:150]}..."
+                for n in recent_news
+            ])
+            prompt = user_tpl.replace("{symbol}", self.symbol).replace(
+                "{news_text}", news_text
+            ).replace("{now}", now_str)
+
+            raw = self._call_ollama(prompt)
+            if raw:
+                return self._parse_signal_from_json(raw, self.AGENT_NAME)
+            raw = self._call_openclaw(system, prompt, include_search=False)
+        else:
+            # 2b. No buffered headlines — delegate search to OpenClaw
+            self._logger.info(f"No buffered headlines for {self.symbol}. Using web search.")
+            search_prompt = (
+                f"Search for the latest news and analyst commentary about {self.symbol} "
+                f"as of {now_str}. Then analyse the sentiment and respond with ONLY valid JSON "
+                f"matching this schema: "
+                f'{{ "sentiment": <float -1.0 to 1.0>, "confidence": <float 0.0 to 1.0>, '
+                f'"reasoning": "<2-3 sentences>", "sources": ["<url-or-source>"] }}'
+            )
+            raw = self._call_openclaw(system, search_prompt, include_search=True)
+
         if raw:
             return self._parse_signal_from_json(raw, self.AGENT_NAME)
         return AgentSignal.neutral(self.AGENT_NAME, "All LLM endpoints unavailable")
@@ -379,7 +402,13 @@ class TechnicalAgent(BaseAgent):
     def run(self) -> AgentSignal:
         self._logger.info(f"TechnicalAgent running for {self.symbol}")
         system, user_tpl = PromptLoader.get_agent_prompts(self.AGENT_NAME)
-        prompt = user_tpl.replace("{symbol}", self.symbol)
+        
+        # Inject Multi-Timeframe Trend context
+        trends_str = "No multi-timeframe trend data available."
+        if self.market_trends:
+            trends_str = json.dumps(self.market_trends, indent=2)
+            
+        prompt = user_tpl.replace("{symbol}", self.symbol).replace("{market_trends}", trends_str)
         
         # Primary: Ollama (local, fast)
         raw = self._call_ollama(prompt)
@@ -855,7 +884,68 @@ class CROAgent(BaseAgent):
                 f"Significant disagreement without consensus is a structural red flag."
             )
 
-        # ── Objection 3: LLM-generated structural check ─────────────────
+        # ── Objection 3: Upcoming Earnings Risk ────────────────────────
+        earnings_vote = next((v for v in panel_votes if v.agent == "earnings"), None)
+        if earnings_vote and earnings_vote.vote == "VETO":
+            objections.append(
+                f"High catalyst risk: EarningsAgent issued a VETO. "
+                f"Reasoning: {earnings_vote.reasoning[:100]}"
+            )
+
+        # ── Objection 4: VWAP Overextension ────────────────────────────
+        if price_history and len(price_history) >= 20:
+            try:
+                # Calculate simple VWAP: sum(price * volume) / sum(volume)
+                total_pv = sum(float(b.get("c", 0) or b.get("price", 0)) * float(b.get("v", 1) or b.get("volume", 1)) for b in price_history)
+                total_v = sum(float(b.get("v", 1) or b.get("volume", 1)) for b in price_history)
+                if total_v > 0:
+                    vwap = total_pv / total_v
+                    current_price = float(price_history[-1].get("c", 0) or price_history[-1].get("price", 0))
+                    dist_pct = (current_price - vwap) / vwap * 100
+                    
+                    # VETO if buying way above VWAP or selling way below VWAP
+                    if raw_signal == "BUY" and dist_pct > 2.5:
+                        objections.append(f"Price is overextended ({dist_pct:.2f}% above VWAP). Buying here risks catching a blow-off top.")
+                    elif raw_signal == "SELL" and dist_pct < -2.5:
+                        objections.append(f"Price is overextended ({dist_pct:.2f}% below VWAP). Selling here risks shorting into a parabolic bottom.")
+            except Exception as e:
+                self._logger.debug(f"CRO VWAP check error: {e}")
+
+        # ── Objection 5: Fleet Correlation + Hard Capacity Gate ────────
+        try:
+            from fleet import fleet
+            active_bots = [
+                b for b in fleet._bots.values()
+                if b.engine and getattr(b.engine, "position_qty", 0) > 0
+            ]
+            active_count = len(active_bots)
+            active_symbols = [b.config.symbol for b in active_bots]
+            max_open = getattr(fleet._fleet_config, "max_open_positions", 6)
+
+            if symbol in active_symbols:
+                objections.append(
+                    f"Position already open for {symbol} in the fleet. "
+                    f"Cross-bot symbol duplication increases idiosyncratic risk."
+                )
+
+            if active_count >= max_open:
+                # Hard capacity VETO — bypass objection count, return immediately
+                return AgentVote(
+                    agent=self.AGENT_NAME,
+                    vote="VETO",
+                    confidence=1.0,
+                    reasoning=(
+                        f"CRO HARD VETO: Fleet at max open position cap "
+                        f"({active_count}/{max_open}). No new entries until existing positions close."
+                    ),
+                    weight=1.5,
+                    darwinian_weight=1.0,
+                    veto_reason=f"Fleet max_open_positions cap reached ({active_count}/{max_open})",
+                )
+        except Exception as e:
+            self._logger.debug(f"CRO Fleet check error: {e}")
+
+        # ── Objection 6: LLM-generated structural check ─────────────────
         # Ask the LLM to find one more structural reason not to trade.
         panel_summary = "; ".join(
             f"{v.agent}={v.vote}({v.confidence:.1f})" for v in panel_votes
@@ -943,6 +1033,7 @@ def build_agent(
     openclaw_model: str,
     ollama_base_url: str,
     ollama_model: str,
+    market_trends: dict = None,
 ) -> Optional[BaseAgent]:
     cls = AGENT_CLASSES.get(agent_name)
     if cls is None:
@@ -955,6 +1046,7 @@ def build_agent(
         openclaw_model=openclaw_model,
         ollama_base_url=ollama_base_url,
         ollama_model=ollama_model,
+        market_trends=market_trends,
     )
 
 
@@ -1000,35 +1092,35 @@ class DarwinianWeightStore:
         self._load_from_db()
 
     def _load_from_db(self):
-        """Load weights from Firestore on init (fire-and-forget on the main event loop)."""
+        """Load weights from PostgreSQL on init (fire-and-forget on the main event loop)."""
         try:
-            import firebase_store
+            import postgres_store
             loop = _main_event_loop
             if loop and loop.is_running():
                 future = asyncio.run_coroutine_threadsafe(
-                    firebase_store.load_darwinian_weights(self.bot_id), loop
+                    postgres_store.load_darwinian_weights(self.bot_id), loop
                 )
                 try:
                     saved = future.result(timeout=5)
                     if saved:
                         with self._lock:
                             self._weights.update(saved)
-                        self._logger.info(f"Loaded Darwinian weights from Firestore: {saved}")
+                        self._logger.info(f"Loaded Darwinian weights from Postgres: {saved}")
                 except Exception as e:
                     self._logger.warning(f"Darwinian weights load timed out or failed: {e}")
         except Exception as e:
             self._logger.warning(f"Failed to load weights from DB: {e}")
 
     def _save_to_db(self):
-        """Persist current weights to Firestore (fire-and-forget)."""
+        """Persist current weights to PostgreSQL (fire-and-forget)."""
         try:
-            import firebase_store
+            import postgres_store
             with self._lock:
                 weights = dict(self._weights)
             loop = _main_event_loop
             if loop and loop.is_running():
                 asyncio.run_coroutine_threadsafe(
-                    firebase_store.save_darwinian_weights(self.bot_id, weights), loop
+                    postgres_store.save_darwinian_weights(self.bot_id, weights), loop
                 )
         except Exception as e:
             self._logger.warning(f"Failed to save weights to DB: {e}")
@@ -1187,6 +1279,9 @@ class SubAgentPool:
         self._event_queue: _stdlib_queue.Queue = _stdlib_queue.Queue(maxsize=200)
         self._deliberation_graph = None   # Lazily initialised on first deliberate() call
 
+        # Local cache of multi-timeframe trends for the background loop
+        self.market_trends: dict = {}
+
     def start(self):
         """Start the background agent polling loop."""
         if self._thread and self._thread.is_alive():
@@ -1217,6 +1312,11 @@ class SubAgentPool:
                 self._logger.info(f"LangGraph unavailable — using direct deliberation: {_e}")
                 self._deliberation_graph = False  # Sentinel: tried and failed, don't retry
         return self._deliberation_graph if self._deliberation_graph else None
+
+    def update_market_trends(self, trends: dict):
+        """Update the local cache of multi-timeframe trends (pushed from FleetManager)."""
+        with self._lock:
+            self.market_trends = trends or {}
 
     def run_now(self) -> dict[str, AgentSignal]:
         """Run all agents immediately and return their signals."""
@@ -1275,6 +1375,7 @@ class SubAgentPool:
         survival_state: str,
         signal_price: float = 0.0,
         price_history=None,         # deque of price points for WatchmanAgent
+        market_trends: dict = None, # Local trend summaries (1m, 15m, 1h, 1d, etc.)
         vote_cache_ttl: int = 1800, # seconds; cached LLM votes older than this are refreshed
     ) -> TradeDecision:
         """
@@ -1321,10 +1422,12 @@ class SubAgentPool:
                     "signal_price": signal_price,
                     "vote_cache_ttl": vote_cache_ttl,
                     "enabled_agents": list(self.enabled_agents),
+                    "market_trends": market_trends or {},
                 }
                 _fut = asyncio.run_coroutine_threadsafe(
                     _graph.arun(_state, event_queue=self._event_queue,
-                                price_history=price_history),
+                                price_history=price_history,
+                                market_trends=market_trends),
                     _loop,
                 )
                 _decision = _fut.result(timeout=120)
@@ -1392,6 +1495,7 @@ class SubAgentPool:
                         openclaw_model=self._openclaw_model,
                         ollama_base_url=self._ollama_base_url,
                         ollama_model=self._ollama_model,
+                        market_trends=market_trends or self.market_trends,
                     )
                     if _m_agent:
                         _macro_cached = _m_agent.run()
@@ -1442,10 +1546,6 @@ class SubAgentPool:
         
         # Static base weights × live Darwinian multipliers
         _static = {"sentiment": 1.0, "macro": 1.0, "earnings": 1.5, "technical": 0.75}
-        agent_weights = {
-            name: base * self._darwin.get_weight(name)
-            for name, base in _static.items()
-        }
 
         with self._lock:
             current_signals = dict(self.latest_signals)
@@ -1470,6 +1570,7 @@ class SubAgentPool:
                         openclaw_model=self._openclaw_model,
                         ollama_base_url=self._ollama_base_url,
                         ollama_model=self._ollama_model,
+                        market_trends=market_trends or self.market_trends,
                     )
                     if agent:
                         signal = agent.run()
@@ -1553,6 +1654,19 @@ class SubAgentPool:
             except Exception as e:
                 self._logger.warning(f"CROAgent vote error: {e}")
 
+        # ── Deliberation scorecard ────────────────────────────────────
+        self._logger.info(
+            f"[{self.bot_id}] ┌─ DELIBERATION on {raw_signal} ({'%d' % len(votes)} agents) ─────────"
+        )
+        for v in votes:
+            arrow = "✓" if v.vote == raw_signal else ("✗ VETO" if v.vote == "VETO" else f"~ {v.vote}")
+            dw = getattr(v, "darwinian_weight", 1.0)
+            self._logger.info(
+                f"[{self.bot_id}] │ {v.agent:<14} [{arrow}]  conf={v.confidence:.0%}"
+                f"  w={v.weight:.2f}×{dw:.2f}  {v.reasoning[:80]}"
+            )
+        self._logger.info(f"[{self.bot_id}] └──────────────────────────────────────────────────────")
+
         # ── VETO check ────────────────────────────────────────────────
         if veto_agents:
             decision = TradeDecision(
@@ -1605,29 +1719,45 @@ class SubAgentPool:
         agree_count = sum(1 for v in panel_votes if v.vote == raw_signal)
         total_panel = len(panel_votes)
 
-        # Edge case: if ALL panel agents abstained (LLM outage), the panel is
-        # empty.  Rather than permanently blocking trades, we treat "no panel
-        # votes" as "no objections" and let the strategist+Watchman+RiskManager
-        # gate the trade.  This keeps the bot operational during API outages.
+        # Safety: if ALL panel agents abstained (LLM outage), block the trade.
+        # Operating without any intelligence is worse than missing a signal.
         if total_panel == 0:
-            self._logger.warning(
-                f"[{self.bot_id}] All panel agents abstained (LLM outage?) — "
-                f"deferring to strategist + risk manager."
+            _decision = TradeDecision(
+                approved=False,
+                signal=raw_signal,
+                approved_qty=0,
+                order_urgency="LOW",
+                quorum_score=0.0,
+                votes=[v.to_dict() for v in votes],
+                veto_agents=[],
+                reasoning=(
+                    "All panel agents unavailable (Gemini exhausted + Ollama unreachable). "
+                    "Trade blocked — no intelligence to act on."
+                ),
             )
-            quorum_met = True
-            weighted_score = 0.5  # Neutral-positive: strategist already has conviction
-        else:
-            # Weighted net-score using effective weight (static × Darwinian)
-            total_weight = sum(v.weight * v.darwinian_weight for v in panel_votes) or 1.0
-            weighted_score = sum(
-                (v.weight * v.darwinian_weight) * v.confidence
-                * (1 if v.vote == raw_signal else -1 if v.vote not in ("HOLD", "VETO") else 0)
-                for v in panel_votes
-            ) / total_weight
+            with self._lock:
+                self.last_deliberation = _decision
+            self._logger.warning(
+                f"[{self.bot_id}] DELIBERATION BLOCKED — all panel agents unavailable (LLM outage)"
+            )
+            return _decision
 
-            # Score must clear 0.25 (slightly tighter than old 0.2 to compensate for
-            # removing the raw agree_count gate — weights now do that work)
-            quorum_met = weighted_score >= 0.25
+        # Weighted net-score using effective weight (static × Darwinian)
+        total_weight = sum(v.weight * v.darwinian_weight for v in panel_votes) or 1.0
+        weighted_score = sum(
+            (v.weight * v.darwinian_weight) * v.confidence
+            * (1 if v.vote == raw_signal else -1 if v.vote not in ("HOLD", "VETO") else 0)
+            for v in panel_votes
+        ) / total_weight
+
+        # Score must clear 0.25 (slightly tighter than old 0.2 to compensate for
+        # removing the raw agree_count gate — weights now do that work)
+        quorum_met = weighted_score >= 0.25
+
+        self._logger.info(
+            f"[{self.bot_id}] QUORUM: {agree_count}/{total_panel} agree | "
+            f"weighted_score={weighted_score:.3f} (need ≥0.25) | {'PASS' if quorum_met else 'FAIL'}"
+        )
 
         if not quorum_met or weighted_score < 0.2:
             decision = TradeDecision(
@@ -1781,6 +1911,7 @@ class SubAgentPool:
                 openclaw_model=self._openclaw_model,
                 ollama_base_url=self._ollama_base_url,
                 ollama_model=self._ollama_model,
+                market_trends=self.market_trends,
             )
             if agent:
                 future = self._executor.submit(agent.run)

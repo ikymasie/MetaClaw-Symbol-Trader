@@ -7,15 +7,16 @@ Each bot runs fully isolated: its own engine, AI brain, sub-agents, and vital si
 The FleetOrchestrator:
   - Spawns and terminates bot instances
   - Enforces fleet-wide risk limits (global drawdown kill switch)
-  - Pushes live telemetry to Firestore
-  - Persists fleet snapshots to Firestore
-  - Reads/writes FleetConfig from Firestore (portal-editable max_bots, etc.)
+  - Pushes live telemetry and snapshots to PostgreSQL (Neon)
+  - Reads/writes FleetConfig from PostgreSQL
 """
 
 import asyncio
 import logging
+import os
 import threading
 import time
+import psutil
 from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -25,6 +26,13 @@ from bot_config import BotConfig, FleetConfig, DEFAULT_FLEET_CONFIG
 from mt5_hub import mt5_hub
 
 logger = logging.getLogger("tradeclaw.fleet")
+
+# Configure buffered file logging
+from buffered_logger import BufferedFileHandler
+os.makedirs("logs", exist_ok=True)
+fh = BufferedFileHandler("logs/fleet.txt", interval=10.0)
+fh.setFormatter(logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s"))
+logging.getLogger("tradeclaw").addHandler(fh)
 
 
 # ─────────────────────────────────────────────
@@ -51,6 +59,7 @@ class BotInstance:
     sub_agent_pool: object = field(default=None, repr=False)
     vital_signs: object = field(default=None, repr=False)
     autoresearcher: object = field(default=None, repr=False)
+    market_trends: dict = field(default_factory=dict) # Local trend cache for agents
 
     def get_snapshot(self) -> dict:
         """Return a serialisable snapshot of this bot's current state."""
@@ -92,9 +101,14 @@ class BotInstance:
             "symbol": self.config.symbol,
             "strategy": self.config.strategy,
             "capital_allocation": self.config.capital_allocation,
-            "demo_mode": self.config.demo_mode,
             "tags": self.config.tags,
             "enabled_agents": self.config.sub_agents or [],
+            "kill_zone_enabled": self.config.kill_zone_enabled,
+            "leverage_mode_enabled": self.config.leverage_mode_enabled,
+            "leverage_factor": self.config.leverage_factor,
+            "isolated_risk_usd": self.config.isolated_risk_usd,
+            "net_profit_target_usd": self.config.net_profit_target_usd,
+            "take_profit_usd": self.config.take_profit_usd,
             "created_at": self.created_at,
             "status": status,
             "vitals": vitals,
@@ -123,7 +137,7 @@ class FleetOrchestrator:
         self._stop_event = threading.Event()
         self._monitor_thread: Optional[threading.Thread] = None
 
-        # Fleet config — loaded from Firestore on startup
+        # Fleet config — loaded from PostgreSQL on startup
         self._fleet_config: FleetConfig = deepcopy(DEFAULT_FLEET_CONFIG)
         self._config_lock = threading.Lock()
 
@@ -131,18 +145,29 @@ class FleetOrchestrator:
         self._halted = threading.Event()
 
         # Firebase store reference (set after Firebase init)
-        self._firebase_store = None
+        self._store = None
         self._main_loop: Optional[asyncio.AbstractEventLoop] = None
         self._last_darwinian_update = 0.0
         self._last_autoresearch_check = 0.0
+        self._last_market_aggregation = 0.0
+        self._last_market_aggregation = 0.0
+        self._last_telemetry_push = 0.0  # Throttle snapshot updates
+        self._last_telemetry_prune = 0.0 # Hourly maintenance
+        self._last_system_metrics_push = 0.0
+
+        # Market Data Aggregation
+        from market_data_aggregator import MarketDataAggregator
+        self._aggregator = MarketDataAggregator()
+        self._symbol_bar_cache: dict[str, list[dict]] = {}
+        self._cache_lock = threading.Lock()
 
         logger.info("FleetOrchestrator initialized")
 
     # ── Firebase ─────────────────────────────────────────────────────────
 
-    def set_firebase_store(self, firebase_store_module):
-        """Inject the firebase_store module and capture current event loop."""
-        self._firebase_store = firebase_store_module
+    def set_store(self, store_module):
+        """Inject the persistence store module and capture current event loop."""
+        self._store = store_module
         try:
             self._main_loop = asyncio.get_running_loop()
         except RuntimeError:
@@ -151,64 +176,45 @@ class FleetOrchestrator:
                 self._main_loop = asyncio.get_event_loop()
             except Exception:
                 self._main_loop = None
-        logger.info(f"Firebase store injected (main_loop captured: {self._main_loop is not None})")
+        logger.info(f"Persistence store injected (main_loop captured: {self._main_loop is not None})")
 
-    async def load_config_from_firebase(self):
-        """Load FleetConfig from Firestore. Falls back to default if not found."""
-        if not self._firebase_store:
+    async def load_config_from_store(self):
+        """Load FleetConfig from persistence. Falls back to default if not found."""
+        if not self._store:
             return
         try:
-            data = await self._firebase_store.load_fleet_config()
+            data = await self._store.load_fleet_config()
             if data:
                 config = FleetConfig.from_dict(data)
                 with self._config_lock:
                     self._fleet_config = config
-                logger.info(f"FleetConfig loaded from Firestore: {config}")
+                logger.info(f"FleetConfig loaded from PostgreSQL: {config}")
         except Exception as e:
-            logger.warning(f"Could not load FleetConfig from Firestore: {e}")
+            logger.warning(f"Could not load FleetConfig from PostgreSQL: {e}")
 
-    async def restore_bots_from_firebase(self):
+    async def restore_bots_from_store(self):
         """
-        On startup: read all saved bot configs from Firestore and redeploy them.
+        On startup: read all saved bot configs from persistence and redeploy them.
         Bots are restored in STOPPED state — they must be manually started or
         auto-started based on their saved config.
-
-        Also performs a one-time migration: bots saved before the parent-marker
-        fix will have configs at bots/{id}/meta/config but no parent document
-        at bots/{id}.  We detect these via a collection-group query on 'meta'
-        and backfill the missing parent markers so future restarts work.
         """
-        if not self._firebase_store:
-            logger.info("Firebase not available — skipping bot restoration")
+        if not self._store:
+            logger.info("Persistence not available — skipping bot restoration")
             return
         try:
-            bot_ids = await self._firebase_store.list_bot_ids()
-
-            # ── Migration: discover orphaned bots with no parent marker ──
-            try:
-                orphan_ids = await self._firebase_store.discover_orphaned_bot_ids(
-                    known_ids=set(bot_ids)
-                )
-                if orphan_ids:
-                    logger.info(
-                        f"Migration: found {len(orphan_ids)} orphaned bot(s) "
-                        f"without parent markers: {orphan_ids}"
-                    )
-                    bot_ids.extend(orphan_ids)
-            except Exception as e:
-                logger.warning(f"Orphan discovery failed (non-fatal): {e}")
+            bot_ids = await self._store.list_bot_ids()
 
             if not bot_ids:
-                logger.info("No bots found in Firestore to restore")
+                logger.info("No bots found in PostgreSQL to restore")
                 return
 
-            logger.info(f"Restoring {len(bot_ids)} bot(s) from Firestore: {bot_ids}")
+            logger.info(f"Restoring {len(bot_ids)} bot(s) from PostgreSQL: {bot_ids}")
             restored = 0
             for bot_id in bot_ids:
                 try:
-                    config_dict = await self._firebase_store.load_bot_config(bot_id)
+                    config_dict = await self._store.load_bot_config(bot_id)
                     if not config_dict:
-                        logger.warning(f"[{bot_id}] No config found in Firestore — skipping")
+                        logger.warning(f"[{bot_id}] No config found in PostgreSQL — skipping")
                         continue
 
                     # Strip metadata fields added by save_bot_config
@@ -225,13 +231,23 @@ class FleetOrchestrator:
 
                     # Backfill the parent marker if it was missing (migration)
                     try:
-                        await self._firebase_store.save_bot_config(
+                        await self._store.save_bot_config(
                             config.bot_id, config.to_dict()
                         )
                     except Exception:
                         pass  # Non-fatal — config already exists in subcollection
 
                     instance = self._build_bot_instance(config)
+
+                    # Restore volatile telemetry state (equity, pnl) if available
+                    try:
+                        telemetry = await self._store.get_live_telemetry(bot_id)
+                        if telemetry:
+                            instance.engine.restore_from_telemetry(telemetry)
+                            logger.info(f"[{bot_id}] Restored equity state: eq={instance.engine.equity:.2f}, pnl={instance.engine.daily_pnl:.2f}")
+                    except Exception as e:
+                        logger.warning(f"[{bot_id}] Failed to restore telemetry state: {e}")
+
                     with self._lock:
                         self._bots[config.bot_id] = instance
 
@@ -242,11 +258,10 @@ class FleetOrchestrator:
 
                     restored += 1
                     logger.info(
-                        f"[{bot_id}] Restored: {config.symbol} | {config.strategy} | "
-                        f"demo={config.demo_mode}"
+                        f"[{bot_id}] Restored: {config.symbol} | {config.strategy}"
                     )
                 except Exception as e:
-                    logger.error(f"[{bot_id}] Failed to restore from Firestore: {e}", exc_info=True)
+                    logger.error(f"[{bot_id}] Failed to restore from PostgreSQL: {e}", exc_info=True)
 
             logger.info(f"Bot restoration complete: {restored}/{len(bot_ids)} restored")
         except Exception as e:
@@ -260,7 +275,7 @@ class FleetOrchestrator:
 
     def update_fleet_config(self, updates: dict) -> dict:
         """
-        Apply validated updates to FleetConfig. Saves to Firestore.
+        Apply validated updates to FleetConfig. Saves to PostgreSQL.
         Called by the portal Fleet Settings panel via POST /fleet/config.
         """
         with self._config_lock:
@@ -274,10 +289,10 @@ class FleetOrchestrator:
             self._fleet_config = new_config
             result = new_config.to_dict()
 
-        # Persist to Firestore (fire and forget)
-        if self._firebase_store:
+        # Persist to PostgreSQL (fire and forget)
+        if self._store:
             asyncio.get_event_loop().create_task(
-                self._firebase_store.save_fleet_config(result)
+                self._store.save_fleet_config(result)
             )
         logger.info(f"FleetConfig updated: {updates}")
         return result
@@ -313,18 +328,18 @@ class FleetOrchestrator:
         with self._lock:
             self._bots[config.bot_id] = instance
 
-        # Persist config to Firestore
-        if self._firebase_store:
+        # Persist config to PostgreSQL
+        if self._store:
             try:
                 loop = asyncio.get_event_loop()
                 if loop.is_running():
                     loop.create_task(
-                        self._firebase_store.save_bot_config(
+                        self._store.save_bot_config(
                             config.bot_id, effective_config.to_dict()
                         )
                     )
             except Exception as e:
-                logger.warning(f"Could not persist bot config to Firestore: {e}")
+                logger.warning(f"Could not persist bot config to PostgreSQL: {e}")
 
         # Auto-start if configured
         if config.auto_start:
@@ -334,7 +349,7 @@ class FleetOrchestrator:
         return instance
 
     def kill_bot(self, bot_id: str):
-        """Stop, deregister, and delete a bot from Firestore."""
+        """Stop, deregister, and delete a bot from PostgreSQL."""
         with self._lock:
             instance = self._bots.get(bot_id)
             if not instance:
@@ -362,18 +377,18 @@ class FleetOrchestrator:
         with self._lock:
             del self._bots[bot_id]
 
-        # Remove from Firestore so it doesn't resurrect on next restart
-        if self._firebase_store:
+        # Remove from PostgreSQL so it doesn't resurrect on next restart
+        if self._store:
             try:
                 loop = asyncio.get_event_loop()
                 if loop.is_running():
                     loop.create_task(
-                        self._firebase_store.delete_bot_config(bot_id)
+                        self._store.delete_bot_config(bot_id)
                     )
             except Exception as e:
-                logger.warning(f"[{bot_id}] Could not delete bot config from Firestore: {e}")
+                logger.warning(f"[{bot_id}] Could not delete bot config from PostgreSQL: {e}")
 
-        logger.info(f"Bot killed and removed from Firestore: {bot_id}")
+        logger.info(f"Bot killed and removed from PostgreSQL: {bot_id}")
 
     def get_bot(self, bot_id: str) -> Optional[BotInstance]:
         with self._lock:
@@ -531,14 +546,30 @@ class FleetOrchestrator:
         logger.info("Fleet monitor stopped")
 
     def _monitor_loop(self):
-        """Background loop: risk checks + telemetry push + bar flush every 5 seconds."""
+        """Background loop: risk checks + telemetry push + bar/trade flush every 5 seconds."""
         while not self._stop_event.is_set():
             try:
                 self.enforce_global_risk_limits()
-                self._push_telemetry()
+                # Telemetry push throttled to every 30s (was every 5s)
+                now = time.time()
+                if now - self._last_telemetry_push >= 30:
+                    self._push_telemetry()
+                    self._last_telemetry_push = now
                 self._flush_bar_queues()
+                self._flush_db_queues()
                 self._check_darwinian_evolution()
                 self._check_autoresearch_evolution()
+                self._run_market_aggregation()
+                
+                # Maintenance: Prune old telemetry every hour
+                if now - self._last_telemetry_prune >= 3600:
+                    asyncio.run_coroutine_threadsafe(self._store.prune_old_telemetry(48), self._main_loop)
+                    self._last_telemetry_prune = now
+
+                # System metrics push every 60s
+                if now - self._last_system_metrics_push >= 60:
+                    self._push_system_metrics()
+                    self._last_system_metrics_push = now
             except Exception as e:
                 logger.error(f"Fleet monitor error: {e}", exc_info=True)
             self._stop_event.wait(5)
@@ -583,18 +614,61 @@ class FleetOrchestrator:
 
         self._last_autoresearch_check = now
 
+    def _flush_db_queues(self):
+        """
+        Drain each bot's _db_queue (trade + equity records) and write to PostgreSQL.
+        The db_flush_loop in main.py only handles the legacy singleton engine;
+        fleet bots queue their records here and need this to reach PostgreSQL.
+        """
+        if not self._store:
+            return
+        loop = self._main_loop
+        if not loop or not loop.is_running():
+            return
+
+        with self._lock:
+            instances = list(self._bots.values())
+
+        for instance in instances:
+            if not instance.engine:
+                continue
+            items = instance.engine.flush_db_queue()
+            if not items:
+                continue
+            bot_id = instance.bot_id
+            for item in items:
+                try:
+                    if item.get("type") == "trade":
+                        future = asyncio.run_coroutine_threadsafe(
+                            self._store.save_trade(bot_id, {
+                                k: v for k, v in item.items() if k != "type"
+                            }),
+                            loop,
+                        )
+                        future.result(timeout=5)
+                    elif item.get("type") == "equity":
+                        future = asyncio.run_coroutine_threadsafe(
+                            self._store.save_equity_snapshot(bot_id, {
+                                k: v for k, v in item.items() if k != "type"
+                            }),
+                            loop,
+                        )
+                        future.result(timeout=5)
+                except Exception as e:
+                    logger.warning(f"[{bot_id}] DB queue flush error: {e}")
+
     def _flush_bar_queues(self):
         """
-        Drain each bot's bar queue and batch-write to Firestore.
+        Drain each bot's bar queue and batch-write to PostgreSQL.
         Bars are grouped by symbol so multiple bots trading the same
         asset don't create duplicate writes.
 
         Safety cap: each symbol batch is capped at 500 bars per flush cycle.
-        If Firestore falls behind and bars accumulate, only the most-recent
+        If PostgreSQL falls behind and bars accumulate, only the most-recent
         500 are written; the rest are discarded (data loss acceptable —
         the running deque in BotEngine already bounds total memory).
         """
-        if not self._firebase_store:
+        if not self._store:
             return
         loop = self._main_loop
         if not loop or not loop.is_running():
@@ -628,21 +702,114 @@ class FleetOrchestrator:
                 )
                 bars = bars[-MAX_BARS_PER_FLUSH:]
             try:
-                import firebase_store
-                logger.debug(f"[Fleet] Flushing {len(bars)} bar(s) for {symbol} to Firestore")
+                if not self._store:
+                    continue
+                logger.debug(f"[Fleet] Flushing {len(bars)} bar(s) for {symbol} to Persistence")
                 future = asyncio.run_coroutine_threadsafe(
-                    firebase_store.append_bars_batch(symbol, bars), loop
+                    self._store.append_bars_batch(symbol, bars), loop
                 )
-                written = future.result(timeout=10)
+                # Non-blocking: check with short timeout to avoid 60s hangs on 429
+                try:
+                    written = future.result(timeout=5)
+                except Exception:
+                    written = 0
                 if written:
                     logger.debug(f"Bar flush: {written} bars persisted for {symbol}")
+                    # Update local cache for aggregation
+                    with self._cache_lock:
+                        cache = self._symbol_bar_cache.setdefault(symbol, [])
+                        cache.extend(bars)
+                        # Keep only last 2000 bars
+                        if len(cache) > 2000:
+                            self._symbol_bar_cache[symbol] = cache[-2000:]
             except Exception as e:
                 logger.warning(f"Bar flush error ({symbol}): {e}")
 
+    def _run_market_aggregation(self):
+        """
+        Periodically (every 1m) aggregate 1m bars into higher timeframes
+        and generate trend summaries.
+        """
+        now = time.time()
+        # Run every 180 seconds (was 60s — reduces database writes 3x)
+        if now - self._last_market_aggregation < 180:
+            return
+        
+        if not self._store:
+            return
+            
+        logger.info("[Fleet] Running market data aggregation and trend analysis")
+        
+        # Identify unique symbols from active bots
+        active_symbols = set()
+        with self._lock:
+            for bot in self._bots.values():
+                if bot.engine: # Only symbols for bots that are running/initialized
+                    active_symbols.add(bot.config.symbol)
+        
+        loop = self._main_loop
+        if not loop or not loop.is_running():
+            return
+
+        for symbol in active_symbols:
+            try:
+                # 1. Ensure cache is populated
+                with self._cache_lock:
+                    if symbol not in self._symbol_bar_cache or len(self._symbol_bar_cache[symbol]) < 100:
+                        logger.info(f"[Fleet] Initializing bar cache for {symbol} from PostgreSQL")
+                        future = asyncio.run_coroutine_threadsafe(
+                            self._store.load_bars(symbol, timeframe="1m", limit=2000), loop
+                        )
+                        bars = future.result(timeout=15)
+                        self._symbol_bar_cache[symbol] = bars
+
+                    bars_1m = list(self._symbol_bar_cache[symbol])
+
+                if not bars_1m:
+                    continue
+
+                # 2. Process aggregation and trends
+                analysis = self._aggregator.process_symbol(symbol, bars_1m)
+                
+                # 3. Persist results to PostgreSQL (fire-and-forget — no blocking .result())
+                # Aggregated Bars (only save the latest bar for each timeframe to keep it light)
+                for tf, bars in analysis.get("aggregated_bars", {}).items():
+                    if not bars:
+                        continue
+                    # Only append the most recent bar (usually the one being formed or just closed)
+                    latest_bars = bars[-2:]
+                    asyncio.run_coroutine_threadsafe(
+                        self._store.append_bars_batch(symbol, latest_bars, timeframe=tf), loop
+                    )
+                    # Note: no .result() — truly fire-and-forget. The 429 throttle in
+                    # persistence_store.py handles backoff if quota is exhausted.
+
+                # Trend Summaries (fire-and-forget)
+                trend_summaries = analysis.get("trend_summaries", {})
+                for tf, summary in trend_summaries.items():
+                    asyncio.run_coroutine_threadsafe(
+                        self._store.save_trend_summary(symbol, tf, summary), loop
+                    )
+                
+                # 4. Push to local bot instances for zero-latency deliberation
+                with self._lock:
+                    for bot in self._bots.values():
+                        if bot.config.symbol == symbol:
+                            bot.market_trends = trend_summaries
+                            # Thread-safe push into SubAgentPool so agents
+                            # receive trends in both background runs & deliberate()
+                            if bot.sub_agent_pool:
+                                bot.sub_agent_pool.update_market_trends(trend_summaries)
+
+            except Exception as e:
+                logger.error(f"Market aggregation failed for {symbol}: {e}")
+
+        self._last_market_aggregation = now
+
 
     def _push_telemetry(self):
-        """Push live fleet state to Firestore (live_telemetry collection)."""
-        if not self._firebase_store:
+        """Push live fleet state to PostgreSQL (live_telemetry collection)."""
+        if not self._store:
             return
         try:
             # Use captured main loop for thread-safe async calls
@@ -652,7 +819,7 @@ class FleetOrchestrator:
 
             fleet_snap = self.get_fleet_status()["summary"]
             future = asyncio.run_coroutine_threadsafe(
-                self._firebase_store.push_fleet_telemetry(fleet_snap), loop
+                self._store.push_fleet_telemetry(fleet_snap), loop
             )
             # Check for errors (timeout after 5s to avoid blocking the monitor)
             try:
@@ -666,17 +833,57 @@ class FleetOrchestrator:
                 if instance.engine:
                     try:
                         state = instance.engine.get_state_snapshot()
-                        bot_future = asyncio.run_coroutine_threadsafe(
-                            self._firebase_store.push_live_telemetry(
-                                instance.bot_id, state
-                            ),
+                        
+                        # 1. Update latest snapshot (Live)
+                        asyncio.run_coroutine_threadsafe(
+                            self._store.push_live_telemetry(instance.bot_id, state),
                             loop,
                         )
-                        bot_future.result(timeout=5)
+                        
+                        # 2. Append to history (Buffered in PostgresStore - 10s)
+                        asyncio.run_coroutine_threadsafe(
+                            self._store.push_telemetry_history(instance.bot_id, state),
+                            loop,
+                        )
                     except Exception as e:
                         logger.warning(f"[{instance.bot_id}] Bot telemetry push error: {e}")
         except Exception as e:
             logger.warning(f"Telemetry push failed: {e}")
+
+    def _push_system_metrics(self):
+        """Collect and push CPU, RAM, and Event Loop latency."""
+        if not self._store or not self._main_loop:
+            return
+        
+        try:
+            # 1. CPU & RAM (Synchronous via psutil)
+            cpu_pct = psutil.cpu_percent()
+            ram_pct = psutil.virtual_memory().percent
+            
+            # 2. Event Loop Latency (Asynchronous measurement)
+            async def measure_latency():
+                start = time.perf_counter()
+                await asyncio.sleep(0)
+                return (time.perf_counter() - start) * 1000  # ms
+
+            # 3. Dispatch to store
+            loop = self._main_loop
+            
+            async def collect_and_save():
+                latency_ms = await measure_latency()
+                await self._store.push_system_metric("cpu_usage_pct", cpu_pct)
+                await self._store.push_system_metric("ram_usage_pct", ram_pct)
+                await self._store.push_system_metric("event_loop_latency_ms", latency_ms)
+                
+                # Also push a combined fleet health metric
+                with self._lock:
+                    bot_count = len(self._bots)
+                await self._store.push_system_metric("active_bots", float(bot_count))
+
+            asyncio.run_coroutine_threadsafe(collect_and_save(), loop)
+            
+        except Exception as e:
+            logger.warning(f"System metrics collection failed: {e}")
 
     # ── Private: Build Bot ────────────────────────────────────────────
 
@@ -748,7 +955,7 @@ class FleetOrchestrator:
             openclaw_model=openclaw_model,
             ollama_base_url=ollama_base_url,
             ollama_model=ollama_model,
-            firebase_store=self._firebase_store,
+            persistence_store=self._store,
             main_loop=self._main_loop,
         )
         if config.ai_brain_enabled:
