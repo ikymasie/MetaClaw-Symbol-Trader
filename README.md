@@ -27,6 +27,60 @@
 
 TradeClaw is an AI-powered algorithmic trading platform built on a **Multi-Agent System (MAS)** architecture. Six specialized sub-agents — Sentiment, Macro, Earnings, Technical, Risk, and an Executioner — deliberate in real-time via a quorum protocol to decide on trade actions. A singleton AI "Brain" continuously evolves strategy parameters through periodic LLM analysis.
 
+---
+
+## Deep Dive: How TradeClaw Hunts
+
+TradeClaw is not a simple script that buys when a line crosses another line. It behaves more like a digital organism, waiting patiently for specific environmental conditions before risking capital. Its core logic is divided into three layers: **Environmental Awareness**, **The Multi-Agent Quorum**, and **The Financial Immune System**.
+
+### 1. Environmental Awareness: Regime & Confluence
+
+Before the bot even considers a trade, it scans the "terrain" to determine if the market conditions are favorable.
+
+*   **Regime Detection**: The bot uses ADX (Average Directional Index) and ATR (Average True Range) to classify the market into three states:
+    *   **RANGING**: Low ADX, normal ATR. This is the bot's prime hunting ground. Mean reversion strategies (buying dips, selling rips) thrive here.
+    *   **TRENDING**: High ADX. Price has strong directional momentum. Fading a strong trend is dangerous, so the bot gates mean-reversion entries and activates Trend Following logic.
+    *   **VOLATILE**: ATR z-score spikes. Slippage risk is elevated. The bot hides and refuses to open new positions until the storm passes.
+*   **The Confluence Gate**: Even in a Ranging market, the bot won't just blindly buy a dip. It requires a "3-Pillar Confluence" to confirm an entry:
+    1.  **Bollinger Bands**: Price must be statistically stretched (touching/piercing the upper or lower bands).
+    2.  **VWAP (Volume Weighted Average Price)**: Price must be stretched away from where the bulk of institutional volume traded for the session.
+    3.  **Fibonacci Retracement**: The bot measures the last dominant price swing and waits for price to pull back to key psychological levels (e.g., the 61.8% Golden Ratio) AND confirm a bounce.
+    4.  **ICT Kill Zones (Optional)**: If enabled, it only hunts during high-liquidity institutional windows (New York or London opens).
+
+### 2. The Multi-Agent System (MAS) Quorum
+
+When the technical indicators produce an actionable signal (e.g., "BUY"), the bot does not immediately execute it. Instead, the signal is proposed to a panel of **Six AI Sub-Agents**, each specializing in a different domain:
+
+1.  **Technical Agent**: Reviews chart structures, RSI, and Bollinger deviations.
+2.  **Sentiment Agent**: Monitors external news, social feeds, and broader market sentiment for sudden shifts.
+3.  **Macro Agent**: Checks macroeconomic conditions (VIX, yield curves) to ensure systemic stability.
+4.  **Earnings Agent**: Consults the calendar to ensure the bot isn't stepping in front of a volatile corporate earnings report.
+5.  **Risk Manager Agent**: Evaluates the bot's current drawdown, exposure, and daily PnL limits. Has veto power to block any trade.
+6.  **Executioner Agent**: Once the panel votes and achieves a passing **Quorum Score**, the Executioner takes over. It determines the best way to route the order (e.g., Market vs. Limit, TWAP slicing for large orders) to minimize slippage.
+
+### 3. The Financial Immune System: Kelly Criterion & Vital Signs
+
+Instead of trading a flat dollar amount or fixed lot size, TradeClaw treats capital preservation as a biological imperative.
+
+*   **Kelly Criterion Position Sizing**: The bot continuously tracks its historical win rate and average win/loss ratio. It uses the Kelly Criterion formula to mathematically size each trade based on its *proven edge*. If the bot is performing poorly (edge < 0), it drastically reduces its trade size to minimums. If it's dominating, it scales up.
+*   **Vital Signs Protocol**: The bot maps its financial health to biological states:
+    *   **HEALTHY (Hunting/Dominant/Apex)**: PnL is positive. The bot trades with confidence and higher Kelly fractions.
+    *   **WOUNDED**: The bot has suffered minor drawdowns. It switches to "Eighth-Kelly" mode, prioritizing capital preservation over growth.
+    *   **ORGAN FAILURE**: Drawdown hits a critical threshold (e.g., 10%). The bot halts all new entries, entering a defensive mode to protect remaining lifeblood.
+    *   **DECEASED**: Drawdown reaches the fatal limit (e.g., 15%). The "Protocol Final" executes, liquidating all open positions and shutting down the strategy engine to prevent total account ruin.
+
+---
+
+### 4. Technical Architecture: How it all Connects
+
+TradeClaw is built to be modular and real-time:
+*   **The Backend (Python/FastAPI)**: This is the brain of the operation. It runs the strategy engines, calculates the indicators (VWAP, Bollinger, etc.), manages the MAS Quorum, and hosts the AI components.
+*   **The MT5 Bridge**: Because MetaTrader 5 (MT5) requires a Windows environment, TradeClaw runs a headless MT5 terminal inside a specialized container (using Wine on Linux/amd64). A Python bridge connects the FastAPI backend directly to this MT5 instance for live, low-latency market data and order execution.
+*   **The Situation Room (Next.js)**: The frontend dashboard provides a real-time view into the bot's mind. It visualizes the current price charts, indicator bands, regime state, and most importantly, the live voting results from the 6 AI agents.
+*   **Persistence (Firebase/Firestore)**: Every decision, agent vote, and executed trade is logged to Firestore, providing an immutable audit trail and allowing the AI Brain to review past performance and evolve the strategy.
+
+---
+
 ### Architecture
 
 ```
