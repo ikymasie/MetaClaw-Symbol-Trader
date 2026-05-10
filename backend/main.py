@@ -54,7 +54,6 @@ from models import (
     EquityPoint,
     BollingerData,
 )
-from strategy import engine
 from ai_brain import ai_brain
 from vital_signs import vital_signs
 from symbol_service import symbol_service, to_mt5_symbol
@@ -161,36 +160,6 @@ manager = ConnectionManager()
 _streaming_paused = False
 
 
-# ---- DB Flush Background Task ----
-async def db_flush_loop():
-    """Periodically flush the engine's DB write queue to SQLite."""
-    while True:
-        try:
-            queue = engine.flush_db_queue()
-            for item in queue:
-                if item["type"] == "trade":
-                    await insert_trade(
-                        timestamp=item["timestamp"],
-                        side=item["side"],
-                        symbol=item["symbol"],
-                        qty=item["qty"],
-                        price=item["price"],
-                        pnl=item.get("pnl", 0.0),
-                        signal=item.get("signal", ""),
-                        params_snapshot=item.get("params_snapshot", ""),
-                        fib_level_triggered=item.get("fib_level_triggered"),
-                    )
-                elif item["type"] == "equity":
-                    await insert_equity_snapshot(
-                        timestamp=item["timestamp"],
-                        equity=item["equity"],
-                        daily_pnl=item.get("daily_pnl", 0.0),
-                    )
-        except Exception as e:
-            logger.error(f"DB flush error: {e}")
-        await asyncio.sleep(2)
-
-
 # ---- Trade Stats Cache (avoids Firestore query every 500ms) ----
 _trade_stats_cache: dict = {"total_trades": 0, "win_rate": 0.0}
 _trade_stats_cache_ts: float = 0.0
@@ -212,80 +181,6 @@ async def _get_cached_trade_stats() -> dict:
 
 
 # ---- WebSocket Broadcast Loop ----
-async def ws_broadcast_loop():
-    """
-    Runs every 500ms — builds a full state snapshot and pushes it
-    to every connected WebSocket client. Replaces frontend polling.
-    Skips when paused or when no global channel subscribers exist.
-    Runs stale-connection purge every 60 seconds.
-    """
-    _purge_counter = 0
-    while True:
-        try:
-            _purge_counter += 1
-            # Purge stale connections every 60 s (120 × 500ms ticks)
-            if _purge_counter >= 120:
-                await manager.purge_stale()
-                _purge_counter = 0
-
-            if not _streaming_paused and "global" in manager.active and manager.active["global"]:
-                state = engine.get_state_snapshot()
-                cfg = config.snapshot()
-                stats = await _get_cached_trade_stats()
-
-                starting_eq = state["starting_equity"] or cfg.get("starting_equity", 100000)
-                daily_pnl_pct = 0.0
-                daily_drawdown_pct = 0.0
-                if starting_eq > 0:
-                    daily_pnl_pct = (state["daily_pnl"] / starting_eq) * 100
-                    if state["daily_pnl"] < 0:
-                        daily_drawdown_pct = abs(daily_pnl_pct)
-
-                # Copy live chart data under lock — release before building payload
-                with engine._lock:
-                    price_history = list(engine.price_history)
-                    markers = list(engine.markers)
-                    bollinger = list(engine.bollinger_data)
-
-                # Payload assembly happens outside the engine lock
-                payload = {
-                    "type": "state",
-                    "status": {
-                        "bot_status": state["bot_status"],
-                        "current_price": state["current_price"],
-                        "position_qty": state["position_qty"],
-                        "position_side": state["position_side"],
-                        "entry_price": state["entry_price"],
-                        "equity": state["equity"],
-                        "daily_pnl": state["daily_pnl"],
-                        "daily_pnl_pct": round(daily_pnl_pct, 2),
-                        "daily_drawdown_pct": round(daily_drawdown_pct, 2),
-                        "unrealized_pnl": state["unrealized_pnl"],
-                        "starting_equity": starting_eq,
-                        "last_signal": state["last_signal"],
-                        "total_trades_today": stats["total_trades"],
-                        "win_rate": round(stats["win_rate"], 1),
-                        "config": cfg,
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
-                        "message": state["message"],
-                    },
-                    "vitals": vital_signs.get_status(),
-                    "chart": {
-                        "price_data": price_history[-300:],
-                        "bollinger": bollinger[-300:],
-                        "markers": markers[-100:],
-                    },
-                    "fib_signal": state.get("fib_signal", {}),
-                    # MAS intelligence fields — consumed by the Situation Room
-                    "regime": state.get("regime", "UNKNOWN"),
-                    "mas_deliberation": state.get("last_deliberation", {}),
-                }
-                await manager.broadcast(payload, channel="global")
-        except Exception as e:
-            logger.error(f"[WS] Global broadcast error: {e}")
-        await asyncio.sleep(0.5)
-
-
 async def ws_fleet_broadcast_loop():
     """
     Runs every 500ms — iterates through every active bot in the fleet and:
@@ -456,16 +351,7 @@ async def lifespan(app: FastAPI):
     # Start fleet monitor
     fleet.start_monitor()
 
-    # Check for prior CRITICAL_STOP state
-    prior_state = await get_bot_state("fleet", "last_status")
-    if prior_state == "CRITICAL_STOP":
-        engine._status = BotStatus.CRITICAL_STOP
-        engine._message = "Prior session ended with CRITICAL_STOP. Reset manually."
-        logger.warning("Restored CRITICAL_STOP state from prior session")
-
     # Start background tasks
-    flush_task = asyncio.create_task(db_flush_loop())
-    broadcast_task = asyncio.create_task(ws_broadcast_loop())
     fleet_broadcast_task = asyncio.create_task(ws_fleet_broadcast_loop())
 
     # Start AI Brain if enabled
@@ -482,12 +368,7 @@ async def lifespan(app: FastAPI):
     mt5_hub.stop()
     if ai_brain.enabled:
         ai_brain.stop()
-    flush_task.cancel()
-    broadcast_task.cancel()
     fleet_broadcast_task.cancel()
-    if engine.status == BotStatus.RUNNING:
-        engine.stop()
-    await set_bot_state("fleet", "last_status", engine.status.value)
     await save_fleet_event("SYSTEM_SHUTDOWN", "INFO", "TradeClaw Execution Engine shut down gracefully")
     logger.info("TradeClaw shutdown complete")
 
@@ -510,142 +391,6 @@ app.add_middleware(
 
 
 # ---- Endpoints ----
-
-@app.get("/status", response_model=StatusResponse)
-async def get_status():
-    """Get current bot status, price, equity, and risk metrics."""
-    state = engine.get_state_snapshot()
-    cfg = config.snapshot()
-    stats = await get_trade_stats_today()
-
-    daily_drawdown_pct = 0.0
-    daily_pnl_pct = 0.0
-    starting_eq = state["starting_equity"] or cfg.get("starting_equity", 100000)
-
-    if starting_eq > 0:
-        daily_pnl_pct = (state["daily_pnl"] / starting_eq) * 100
-        if state["daily_pnl"] < 0:
-            daily_drawdown_pct = abs(daily_pnl_pct)
-
-    return StatusResponse(
-        bot_status=state["bot_status"],
-        current_price=state["current_price"],
-        position_qty=state["position_qty"],
-        position_side=state["position_side"],
-        entry_price=state["entry_price"],
-        equity=state["equity"],
-        daily_pnl=state["daily_pnl"],
-        daily_pnl_pct=round(daily_pnl_pct, 2),
-        daily_drawdown_pct=round(daily_drawdown_pct, 2),
-        unrealized_pnl=state["unrealized_pnl"],
-        starting_equity=starting_eq,
-        last_signal=state["last_signal"],
-        total_trades_today=stats["total_trades"],
-        win_rate=round(stats["win_rate"], 1),
-        config=ConfigSnapshot(**cfg),
-        timestamp=datetime.now(timezone.utc).isoformat(),
-        message=state["message"],
-    )
-
-
-@app.post("/start")
-async def start_bot(request: StartRequest = StartRequest()):
-    """Start the execution engine."""
-    if engine.status == BotStatus.RUNNING:
-        raise HTTPException(status_code=400, detail="Bot is already running")
-
-    if engine.status == BotStatus.CRITICAL_STOP:
-        # Allow restart after critical stop — reset state
-        engine._status = BotStatus.IDLE
-        engine._message = ""
-        engine.daily_pnl = 0.0
-        await set_bot_state("fleet", "last_status", "IDLE")
-
-    engine.start()
-    logger.info("Bot started in MT5 mode")
-    return {"status": "started", "mode": "MT5"}
-
-
-@app.post("/stop")
-async def stop_bot():
-    """Stop the execution engine gracefully."""
-    if engine.status not in (BotStatus.RUNNING, BotStatus.STARTING):
-        raise HTTPException(status_code=400, detail="Bot is not running")
-
-    engine.stop()
-    await set_bot_state("fleet", "last_status", "IDLE")
-    logger.info("Bot stopped via API")
-    return {"status": "stopped"}
-
-
-@app.get("/history", response_model=HistoryResponse)
-async def get_history():
-    """Get trade history, equity curve, price data, and chart markers."""
-    # DB trades
-    db_trades = await get_all_trades(limit=100)
-    trades = [
-        TradeRecord(
-            id=t["id"],
-            timestamp=t["timestamp"],
-            side=t["side"],
-            symbol=t["symbol"],
-            qty=t["qty"],
-            price=t["price"],
-            pnl=t["pnl"],
-            signal=t["signal"],
-        )
-        for t in db_trades
-    ]
-
-    # DB equity
-    db_equity = await get_equity_history(limit=500)
-    equity_curve = [
-        EquityPoint(
-            time=e["timestamp"],
-            equity=e["equity"],
-            daily_pnl=e["daily_pnl"],
-        )
-        for e in db_equity
-    ]
-
-    # Live data from engine
-    with engine._lock:
-        price_data = [PricePoint(**p) for p in engine.price_history]
-        markers = [MarkerPoint(**m) for m in engine.markers]
-        bollinger = [BollingerData(**b) for b in engine.bollinger_data]
-
-        # Merge in-memory equity if not yet flushed
-        for eq in engine.equity_curve:
-            if not any(e.time == eq["time"] for e in equity_curve):
-                equity_curve.append(
-                    EquityPoint(
-                        time=eq["time"],
-                        equity=eq["equity"],
-                        daily_pnl=eq.get("daily_pnl", 0.0),
-                    )
-                )
-
-    return HistoryResponse(
-        trades=trades,
-        equity_curve=equity_curve,
-        price_data=price_data,
-        markers=markers,
-        bollinger=bollinger,
-    )
-
-
-@app.post("/config")
-async def update_config(update: ConfigUpdate):
-    """Update trading configuration at runtime."""
-    updates = update.model_dump(exclude_none=True)
-    if not updates:
-        raise HTTPException(status_code=400, detail="No config values provided")
-
-    config.update(**updates)
-    await save_audit_log("UPDATE_CONFIG", "global_config", metadata=updates)
-    logger.info(f"Config updated: {updates}")
-    return {"status": "updated", "config": config.snapshot()}
-
 
 @app.get("/ai/status")
 async def get_ai_status():
