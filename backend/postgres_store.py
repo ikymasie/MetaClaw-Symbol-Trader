@@ -268,6 +268,9 @@ class PostgresStore:
 
     async def push_telemetry_history(self, bot_id: str, state: dict):
         """Buffer high-frequency telemetry for historical analysis."""
+        if bot_id == 'fleet':
+            return # 'fleet' is a virtual entity and does not exist in the 'bots' table (FK constraint)
+
         ts = self._parse_ts(state.get('timestamp')) or datetime.now(timezone.utc)
         if self.telemetry_batcher:
             await self.telemetry_batcher.add(
@@ -379,6 +382,43 @@ class PostgresStore:
                 float(bar['open']), float(bar['high']), float(bar['low']), float(bar['close']),
                 int(bar.get('volume', 0))
             )
+
+    async def append_bars_batch(self, symbol: str, bars: List[dict], timeframe: str = "1m"):
+        if not self.bars_batcher:
+            return 0
+        count = 0
+        for bar in bars:
+            ts = self._parse_ts(bar.get('timestamp') or bar.get('time'))
+            if not ts: continue
+            await self.bars_batcher.add(
+                symbol, timeframe, ts,
+                float(bar['open']), float(bar['high']), float(bar['low']), float(bar['close']),
+                int(bar.get('volume', 0))
+            )
+            count += 1
+        return count
+
+    async def load_bars(self, symbol: str, timeframe: str = "1m", limit: int = 1000) -> List[dict]:
+        async with self.pool.acquire() as conn:
+            rows = await conn.fetch(
+                """SELECT timestamp, open, high, low, close, volume 
+                   FROM market_bars 
+                   WHERE symbol = $1 AND timeframe = $2 
+                   ORDER BY timestamp DESC LIMIT $3""",
+                symbol, timeframe, limit
+            )
+            # Convert back to dicts and reverse so they are chronological
+            results = []
+            for r in reversed(rows):
+                results.append({
+                    "timestamp": r['timestamp'].isoformat(),
+                    "open": float(r['open']),
+                    "high": float(r['high']),
+                    "low": float(r['low']),
+                    "close": float(r['close']),
+                    "volume": int(r['volume'])
+                })
+            return results
 
     async def save_equity_snapshot(self, bot_id: str, snapshot: dict):
         ts = self._parse_ts(snapshot.get('timestamp')) or datetime.now(timezone.utc)
@@ -647,7 +687,7 @@ async def _legacy_get_daily_pnl_sum(bot_id: str) -> float:
             "SELECT SUM(pnl) as total FROM trades WHERE bot_id = $1 AND entry_time >= CURRENT_DATE",
             bot_id
         )
-        return row['total'] or 0.0
+        return (row['total'] if row and row['total'] is not None else 0.0)
 
 async def _legacy_get_trade_stats_today(bot_id: str) -> dict:
     async with get_store().pool.acquire() as conn:
@@ -657,12 +697,23 @@ async def _legacy_get_trade_stats_today(bot_id: str) -> dict:
                FROM trades WHERE bot_id = $1 AND entry_time >= CURRENT_DATE""",
             bot_id
         )
-        return dict(row)
+        if not row:
+            return {"count": 0, "pnl": 0.0, "wins": 0}
+        return {
+            "count": row["count"] or 0,
+            "pnl": float(row["pnl"] or 0.0),
+            "wins": row["wins"] or 0
+        }
 
 async def _legacy_set_bot_state(bot_id: str, key: str, value: str):
-    await get_store().set_bot_state(bot_id, key, value)
+    if bot_id == "fleet":
+        await get_store().set_system_setting(f"fleet:{key}", value)
+    else:
+        await get_store().set_bot_state(bot_id, key, value)
 
 async def _legacy_get_bot_state(bot_id: str, key: str) -> Optional[str]:
+    if bot_id == "fleet":
+        return await get_store().get_system_setting(f"fleet:{key}")
     return await get_store().get_bot_state(bot_id, key)
 
 async def _legacy_get_ai_decisions(bot_id: str, limit: int = 50) -> List[dict]:
@@ -705,3 +756,57 @@ async def list_bot_ids() -> List[str]:
 
 async def push_fleet_telemetry(state: dict):
     await get_store().push_fleet_telemetry(state)
+
+async def save_bot_config(bot_id: str, config_dict: dict):
+    await get_store().save_bot_config(bot_id, config_dict)
+
+async def load_bot_config(bot_id: str) -> Optional[dict]:
+    return await get_store().load_bot_config(bot_id)
+
+async def delete_bot_config(bot_id: str):
+    await get_store().delete_bot_config(bot_id)
+
+async def delete_bot(bot_id: str):
+    await get_store().delete_bot(bot_id)
+
+async def save_fleet_config(config_dict: dict):
+    await get_store().save_fleet_config(config_dict)
+
+async def discover_orphaned_bot_ids(known_ids: set) -> List[str]:
+    return await get_store().discover_orphaned_bot_ids(known_ids)
+
+async def push_live_telemetry(id: str, state: dict):
+    await get_store().push_live_telemetry(id, state)
+
+async def push_telemetry_history(bot_id: str, state: dict):
+    await get_store().push_telemetry_history(bot_id, state)
+
+async def append_bar(symbol: str, timeframe: str, bar: dict):
+    await get_store().append_bar(symbol, timeframe, bar)
+
+async def append_bars_batch(symbol: str, bars: List[dict], timeframe: str = "1m"):
+    return await get_store().append_bars_batch(symbol, bars, timeframe)
+
+async def load_bars(symbol: str, timeframe: str = "1m", limit: int = 1000) -> List[dict]:
+    return await get_store().load_bars(symbol, timeframe, limit)
+
+async def save_trend_summary(symbol: str, timeframe: str, data: dict):
+    await get_store().save_trend_summary(symbol, timeframe, data)
+
+async def get_trend_summary(symbol: str, timeframe: str) -> Optional[dict]:
+    return await get_store().get_trend_summary(symbol, timeframe)
+
+async def push_system_metric(name: str, value: float, metadata: dict = None):
+    await get_store().push_system_metric(name, value, metadata)
+
+async def save_trade(bot_id: str, trade: dict):
+    await get_store().save_trade(bot_id, trade)
+
+async def save_equity_snapshot(bot_id: str, snapshot: dict):
+    await get_store().save_equity_snapshot(bot_id, snapshot)
+
+async def retrieve_recent_strategy_contexts(bot_id: str, limit: int = 50) -> List[dict]:
+    return await get_store().retrieve_recent_strategy_contexts(bot_id, limit)
+
+async def get_live_telemetry(bot_id: str) -> Optional[dict]:
+    return await get_store().get_live_telemetry(bot_id)

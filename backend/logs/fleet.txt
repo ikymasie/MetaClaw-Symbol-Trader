@@ -904,3 +904,1271 @@ TypeError: __init__() got an unexpected keyword argument 'persistence_store'
 2026-05-09 23:43:35,301 [tradeclaw.fleet] INFO: Fleet monitor stopped
 2026-05-09 23:43:35,302 [tradeclaw.mt5_hub] INFO: [MT5Hub] Stopped
 2026-05-09 23:43:35,302 [tradeclaw.ai_brain] INFO: AI Brain scheduler stopped
+2026-05-10 05:36:35,701 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-10 05:36:35,701 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-10 05:36:41,327 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-10 05:36:41,328 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-10 05:36:42,266 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-10 05:36:42,270 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-10 05:36:42,279 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-10 05:36:42,280 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-10 05:36:42,280 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-10 05:36:44,045 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-10 05:36:44,045 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-10 05:36:44,048 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-10 05:36:44,103 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-10 05:36:44,989 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-10 05:36:44,989 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-10 05:36:44,989 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-10 05:36:44,989 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-10 05:36:44,989 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-10 05:36:44,990 [tradeclaw] INFO: TradeClaw ready
+2026-05-10 05:36:44,990 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-10 05:36:35,701 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-10 05:36:35,701 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-10 05:36:41,327 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-10 05:36:41,328 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-10 05:36:42,266 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-10 05:36:42,270 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-10 05:36:42,279 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-10 05:36:42,280 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-10 05:36:42,280 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-10 05:36:44,045 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-10 05:36:44,045 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-10 05:36:44,048 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-10 05:36:44,103 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-10 05:36:44,989 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-10 05:36:44,989 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-10 05:36:44,989 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-10 05:36:44,989 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-10 05:36:44,989 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-10 05:36:44,990 [tradeclaw] INFO: TradeClaw ready
+2026-05-10 05:36:44,990 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-10 05:36:46,157 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-10 05:36:46,476 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-10 05:36:46,764 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-10 05:36:47,068 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-10 05:36:47,335 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-10 05:36:47,362 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-10 05:36:47,672 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-10 05:36:47,970 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-10 05:36:48,269 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-10 05:36:48,567 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-10 05:36:48,871 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-10 05:36:49,170 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-10 05:36:49,469 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-10 05:36:50,359 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-10 05:36:50,951 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-10 05:36:51,522 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-10 05:36:46,157 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-10 05:36:46,476 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-10 05:36:46,764 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-10 05:36:47,068 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-10 05:36:47,335 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-10 05:36:47,362 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-10 05:36:47,672 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-10 05:36:47,970 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-10 05:36:48,269 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-10 05:36:48,567 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-10 05:36:48,871 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-10 05:36:49,170 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-10 05:36:49,469 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-10 05:36:50,359 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-10 05:36:50,951 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-10 05:36:51,522 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-10 05:36:59,962 [tradeclaw.fleet] INFO: [bot-e6218be1] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 05:37:04,966 [tradeclaw.darwin[bot-e6218be1]] WARNING: Darwinian weights load timed out or failed: 
+2026-05-10 05:37:04,967 [tradeclaw.agents.pool[bot-e6218be1]] INFO: Sub-agent loop starting
+2026-05-10 05:37:04,968 [tradeclaw.agents.pool[bot-e6218be1]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical']
+2026-05-10 05:37:04,968 [tradeclaw.agents.sentiment[bot-e6218be1]] INFO: SentimentAgent running for XAUUSD
+2026-05-10 05:37:04,968 [tradeclaw.agents.macro[bot-e6218be1]] INFO: MacroAgent running for XAUUSD
+2026-05-10 05:37:04,968 [tradeclaw.engine[bot-e6218be1|Verification Bot]] INFO: [bot-e6218be1] SubAgentPool wired (4 agents)
+2026-05-10 05:37:04,968 [tradeclaw.agents.earnings[bot-e6218be1]] INFO: EarningsAgent running for XAUUSD
+2026-05-10 05:37:04,969 [tradeclaw.agents.technical[bot-e6218be1]] INFO: TechnicalAgent running for XAUUSD
+2026-05-10 05:37:04,969 [tradeclaw.agents.sentiment[bot-e6218be1]] INFO: No buffered headlines for XAUUSD. Using web search.
+2026-05-10 05:37:04,969 [tradeclaw.bot_ai_brain[bot-e6218be1]] INFO: AI Brain loop running
+2026-05-10 05:37:04,970 [tradeclaw.bot_ai_brain[bot-e6218be1]] INFO: AI Brain started
+2026-05-10 05:37:04,983 [tradeclaw.fleet] WARNING: Could not persist bot config to PostgreSQL: module 'postgres_store' has no attribute 'save_bot_config'
+2026-05-10 05:37:04,983 [tradeclaw.fleet] INFO: [bot-e6218be1] Auto-starting engine per deployment request
+2026-05-10 05:37:04,987 [tradeclaw.engine[bot-e6218be1|Verification Bot]] INFO: Engine started (restart). Symbol=XAUUSD
+2026-05-10 05:37:05,001 [tradeclaw.engine[bot-e6218be1|Verification Bot]] INFO: Engine RUNNING on MT5
+2026-05-10 05:37:05,001 [tradeclaw.engine[bot-e6218be1|Verification Bot]] INFO: PostgreSQL has 0 bars for XAUUSD (need 200+) — fetching from MT5
+2026-05-10 05:37:07,750 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 1/10 this hour
+2026-05-10 05:37:07,750 [tradeclaw.agents.pool[bot-e6218be1]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-10 05:37:08,574 [tradeclaw.agents.earnings[bot-e6218be1]] WARNING: Failed to parse signal JSON: No JSON found in: **No.**
+
+**Reasoning:**
+XAUUSD is a currency pair (Spot Gold vs. US Dollar). It is a commodity/forex instrument, not a corporation. Therefore, it does not have "earnings reports."
+
+Earnings reports ar
+2026-05-10 05:37:08,773 [tradeclaw.engine[bot-e6218be1|Verification Bot]] INFO: Warmup: 200 bars loaded from MT5 for XAUUSD_i — back-filling Postgres
+2026-05-10 05:37:10,000 [tradeclaw.fleet] WARNING: Bar flush error (XAUUSD): module 'postgres_store' has no attribute 'append_bars_batch'
+2026-05-10 05:37:11,959 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=53.7 | ATR_z=-1.25 | Trend=bearish
+2026-05-10 05:36:59,962 [tradeclaw.fleet] INFO: [bot-e6218be1] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 05:37:04,966 [tradeclaw.darwin[bot-e6218be1]] WARNING: Darwinian weights load timed out or failed: 
+2026-05-10 05:37:04,967 [tradeclaw.agents.pool[bot-e6218be1]] INFO: Sub-agent loop starting
+2026-05-10 05:37:04,968 [tradeclaw.agents.pool[bot-e6218be1]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical']
+2026-05-10 05:37:04,968 [tradeclaw.agents.sentiment[bot-e6218be1]] INFO: SentimentAgent running for XAUUSD
+2026-05-10 05:37:04,968 [tradeclaw.agents.macro[bot-e6218be1]] INFO: MacroAgent running for XAUUSD
+2026-05-10 05:37:04,968 [tradeclaw.engine[bot-e6218be1|Verification Bot]] INFO: [bot-e6218be1] SubAgentPool wired (4 agents)
+2026-05-10 05:37:04,968 [tradeclaw.agents.earnings[bot-e6218be1]] INFO: EarningsAgent running for XAUUSD
+2026-05-10 05:37:04,969 [tradeclaw.agents.technical[bot-e6218be1]] INFO: TechnicalAgent running for XAUUSD
+2026-05-10 05:37:04,969 [tradeclaw.agents.sentiment[bot-e6218be1]] INFO: No buffered headlines for XAUUSD. Using web search.
+2026-05-10 05:37:04,969 [tradeclaw.bot_ai_brain[bot-e6218be1]] INFO: AI Brain loop running
+2026-05-10 05:37:04,970 [tradeclaw.bot_ai_brain[bot-e6218be1]] INFO: AI Brain started
+2026-05-10 05:37:04,983 [tradeclaw.fleet] WARNING: Could not persist bot config to PostgreSQL: module 'postgres_store' has no attribute 'save_bot_config'
+2026-05-10 05:37:04,983 [tradeclaw.fleet] INFO: [bot-e6218be1] Auto-starting engine per deployment request
+2026-05-10 05:37:04,987 [tradeclaw.engine[bot-e6218be1|Verification Bot]] INFO: Engine started (restart). Symbol=XAUUSD
+2026-05-10 05:37:05,001 [tradeclaw.engine[bot-e6218be1|Verification Bot]] INFO: Engine RUNNING on MT5
+2026-05-10 05:37:05,001 [tradeclaw.engine[bot-e6218be1|Verification Bot]] INFO: PostgreSQL has 0 bars for XAUUSD (need 200+) — fetching from MT5
+2026-05-10 05:37:06,563 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 05:37:07,746 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-10 05:37:07,750 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 1/10 this hour
+2026-05-10 05:37:07,750 [tradeclaw.agents.pool[bot-e6218be1]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-10 05:37:08,573 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 05:37:08,574 [tradeclaw.agents.earnings[bot-e6218be1]] WARNING: Failed to parse signal JSON: No JSON found in: **No.**
+
+**Reasoning:**
+XAUUSD is a currency pair (Spot Gold vs. US Dollar). It is a commodity/forex instrument, not a corporation. Therefore, it does not have "earnings reports."
+
+Earnings reports ar
+2026-05-10 05:37:08,773 [tradeclaw.engine[bot-e6218be1|Verification Bot]] INFO: Warmup: 200 bars loaded from MT5 for XAUUSD_i — back-filling Postgres
+2026-05-10 05:37:10,000 [tradeclaw.fleet] WARNING: Bar flush error (XAUUSD): module 'postgres_store' has no attribute 'append_bars_batch'
+2026-05-10 05:37:11,959 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=53.7 | ATR_z=-1.25 | Trend=bearish
+2026-05-10 05:37:15,577 [tradeclaw.fleet] WARNING: [bot-e6218be1] Bot telemetry push error: module 'postgres_store' has no attribute 'push_live_telemetry'
+2026-05-10 05:37:27,680 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 05:37:27,681 [tradeclaw.agents.macro[bot-e6218be1]] WARNING: Failed to parse signal JSON: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2026-05-10 05:37:27,681 [tradeclaw.agents.pool[bot-e6218be1]] INFO: [macro] sentiment=+0.00 confidence=0.00
+2026-05-10 05:37:27,681 [tradeclaw.agents.pool[bot-e6218be1]] INFO: [earnings] sentiment=+0.00 confidence=0.00
+2026-05-10 05:37:27,681 [tradeclaw.agents.pool[bot-e6218be1]] INFO: [technical] sentiment=+0.00 confidence=0.00
+2026-05-10 05:37:46,147 [tradeclaw.fleet] WARNING: [bot-e6218be1] Bot telemetry push error: module 'postgres_store' has no attribute 'push_live_telemetry'
+2026-05-10 05:37:59,240 [tradeclaw.fleet] INFO: [bot-cdd042ba] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 05:38:04,244 [tradeclaw.darwin[bot-cdd042ba]] WARNING: Darwinian weights load timed out or failed: 
+2026-05-10 05:38:04,244 [tradeclaw.agents.pool[bot-cdd042ba]] INFO: Sub-agent loop starting
+2026-05-10 05:38:04,244 [tradeclaw.agents.pool[bot-cdd042ba]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical']
+2026-05-10 05:38:04,244 [tradeclaw.agents.sentiment[bot-cdd042ba]] INFO: SentimentAgent running for XAUUSD
+2026-05-10 05:38:04,245 [tradeclaw.agents.macro[bot-cdd042ba]] INFO: MacroAgent running for XAUUSD
+2026-05-10 05:38:04,245 [tradeclaw.engine[bot-cdd042ba|Verification Bot]] INFO: [bot-cdd042ba] SubAgentPool wired (4 agents)
+2026-05-10 05:38:04,245 [tradeclaw.agents.earnings[bot-cdd042ba]] INFO: EarningsAgent running for XAUUSD
+2026-05-10 05:38:04,245 [tradeclaw.agents.technical[bot-cdd042ba]] INFO: TechnicalAgent running for XAUUSD
+2026-05-10 05:38:04,245 [tradeclaw.bot_ai_brain[bot-cdd042ba]] INFO: AI Brain loop running
+2026-05-10 05:38:04,245 [tradeclaw.bot_ai_brain[bot-cdd042ba]] INFO: AI Brain started
+2026-05-10 05:38:04,245 [tradeclaw.fleet] WARNING: Could not persist bot config to PostgreSQL: module 'postgres_store' has no attribute 'save_bot_config'
+2026-05-10 05:38:04,245 [tradeclaw.fleet] INFO: [bot-cdd042ba] Auto-starting engine per deployment request
+2026-05-10 05:38:04,246 [tradeclaw.agents.sentiment[bot-cdd042ba]] INFO: No buffered headlines for XAUUSD. Using web search.
+2026-05-10 05:38:04,249 [tradeclaw.engine[bot-cdd042ba|Verification Bot]] INFO: Engine started (restart). Symbol=XAUUSD
+2026-05-10 05:38:04,256 [tradeclaw.engine[bot-cdd042ba|Verification Bot]] INFO: Engine RUNNING on MT5
+2026-05-10 05:38:04,256 [tradeclaw.engine[bot-cdd042ba|Verification Bot]] INFO: PostgreSQL has 0 bars for XAUUSD (need 200+) — fetching from MT5
+2026-05-10 05:38:05,440 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 05:38:06,130 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 05:38:06,131 [tradeclaw.agents.earnings[bot-cdd042ba]] WARNING: Failed to parse signal JSON: No JSON found in: **No.**
+
+**Reasoning:**
+XAUUSD is a currency pair representing the spot price of **Gold (XAU)** against the **US Dollar (USD)**. Gold is a physical commodity, not a corporation; therefore, it does not
+2026-05-10 05:38:06,800 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-10 05:38:06,801 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 2/10 this hour
+2026-05-10 05:38:06,801 [tradeclaw.agents.pool[bot-cdd042ba]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-10 05:38:09,323 [tradeclaw.engine[bot-cdd042ba|Verification Bot]] INFO: Warmup: 200 bars loaded from MT5 for XAUUSD_i — back-filling Postgres
+2026-05-10 05:38:09,323 [tradeclaw.fleet] WARNING: Bar flush error (XAUUSD): module 'postgres_store' has no attribute 'append_bars_batch'
+2026-05-10 05:38:13,528 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=28.7 | ATR_z=-1.81 | Trend=bearish
+2026-05-10 05:37:15,577 [tradeclaw.fleet] WARNING: [bot-e6218be1] Bot telemetry push error: module 'postgres_store' has no attribute 'push_live_telemetry'
+2026-05-10 05:37:27,681 [tradeclaw.agents.macro[bot-e6218be1]] WARNING: Failed to parse signal JSON: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2026-05-10 05:37:27,681 [tradeclaw.agents.pool[bot-e6218be1]] INFO: [macro] sentiment=+0.00 confidence=0.00
+2026-05-10 05:37:27,681 [tradeclaw.agents.pool[bot-e6218be1]] INFO: [earnings] sentiment=+0.00 confidence=0.00
+2026-05-10 05:37:27,681 [tradeclaw.agents.pool[bot-e6218be1]] INFO: [technical] sentiment=+0.00 confidence=0.00
+2026-05-10 05:37:46,147 [tradeclaw.fleet] WARNING: [bot-e6218be1] Bot telemetry push error: module 'postgres_store' has no attribute 'push_live_telemetry'
+2026-05-10 05:37:59,240 [tradeclaw.fleet] INFO: [bot-cdd042ba] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 05:38:04,244 [tradeclaw.darwin[bot-cdd042ba]] WARNING: Darwinian weights load timed out or failed: 
+2026-05-10 05:38:04,244 [tradeclaw.agents.pool[bot-cdd042ba]] INFO: Sub-agent loop starting
+2026-05-10 05:38:04,244 [tradeclaw.agents.pool[bot-cdd042ba]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical']
+2026-05-10 05:38:04,244 [tradeclaw.agents.sentiment[bot-cdd042ba]] INFO: SentimentAgent running for XAUUSD
+2026-05-10 05:38:04,245 [tradeclaw.agents.macro[bot-cdd042ba]] INFO: MacroAgent running for XAUUSD
+2026-05-10 05:38:04,245 [tradeclaw.engine[bot-cdd042ba|Verification Bot]] INFO: [bot-cdd042ba] SubAgentPool wired (4 agents)
+2026-05-10 05:38:04,245 [tradeclaw.agents.earnings[bot-cdd042ba]] INFO: EarningsAgent running for XAUUSD
+2026-05-10 05:38:04,245 [tradeclaw.agents.technical[bot-cdd042ba]] INFO: TechnicalAgent running for XAUUSD
+2026-05-10 05:38:04,245 [tradeclaw.bot_ai_brain[bot-cdd042ba]] INFO: AI Brain loop running
+2026-05-10 05:38:04,245 [tradeclaw.bot_ai_brain[bot-cdd042ba]] INFO: AI Brain started
+2026-05-10 05:38:04,245 [tradeclaw.fleet] WARNING: Could not persist bot config to PostgreSQL: module 'postgres_store' has no attribute 'save_bot_config'
+2026-05-10 05:38:04,245 [tradeclaw.fleet] INFO: [bot-cdd042ba] Auto-starting engine per deployment request
+2026-05-10 05:38:04,246 [tradeclaw.agents.sentiment[bot-cdd042ba]] INFO: No buffered headlines for XAUUSD. Using web search.
+2026-05-10 05:38:04,249 [tradeclaw.engine[bot-cdd042ba|Verification Bot]] INFO: Engine started (restart). Symbol=XAUUSD
+2026-05-10 05:38:04,256 [tradeclaw.engine[bot-cdd042ba|Verification Bot]] INFO: Engine RUNNING on MT5
+2026-05-10 05:38:04,256 [tradeclaw.engine[bot-cdd042ba|Verification Bot]] INFO: PostgreSQL has 0 bars for XAUUSD (need 200+) — fetching from MT5
+2026-05-10 05:38:06,131 [tradeclaw.agents.earnings[bot-cdd042ba]] WARNING: Failed to parse signal JSON: No JSON found in: **No.**
+
+**Reasoning:**
+XAUUSD is a currency pair representing the spot price of **Gold (XAU)** against the **US Dollar (USD)**. Gold is a physical commodity, not a corporation; therefore, it does not
+2026-05-10 05:38:06,801 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 2/10 this hour
+2026-05-10 05:38:06,801 [tradeclaw.agents.pool[bot-cdd042ba]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-10 05:38:09,323 [tradeclaw.engine[bot-cdd042ba|Verification Bot]] INFO: Warmup: 200 bars loaded from MT5 for XAUUSD_i — back-filling Postgres
+2026-05-10 05:38:09,323 [tradeclaw.fleet] WARNING: Bar flush error (XAUUSD): module 'postgres_store' has no attribute 'append_bars_batch'
+2026-05-10 05:38:13,528 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=28.7 | ATR_z=-1.81 | Trend=bearish
+2026-05-10 05:52:03,749 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-10 05:52:03,749 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-10 05:52:08,908 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-10 05:52:08,909 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-10 05:52:09,795 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-10 05:52:09,812 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-10 05:52:09,836 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-10 05:52:09,836 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-10 05:52:09,836 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-10 05:52:11,504 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-10 05:52:11,505 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-10 05:52:11,508 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-10 05:52:11,573 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-10 05:52:12,527 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-10 05:52:12,527 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-10 05:52:12,527 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-10 05:52:12,527 [tradeclaw] INFO: TradeClaw ready
+2026-05-10 05:52:12,527 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-10 05:52:12,527 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-10 05:52:12,527 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-10 05:52:13,595 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-10 05:52:03,749 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-10 05:52:03,749 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-10 05:52:08,908 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-10 05:52:08,909 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-10 05:52:09,795 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-10 05:52:09,812 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-10 05:52:09,836 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-10 05:52:09,836 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-10 05:52:09,836 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-10 05:52:11,504 [tradeclaw.fleet] INFO: No bots found in PostgreSQL to restore
+2026-05-10 05:52:11,505 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-10 05:52:11,508 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-10 05:52:11,573 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-10 05:52:12,527 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-10 05:52:12,527 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-10 05:52:12,527 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-10 05:52:12,527 [tradeclaw] INFO: TradeClaw ready
+2026-05-10 05:52:12,527 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-10 05:52:12,527 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-10 05:52:12,527 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-10 05:52:13,595 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-10 05:52:13,867 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-10 05:52:14,131 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-10 05:52:14,403 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-10 05:52:14,676 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-10 05:52:14,787 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-10 05:52:15,129 [tradeclaw] WARNING: [MarketData] Data unavailable for BTCUSD: pickling is disabled
+2026-05-10 05:52:15,130 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 1
+2026-05-10 05:52:15,130 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-10 05:52:15,184 [tradeclaw] WARNING: [MarketData] Data unavailable for EURUSD: pickling is disabled
+2026-05-10 05:52:15,400 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-10 05:52:15,663 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-10 05:52:15,942 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-10 05:52:16,216 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-10 05:52:16,500 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-10 05:52:16,764 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-10 05:52:17,587 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-10 05:52:18,107 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-10 05:52:18,640 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-10 05:52:13,867 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-10 05:52:14,131 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-10 05:52:14,403 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-10 05:52:14,676 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-10 05:52:14,787 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-10 05:52:15,129 [tradeclaw] WARNING: [MarketData] Data unavailable for BTCUSD: pickling is disabled
+2026-05-10 05:52:15,130 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 1
+2026-05-10 05:52:15,130 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-10 05:52:15,184 [tradeclaw] WARNING: [MarketData] Data unavailable for EURUSD: pickling is disabled
+2026-05-10 05:52:15,400 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-10 05:52:15,663 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-10 05:52:15,942 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-10 05:52:16,216 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-10 05:52:16,500 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-10 05:52:16,764 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-10 05:52:17,587 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-10 05:52:18,107 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-10 05:52:18,640 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-10 05:53:00,576 [tradeclaw.fleet] INFO: [bot-9c9018ac] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 05:53:05,580 [tradeclaw.darwin[bot-9c9018ac]] WARNING: Darwinian weights load timed out or failed: 
+2026-05-10 05:53:05,589 [tradeclaw.agents.pool[bot-9c9018ac]] INFO: Sub-agent loop starting
+2026-05-10 05:53:05,592 [tradeclaw.agents.pool[bot-9c9018ac]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 05:53:05,592 [tradeclaw.engine[bot-9c9018ac|Crimson Lion EURUSD]] INFO: [bot-9c9018ac] SubAgentPool wired (6 agents)
+2026-05-10 05:53:05,592 [tradeclaw.agents.sentiment[bot-9c9018ac]] INFO: SentimentAgent running for EURUSD
+2026-05-10 05:53:05,592 [tradeclaw.agents.macro[bot-9c9018ac]] INFO: MacroAgent running for EURUSD
+2026-05-10 05:53:05,593 [tradeclaw.bot_ai_brain[bot-9c9018ac]] INFO: AI Brain loop running
+2026-05-10 05:53:05,593 [tradeclaw.agents.earnings[bot-9c9018ac]] INFO: EarningsAgent running for EURUSD
+2026-05-10 05:53:05,593 [tradeclaw.bot_ai_brain[bot-9c9018ac]] INFO: AI Brain started
+2026-05-10 05:53:05,593 [tradeclaw.agents.technical[bot-9c9018ac]] INFO: TechnicalAgent running for EURUSD
+2026-05-10 05:53:05,595 [tradeclaw.fleet] INFO: [bot-9c9018ac] Auto-starting engine per deployment request
+2026-05-10 05:53:05,596 [tradeclaw.agents.sentiment[bot-9c9018ac]] INFO: No buffered headlines for EURUSD. Using web search.
+2026-05-10 05:53:05,605 [tradeclaw.engine[bot-9c9018ac|Crimson Lion EURUSD]] INFO: Engine started (restart). Symbol=EURUSD
+2026-05-10 05:53:05,646 [tradeclaw.engine[bot-9c9018ac|Crimson Lion EURUSD]] INFO: Engine RUNNING on MT5
+2026-05-10 05:53:05,646 [tradeclaw.engine[bot-9c9018ac|Crimson Lion EURUSD]] INFO: PostgreSQL has 0 bars for EURUSD (need 200+) — fetching from MT5
+2026-05-10 05:53:07,418 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-10 05:53:07,429 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 1/10 this hour
+2026-05-10 05:53:07,429 [tradeclaw.agents.pool[bot-9c9018ac]] INFO: [sentiment] sentiment=-0.25 confidence=0.85
+2026-05-10 05:53:08,114 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 05:53:08,115 [tradeclaw.agents.earnings[bot-9c9018ac]] WARNING: Failed to parse signal JSON: No JSON found in: EURUSD is a currency pair, not a company. Therefore, it does not have "earnings reports," "consensus expectations," or "whisper numbers" in the way a stock does.
+
+Currency volatility is driven by **ma
+2026-05-10 05:53:08,724 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 05:53:10,020 [tradeclaw.engine[bot-9c9018ac|Crimson Lion EURUSD]] INFO: Warmup: 200 bars loaded from MT5 for EURUSD_i — back-filling Postgres
+2026-05-10 05:53:13,624 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=26.2 | ATR_z=1.44 | Trend=bearish
+2026-05-10 05:53:15,206 [tradeclaw] WARNING: [MarketData] Data unavailable for EURUSD: pickling is disabled
+2026-05-10 05:53:00,576 [tradeclaw.fleet] INFO: [bot-9c9018ac] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 05:53:05,580 [tradeclaw.darwin[bot-9c9018ac]] WARNING: Darwinian weights load timed out or failed: 
+2026-05-10 05:53:05,589 [tradeclaw.agents.pool[bot-9c9018ac]] INFO: Sub-agent loop starting
+2026-05-10 05:53:05,592 [tradeclaw.agents.pool[bot-9c9018ac]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 05:53:05,592 [tradeclaw.engine[bot-9c9018ac|Crimson Lion EURUSD]] INFO: [bot-9c9018ac] SubAgentPool wired (6 agents)
+2026-05-10 05:53:05,592 [tradeclaw.agents.sentiment[bot-9c9018ac]] INFO: SentimentAgent running for EURUSD
+2026-05-10 05:53:05,592 [tradeclaw.agents.macro[bot-9c9018ac]] INFO: MacroAgent running for EURUSD
+2026-05-10 05:53:05,593 [tradeclaw.bot_ai_brain[bot-9c9018ac]] INFO: AI Brain loop running
+2026-05-10 05:53:05,593 [tradeclaw.agents.earnings[bot-9c9018ac]] INFO: EarningsAgent running for EURUSD
+2026-05-10 05:53:05,593 [tradeclaw.bot_ai_brain[bot-9c9018ac]] INFO: AI Brain started
+2026-05-10 05:53:05,593 [tradeclaw.agents.technical[bot-9c9018ac]] INFO: TechnicalAgent running for EURUSD
+2026-05-10 05:53:05,595 [tradeclaw.fleet] INFO: [bot-9c9018ac] Auto-starting engine per deployment request
+2026-05-10 05:53:05,596 [tradeclaw.agents.sentiment[bot-9c9018ac]] INFO: No buffered headlines for EURUSD. Using web search.
+2026-05-10 05:53:05,605 [tradeclaw.engine[bot-9c9018ac|Crimson Lion EURUSD]] INFO: Engine started (restart). Symbol=EURUSD
+2026-05-10 05:53:05,646 [tradeclaw.engine[bot-9c9018ac|Crimson Lion EURUSD]] INFO: Engine RUNNING on MT5
+2026-05-10 05:53:05,646 [tradeclaw.engine[bot-9c9018ac|Crimson Lion EURUSD]] INFO: PostgreSQL has 0 bars for EURUSD (need 200+) — fetching from MT5
+2026-05-10 05:53:07,429 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 1/10 this hour
+2026-05-10 05:53:07,429 [tradeclaw.agents.pool[bot-9c9018ac]] INFO: [sentiment] sentiment=-0.25 confidence=0.85
+2026-05-10 05:53:08,115 [tradeclaw.agents.earnings[bot-9c9018ac]] WARNING: Failed to parse signal JSON: No JSON found in: EURUSD is a currency pair, not a company. Therefore, it does not have "earnings reports," "consensus expectations," or "whisper numbers" in the way a stock does.
+
+Currency volatility is driven by **ma
+2026-05-10 05:53:10,020 [tradeclaw.engine[bot-9c9018ac|Crimson Lion EURUSD]] INFO: Warmup: 200 bars loaded from MT5 for EURUSD_i — back-filling Postgres
+2026-05-10 05:53:13,624 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=26.2 | ATR_z=1.44 | Trend=bearish
+2026-05-10 05:53:15,206 [tradeclaw] WARNING: [MarketData] Data unavailable for EURUSD: pickling is disabled
+2026-05-10 05:53:17,519 [tradeclaw] WARNING: Failed to fetch AI decisions for bot-9c9018ac: module 'postgres_store' has no attribute 'is_initialized'
+2026-05-10 05:53:22,757 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 05:53:22,758 [tradeclaw.agents.macro[bot-9c9018ac]] WARNING: Failed to parse signal JSON: No JSON found in: ***Disclaimer: This analysis is a simulated macroeconomic projection based on the hypothetical date provided (May 10, 2026).***
+
+### Macro Analysis: EURUSD
+**Date:** May 10, 2026
+**Sentiment:** Neutra
+2026-05-10 05:53:22,758 [tradeclaw.agents.pool[bot-9c9018ac]] INFO: [macro] sentiment=+0.00 confidence=0.00
+2026-05-10 05:53:22,758 [tradeclaw.agents.pool[bot-9c9018ac]] INFO: [earnings] sentiment=+0.00 confidence=0.00
+2026-05-10 05:53:22,758 [tradeclaw.agents.pool[bot-9c9018ac]] INFO: [technical] sentiment=+0.00 confidence=0.00
+2026-05-10 05:53:22,758 [tradeclaw.agents.pool[bot-9c9018ac]] INFO: [watchman] sentiment=+1.00 confidence=1.00
+2026-05-10 05:53:22,758 [tradeclaw.agents.pool[bot-9c9018ac]] INFO: [risk_manager] sentiment=+0.00 confidence=0.00
+2026-05-10 05:53:17,519 [tradeclaw] WARNING: Failed to fetch AI decisions for bot-9c9018ac: module 'postgres_store' has no attribute 'is_initialized'
+2026-05-10 05:53:22,758 [tradeclaw.agents.macro[bot-9c9018ac]] WARNING: Failed to parse signal JSON: No JSON found in: ***Disclaimer: This analysis is a simulated macroeconomic projection based on the hypothetical date provided (May 10, 2026).***
+
+### Macro Analysis: EURUSD
+**Date:** May 10, 2026
+**Sentiment:** Neutra
+2026-05-10 05:53:22,758 [tradeclaw.agents.pool[bot-9c9018ac]] INFO: [macro] sentiment=+0.00 confidence=0.00
+2026-05-10 05:53:22,758 [tradeclaw.agents.pool[bot-9c9018ac]] INFO: [earnings] sentiment=+0.00 confidence=0.00
+2026-05-10 05:53:22,758 [tradeclaw.agents.pool[bot-9c9018ac]] INFO: [technical] sentiment=+0.00 confidence=0.00
+2026-05-10 05:53:22,758 [tradeclaw.agents.pool[bot-9c9018ac]] INFO: [watchman] sentiment=+1.00 confidence=1.00
+2026-05-10 05:53:22,758 [tradeclaw.agents.pool[bot-9c9018ac]] INFO: [risk_manager] sentiment=+0.00 confidence=0.00
+2026-05-10 05:53:59,651 [tradeclaw.fleet] INFO: [bot-731aafea] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 05:54:04,654 [tradeclaw.darwin[bot-731aafea]] WARNING: Darwinian weights load timed out or failed: 
+2026-05-10 05:54:04,654 [tradeclaw.agents.pool[bot-731aafea]] INFO: Sub-agent loop starting
+2026-05-10 05:54:04,655 [tradeclaw.agents.pool[bot-731aafea]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 05:54:04,655 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] SubAgentPool wired (6 agents)
+2026-05-10 05:54:04,655 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain loop running
+2026-05-10 05:54:04,655 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain started
+2026-05-10 05:54:04,656 [tradeclaw.fleet] INFO: [bot-731aafea] Auto-starting engine per deployment request
+2026-05-10 05:54:04,656 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: SentimentAgent running for ETHUSD
+2026-05-10 05:54:04,656 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine started (restart). Symbol=ETHUSD
+2026-05-10 05:54:04,657 [tradeclaw.agents.macro[bot-731aafea]] INFO: MacroAgent running for ETHUSD
+2026-05-10 05:54:04,664 [tradeclaw.agents.earnings[bot-731aafea]] INFO: EarningsAgent running for ETHUSD
+2026-05-10 05:54:04,664 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: No buffered headlines for ETHUSD. Using web search.
+2026-05-10 05:54:04,671 [tradeclaw.agents.technical[bot-731aafea]] INFO: TechnicalAgent running for ETHUSD
+2026-05-10 05:54:04,692 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine RUNNING on MT5
+2026-05-10 05:54:04,692 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: PostgreSQL has 0 bars for ETHUSD (need 200+) — fetching from MT5
+2026-05-10 05:54:05,939 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 05:54:05,939 [tradeclaw.agents.earnings[bot-731aafea]] WARNING: Failed to parse signal JSON: No JSON found in: No.
+
+**Reasoning:**
+ETHUSD is a trading pair representing the price of **Ethereum (a cryptocurrency)** relative to the US Dollar. Cryptocurrencies are decentralized digital assets and not corporations
+2026-05-10 05:54:06,531 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-10 05:54:06,532 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 2/10 this hour
+2026-05-10 05:54:06,532 [tradeclaw.agents.pool[bot-731aafea]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-10 05:54:08,711 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Warmup: 200 bars loaded from MT5 for ETHUSD — back-filling Postgres
+2026-05-10 05:54:10,681 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 05:54:10,682 [tradeclaw.agents.macro[bot-731aafea]] WARNING: Failed to parse signal JSON: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2026-05-10 05:54:10,682 [tradeclaw.agents.pool[bot-731aafea]] INFO: [macro] sentiment=+0.00 confidence=0.00
+2026-05-10 05:54:10,682 [tradeclaw.agents.pool[bot-731aafea]] INFO: [earnings] sentiment=+0.00 confidence=0.00
+2026-05-10 05:54:14,276 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=32.8 | ATR_z=-0.22 | Trend=bearish
+2026-05-10 05:53:59,651 [tradeclaw.fleet] INFO: [bot-731aafea] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 05:54:04,654 [tradeclaw.darwin[bot-731aafea]] WARNING: Darwinian weights load timed out or failed: 
+2026-05-10 05:54:04,654 [tradeclaw.agents.pool[bot-731aafea]] INFO: Sub-agent loop starting
+2026-05-10 05:54:04,655 [tradeclaw.agents.pool[bot-731aafea]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 05:54:04,655 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] SubAgentPool wired (6 agents)
+2026-05-10 05:54:04,655 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain loop running
+2026-05-10 05:54:04,655 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain started
+2026-05-10 05:54:04,656 [tradeclaw.fleet] INFO: [bot-731aafea] Auto-starting engine per deployment request
+2026-05-10 05:54:04,656 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: SentimentAgent running for ETHUSD
+2026-05-10 05:54:04,656 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine started (restart). Symbol=ETHUSD
+2026-05-10 05:54:04,657 [tradeclaw.agents.macro[bot-731aafea]] INFO: MacroAgent running for ETHUSD
+2026-05-10 05:54:04,664 [tradeclaw.agents.earnings[bot-731aafea]] INFO: EarningsAgent running for ETHUSD
+2026-05-10 05:54:04,664 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: No buffered headlines for ETHUSD. Using web search.
+2026-05-10 05:54:04,671 [tradeclaw.agents.technical[bot-731aafea]] INFO: TechnicalAgent running for ETHUSD
+2026-05-10 05:54:04,692 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine RUNNING on MT5
+2026-05-10 05:54:04,692 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: PostgreSQL has 0 bars for ETHUSD (need 200+) — fetching from MT5
+2026-05-10 05:54:05,939 [tradeclaw.agents.earnings[bot-731aafea]] WARNING: Failed to parse signal JSON: No JSON found in: No.
+
+**Reasoning:**
+ETHUSD is a trading pair representing the price of **Ethereum (a cryptocurrency)** relative to the US Dollar. Cryptocurrencies are decentralized digital assets and not corporations
+2026-05-10 05:54:06,532 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 2/10 this hour
+2026-05-10 05:54:06,532 [tradeclaw.agents.pool[bot-731aafea]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-10 05:54:08,711 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Warmup: 200 bars loaded from MT5 for ETHUSD — back-filling Postgres
+2026-05-10 05:54:10,682 [tradeclaw.agents.macro[bot-731aafea]] WARNING: Failed to parse signal JSON: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2026-05-10 05:54:10,682 [tradeclaw.agents.pool[bot-731aafea]] INFO: [macro] sentiment=+0.00 confidence=0.00
+2026-05-10 05:54:10,682 [tradeclaw.agents.pool[bot-731aafea]] INFO: [earnings] sentiment=+0.00 confidence=0.00
+2026-05-10 05:54:14,276 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=32.8 | ATR_z=-0.22 | Trend=bearish
+2026-05-10 05:54:15,067 [tradeclaw.trend[bot-731aafea]] INFO: [bot-731aafea] TrendStrategist → HOLD @ 10% | No trend signal: EMA gap=+0.01%, ADX=32.8, no breakout. | crossed_up=False crossed_dn=False gap=+0.013% breakout_up=False breakout_dn=False momentum_buy=False momentum_sell=False
+2026-05-10 05:54:15,067 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=10%, ADX=32.8)
+2026-05-10 05:54:15,225 [tradeclaw] WARNING: [MarketData] Data unavailable for EURUSD: pickling is disabled
+2026-05-10 05:54:15,067 [tradeclaw.trend[bot-731aafea]] INFO: [bot-731aafea] TrendStrategist → HOLD @ 10% | No trend signal: EMA gap=+0.01%, ADX=32.8, no breakout. | crossed_up=False crossed_dn=False gap=+0.013% breakout_up=False breakout_dn=False momentum_buy=False momentum_sell=False
+2026-05-10 05:54:15,067 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=10%, ADX=32.8)
+2026-05-10 05:54:15,225 [tradeclaw] WARNING: [MarketData] Data unavailable for EURUSD: pickling is disabled
+2026-05-10 05:54:26,658 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-10 05:54:28,779 [tradeclaw.agents.pool[bot-731aafea]] INFO: [technical] sentiment=+0.00 confidence=0.00
+2026-05-10 05:54:28,779 [tradeclaw.agents.pool[bot-731aafea]] INFO: [watchman] sentiment=+1.00 confidence=1.00
+2026-05-10 05:54:28,779 [tradeclaw.agents.pool[bot-731aafea]] INFO: [risk_manager] sentiment=+0.00 confidence=0.00
+2026-05-10 05:54:38,119 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-10 05:54:48,827 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-10 05:54:49,900 [tradeclaw.fleet] INFO: [bot-4fd465ec] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 05:54:54,905 [tradeclaw.darwin[bot-4fd465ec]] WARNING: Darwinian weights load timed out or failed: 
+2026-05-10 05:54:54,905 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: Sub-agent loop starting
+2026-05-10 05:54:54,905 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: SentimentAgent running for BTCUSD
+2026-05-10 05:54:54,905 [tradeclaw.agents.macro[bot-4fd465ec]] INFO: MacroAgent running for BTCUSD
+2026-05-10 05:54:54,905 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 05:54:54,905 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: [bot-4fd465ec] SubAgentPool wired (6 agents)
+2026-05-10 05:54:54,905 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain loop running
+2026-05-10 05:54:54,906 [tradeclaw.agents.earnings[bot-4fd465ec]] INFO: EarningsAgent running for BTCUSD
+2026-05-10 05:54:54,906 [tradeclaw.agents.technical[bot-4fd465ec]] INFO: TechnicalAgent running for BTCUSD
+2026-05-10 05:54:54,906 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain started
+2026-05-10 05:54:54,906 [tradeclaw.fleet] INFO: [bot-4fd465ec] Auto-starting engine per deployment request
+2026-05-10 05:54:54,906 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine started (restart). Symbol=BTCUSD
+2026-05-10 05:54:54,909 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: No buffered headlines for BTCUSD. Using web search.
+2026-05-10 05:54:54,929 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine RUNNING on MT5
+2026-05-10 05:54:54,929 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: PostgreSQL has 0 bars for BTCUSD (need 200+) — fetching from MT5
+2026-05-10 05:54:55,289 [tradeclaw.fleet] WARNING: Fleet telemetry push error: 
+2026-05-10 05:54:56,477 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 3/10 this hour
+2026-05-10 05:54:56,477 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [sentiment] sentiment=+0.65 confidence=0.85
+2026-05-10 05:54:58,518 [tradeclaw.agents.earnings[bot-4fd465ec]] WARNING: Failed to parse signal JSON: No JSON found in: No.
+
+**BTCUSD (Bitcoin)** is a cryptocurrency/commodity, not a corporation. It does not have earnings reports, quarterly filings, or a management team reporting financial results. Therefore, there is 
+2026-05-10 05:55:01,925 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-10 05:55:03,055 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Warmup: 200 bars loaded from MT5 for BTCUSD — back-filling Postgres
+2026-05-10 05:55:04,195 [tradeclaw.engine[bot-9c9018ac|Crimson Lion EURUSD]] INFO: Engine stopped
+2026-05-10 05:55:04,195 [tradeclaw.bot_ai_brain[bot-9c9018ac]] INFO: AI Brain stopped
+2026-05-10 05:55:04,195 [tradeclaw.agents.pool[bot-9c9018ac]] INFO: SubAgentPool stopped
+2026-05-10 05:55:04,195 [tradeclaw.fleet] INFO: Bot killed and removed from PostgreSQL: bot-9c9018ac
+2026-05-10 05:55:04,248 [tradeclaw] WARNING: [MarketData] Data unavailable for ETHUSD: pickling is disabled
+2026-05-10 05:54:26,658 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-10 05:54:28,778 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 05:54:28,779 [tradeclaw.agents.pool[bot-731aafea]] INFO: [technical] sentiment=+0.00 confidence=0.00
+2026-05-10 05:54:28,779 [tradeclaw.agents.pool[bot-731aafea]] INFO: [watchman] sentiment=+1.00 confidence=1.00
+2026-05-10 05:54:28,779 [tradeclaw.agents.pool[bot-731aafea]] INFO: [risk_manager] sentiment=+0.00 confidence=0.00
+2026-05-10 05:54:38,119 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-10 05:54:48,827 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-10 05:54:49,900 [tradeclaw.fleet] INFO: [bot-4fd465ec] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 05:54:54,905 [tradeclaw.darwin[bot-4fd465ec]] WARNING: Darwinian weights load timed out or failed: 
+2026-05-10 05:54:54,905 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: Sub-agent loop starting
+2026-05-10 05:54:54,905 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: SentimentAgent running for BTCUSD
+2026-05-10 05:54:54,905 [tradeclaw.agents.macro[bot-4fd465ec]] INFO: MacroAgent running for BTCUSD
+2026-05-10 05:54:54,905 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 05:54:54,905 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: [bot-4fd465ec] SubAgentPool wired (6 agents)
+2026-05-10 05:54:54,905 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain loop running
+2026-05-10 05:54:54,906 [tradeclaw.agents.earnings[bot-4fd465ec]] INFO: EarningsAgent running for BTCUSD
+2026-05-10 05:54:54,906 [tradeclaw.agents.technical[bot-4fd465ec]] INFO: TechnicalAgent running for BTCUSD
+2026-05-10 05:54:54,906 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain started
+2026-05-10 05:54:54,906 [tradeclaw.fleet] INFO: [bot-4fd465ec] Auto-starting engine per deployment request
+2026-05-10 05:54:54,906 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine started (restart). Symbol=BTCUSD
+2026-05-10 05:54:54,909 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: No buffered headlines for BTCUSD. Using web search.
+2026-05-10 05:54:54,929 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine RUNNING on MT5
+2026-05-10 05:54:54,929 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: PostgreSQL has 0 bars for BTCUSD (need 200+) — fetching from MT5
+2026-05-10 05:54:55,289 [tradeclaw.fleet] WARNING: Fleet telemetry push error: 
+2026-05-10 05:54:56,476 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-10 05:54:56,477 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 3/10 this hour
+2026-05-10 05:54:56,477 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [sentiment] sentiment=+0.65 confidence=0.85
+2026-05-10 05:54:57,746 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 05:54:58,518 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 05:54:58,518 [tradeclaw.agents.earnings[bot-4fd465ec]] WARNING: Failed to parse signal JSON: No JSON found in: No.
+
+**BTCUSD (Bitcoin)** is a cryptocurrency/commodity, not a corporation. It does not have earnings reports, quarterly filings, or a management team reporting financial results. Therefore, there is 
+2026-05-10 05:55:01,925 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-10 05:55:03,055 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Warmup: 200 bars loaded from MT5 for BTCUSD — back-filling Postgres
+2026-05-10 05:55:04,195 [tradeclaw.engine[bot-9c9018ac|Crimson Lion EURUSD]] INFO: Engine stopped
+2026-05-10 05:55:04,195 [tradeclaw.bot_ai_brain[bot-9c9018ac]] INFO: AI Brain stopped
+2026-05-10 05:55:04,195 [tradeclaw.agents.pool[bot-9c9018ac]] INFO: SubAgentPool stopped
+2026-05-10 05:55:04,195 [tradeclaw.fleet] INFO: Bot killed and removed from PostgreSQL: bot-9c9018ac
+2026-05-10 05:55:04,248 [tradeclaw] WARNING: [MarketData] Data unavailable for ETHUSD: pickling is disabled
+2026-05-10 05:55:06,164 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(bot-9c9018ac) is not present in table "bots".
+2026-05-10 05:55:06,890 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=34.9 | ATR_z=-0.85 | Trend=bearish
+2026-05-10 05:55:06,896 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=34.9 (need ranging, can_mr=False); RSI=58.9 (need <45.0); RVOL=0.05 (need ≥1.5)
+2026-05-10 05:55:11,390 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-10 05:55:13,064 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-10 05:55:13,064 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for BTCUSD from PostgreSQL
+2026-05-10 05:55:13,916 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for ETHUSD from PostgreSQL
+2026-05-10 05:55:15,195 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=35.3 (need ranging, can_mr=False); RSI=54.8 (need <45.0); RVOL=0.21 (need ≥1.5)
+2026-05-10 05:55:06,164 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
+DETAIL:  Key (bot_id)=(bot-9c9018ac) is not present in table "bots".
+2026-05-10 05:55:06,890 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=34.9 | ATR_z=-0.85 | Trend=bearish
+2026-05-10 05:55:06,896 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=34.9 (need ranging, can_mr=False); RSI=58.9 (need <45.0); RVOL=0.05 (need ≥1.5)
+2026-05-10 05:55:11,390 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-10 05:55:13,064 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-10 05:55:13,064 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for BTCUSD from PostgreSQL
+2026-05-10 05:55:13,916 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for ETHUSD from PostgreSQL
+2026-05-10 05:55:15,195 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=35.3 (need ranging, can_mr=False); RSI=54.8 (need <45.0); RVOL=0.21 (need ≥1.5)
+2026-05-10 05:58:50,440 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-10 05:58:50,440 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-10 05:58:55,319 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-10 05:58:55,320 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-10 05:58:56,245 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-10 05:58:56,250 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-10 05:58:56,255 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-10 05:58:56,256 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-10 05:58:56,256 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-10 05:58:57,822 [tradeclaw.fleet] INFO: Restoring 2 bot(s) from PostgreSQL: ['bot-731aafea', 'bot-4fd465ec']
+2026-05-10 05:59:00,461 [tradeclaw.fleet] INFO: [bot-731aafea] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 05:59:00,461 [tradeclaw.agents.pool[bot-731aafea]] INFO: Sub-agent loop starting
+2026-05-10 05:59:00,461 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: SentimentAgent running for ETHUSD
+2026-05-10 05:59:00,462 [tradeclaw.agents.pool[bot-731aafea]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 05:59:00,462 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] SubAgentPool wired (6 agents)
+2026-05-10 05:59:00,462 [tradeclaw.agents.macro[bot-731aafea]] INFO: MacroAgent running for ETHUSD
+2026-05-10 05:59:00,462 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain loop running
+2026-05-10 05:59:00,462 [tradeclaw.agents.earnings[bot-731aafea]] INFO: EarningsAgent running for ETHUSD
+2026-05-10 05:59:00,462 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain started
+2026-05-10 05:59:00,462 [tradeclaw.agents.technical[bot-731aafea]] INFO: TechnicalAgent running for ETHUSD
+2026-05-10 05:59:00,462 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: No buffered headlines for ETHUSD. Using web search.
+2026-05-10 05:58:50,440 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-10 05:58:50,440 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-10 05:58:55,319 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-10 05:58:55,320 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-10 05:58:56,245 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-10 05:58:56,250 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-10 05:58:56,255 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-10 05:58:56,256 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-10 05:58:56,256 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-10 05:58:57,822 [tradeclaw.fleet] INFO: Restoring 2 bot(s) from PostgreSQL: ['bot-731aafea', 'bot-4fd465ec']
+2026-05-10 05:59:00,461 [tradeclaw.fleet] INFO: [bot-731aafea] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 05:59:00,461 [tradeclaw.agents.pool[bot-731aafea]] INFO: Sub-agent loop starting
+2026-05-10 05:59:00,461 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: SentimentAgent running for ETHUSD
+2026-05-10 05:59:00,462 [tradeclaw.agents.pool[bot-731aafea]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 05:59:00,462 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] SubAgentPool wired (6 agents)
+2026-05-10 05:59:00,462 [tradeclaw.agents.macro[bot-731aafea]] INFO: MacroAgent running for ETHUSD
+2026-05-10 05:59:00,462 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain loop running
+2026-05-10 05:59:00,462 [tradeclaw.agents.earnings[bot-731aafea]] INFO: EarningsAgent running for ETHUSD
+2026-05-10 05:59:00,462 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain started
+2026-05-10 05:59:00,462 [tradeclaw.agents.technical[bot-731aafea]] INFO: TechnicalAgent running for ETHUSD
+2026-05-10 05:59:00,462 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: No buffered headlines for ETHUSD. Using web search.
+2026-05-10 05:59:01,304 [tradeclaw.fleet] INFO: [bot-731aafea] Restored equity state: eq=100.00, pnl=0.00
+2026-05-10 05:59:01,304 [tradeclaw.fleet] INFO: [bot-731aafea] Auto-starting engine per config
+2026-05-10 05:59:01,305 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine started (restart). Symbol=ETHUSD
+2026-05-10 05:59:01,305 [tradeclaw.fleet] INFO: [bot-731aafea] Restored: ETHUSD | combined
+2026-05-10 05:59:01,323 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine RUNNING on MT5
+2026-05-10 05:59:01,323 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: PostgreSQL has 0 bars for ETHUSD (need 200+) — fetching from MT5
+2026-05-10 05:59:01,607 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 05:59:02,412 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-10 05:59:02,416 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 1/10 this hour
+2026-05-10 05:59:02,416 [tradeclaw.agents.pool[bot-731aafea]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-10 05:59:02,559 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 05:59:02,559 [tradeclaw.agents.earnings[bot-731aafea]] WARNING: Failed to parse signal JSON: No JSON found in: No. 
+
+**ETHUSD (Ethereum)** is a cryptocurrency, not a corporation. Therefore, it does not have "earnings reports," quarterly financial statements, or consensus earnings estimates. 
+
+Since there is no
+2026-05-10 05:59:03,205 [tradeclaw.fleet] INFO: [bot-4fd465ec] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 05:59:03,205 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: Sub-agent loop starting
+2026-05-10 05:59:03,205 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: SentimentAgent running for BTCUSD
+2026-05-10 05:59:03,205 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 05:59:03,205 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: [bot-4fd465ec] SubAgentPool wired (6 agents)
+2026-05-10 05:59:03,205 [tradeclaw.agents.macro[bot-4fd465ec]] INFO: MacroAgent running for BTCUSD
+2026-05-10 05:59:03,205 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain loop running
+2026-05-10 05:59:03,206 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain started
+2026-05-10 05:59:03,206 [tradeclaw.agents.earnings[bot-4fd465ec]] INFO: EarningsAgent running for BTCUSD
+2026-05-10 05:59:03,206 [tradeclaw.agents.technical[bot-4fd465ec]] INFO: TechnicalAgent running for BTCUSD
+2026-05-10 05:59:03,207 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: No buffered headlines for BTCUSD. Using web search.
+2026-05-10 05:59:03,714 [tradeclaw.fleet] INFO: [bot-4fd465ec] Restored equity state: eq=20.00, pnl=0.00
+2026-05-10 05:59:03,714 [tradeclaw.fleet] INFO: [bot-4fd465ec] Auto-starting engine per config
+2026-05-10 05:59:03,714 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine started (restart). Symbol=BTCUSD
+2026-05-10 05:59:03,714 [tradeclaw.fleet] INFO: [bot-4fd465ec] Restored: BTCUSD | mean_reversion
+2026-05-10 05:59:03,714 [tradeclaw.fleet] INFO: Bot restoration complete: 2/2 restored
+2026-05-10 05:59:03,714 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-10 05:59:03,717 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-10 05:59:03,717 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-10 05:59:03,722 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine RUNNING on MT5
+2026-05-10 05:59:03,722 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: PostgreSQL has 0 bars for BTCUSD (need 200+) — fetching from MT5
+2026-05-10 05:59:04,196 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 05:59:04,197 [tradeclaw.agents.earnings[bot-4fd465ec]] WARNING: Failed to parse signal JSON: No JSON found in: **No.**
+
+BTCUSD (Bitcoin) is a decentralized cryptocurrency, not a corporation. It does not have earnings reports, quarterly filings, or consensus earnings expectations. Therefore, there is no earning
+2026-05-10 05:59:04,486 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-10 05:59:04,487 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-10 05:59:04,487 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-10 05:59:04,487 [tradeclaw] INFO: TradeClaw ready
+2026-05-10 05:59:05,395 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 05:59:05,576 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-10 05:59:05,577 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-10 05:59:05,578 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 2/10 this hour
+2026-05-10 05:59:05,578 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [sentiment] sentiment=+0.65 confidence=0.85
+2026-05-10 05:59:05,838 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-10 05:59:06,102 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-10 05:59:06,366 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-10 05:59:06,638 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-10 05:59:06,865 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Warmup: 200 bars loaded from MT5 for ETHUSD — back-filling Postgres
+2026-05-10 05:59:06,937 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-10 05:59:07,203 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-10 05:59:07,466 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-10 05:59:07,730 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-10 05:59:07,998 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-10 05:59:08,262 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-10 05:59:08,526 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-10 05:59:11,282 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Warmup: 200 bars loaded from MT5 for BTCUSD — back-filling Postgres
+2026-05-10 05:59:11,959 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 05:59:11,960 [tradeclaw.agents.macro[bot-4fd465ec]] WARNING: Failed to parse signal JSON: No JSON found in: ***Note: As an AI, I am simulating the macro environment for the requested date of May 10, 2026, based on projected trajectories and systemic relationships.***
+
+### Macro Analysis for BTCUSD: May 10, 
+2026-05-10 05:59:11,960 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [macro] sentiment=+0.00 confidence=0.00
+2026-05-10 05:59:11,960 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [earnings] sentiment=+0.00 confidence=0.00
+2026-05-10 05:59:11,961 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [technical] sentiment=+0.00 confidence=0.00
+2026-05-10 05:59:11,961 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [watchman] sentiment=+1.00 confidence=1.00
+2026-05-10 05:59:11,961 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [risk_manager] sentiment=+0.00 confidence=0.00
+2026-05-10 05:59:12,643 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 05:59:12,647 [tradeclaw.agents.macro[bot-731aafea]] WARNING: Failed to parse signal JSON: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2026-05-10 05:59:12,647 [tradeclaw.agents.pool[bot-731aafea]] INFO: [macro] sentiment=+0.00 confidence=0.00
+2026-05-10 05:59:12,647 [tradeclaw.agents.pool[bot-731aafea]] INFO: [earnings] sentiment=+0.00 confidence=0.00
+2026-05-10 05:59:12,647 [tradeclaw.agents.pool[bot-731aafea]] INFO: [technical] sentiment=+0.00 confidence=0.00
+2026-05-10 05:59:12,647 [tradeclaw.agents.pool[bot-731aafea]] INFO: [watchman] sentiment=+1.00 confidence=1.00
+2026-05-10 05:59:12,647 [tradeclaw.agents.pool[bot-731aafea]] INFO: [risk_manager] sentiment=+0.00 confidence=0.00
+2026-05-10 05:59:13,156 [tradeclaw] WARNING: [MarketData] Data unavailable for ETHUSD: pickling is disabled
+2026-05-10 05:59:13,156 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-10 05:59:01,304 [tradeclaw.fleet] INFO: [bot-731aafea] Restored equity state: eq=100.00, pnl=0.00
+2026-05-10 05:59:01,304 [tradeclaw.fleet] INFO: [bot-731aafea] Auto-starting engine per config
+2026-05-10 05:59:01,305 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine started (restart). Symbol=ETHUSD
+2026-05-10 05:59:01,305 [tradeclaw.fleet] INFO: [bot-731aafea] Restored: ETHUSD | combined
+2026-05-10 05:59:01,323 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine RUNNING on MT5
+2026-05-10 05:59:01,323 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: PostgreSQL has 0 bars for ETHUSD (need 200+) — fetching from MT5
+2026-05-10 05:59:02,416 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 1/10 this hour
+2026-05-10 05:59:02,416 [tradeclaw.agents.pool[bot-731aafea]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-10 05:59:02,559 [tradeclaw.agents.earnings[bot-731aafea]] WARNING: Failed to parse signal JSON: No JSON found in: No. 
+
+**ETHUSD (Ethereum)** is a cryptocurrency, not a corporation. Therefore, it does not have "earnings reports," quarterly financial statements, or consensus earnings estimates. 
+
+Since there is no
+2026-05-10 05:59:03,205 [tradeclaw.fleet] INFO: [bot-4fd465ec] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 05:59:03,205 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: Sub-agent loop starting
+2026-05-10 05:59:03,205 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: SentimentAgent running for BTCUSD
+2026-05-10 05:59:03,205 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 05:59:03,205 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: [bot-4fd465ec] SubAgentPool wired (6 agents)
+2026-05-10 05:59:03,205 [tradeclaw.agents.macro[bot-4fd465ec]] INFO: MacroAgent running for BTCUSD
+2026-05-10 05:59:03,205 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain loop running
+2026-05-10 05:59:03,206 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain started
+2026-05-10 05:59:03,206 [tradeclaw.agents.earnings[bot-4fd465ec]] INFO: EarningsAgent running for BTCUSD
+2026-05-10 05:59:03,206 [tradeclaw.agents.technical[bot-4fd465ec]] INFO: TechnicalAgent running for BTCUSD
+2026-05-10 05:59:03,207 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: No buffered headlines for BTCUSD. Using web search.
+2026-05-10 05:59:03,714 [tradeclaw.fleet] INFO: [bot-4fd465ec] Restored equity state: eq=20.00, pnl=0.00
+2026-05-10 05:59:03,714 [tradeclaw.fleet] INFO: [bot-4fd465ec] Auto-starting engine per config
+2026-05-10 05:59:03,714 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine started (restart). Symbol=BTCUSD
+2026-05-10 05:59:03,714 [tradeclaw.fleet] INFO: [bot-4fd465ec] Restored: BTCUSD | mean_reversion
+2026-05-10 05:59:03,714 [tradeclaw.fleet] INFO: Bot restoration complete: 2/2 restored
+2026-05-10 05:59:03,714 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-10 05:59:03,717 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-10 05:59:03,717 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-10 05:59:03,722 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine RUNNING on MT5
+2026-05-10 05:59:03,722 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: PostgreSQL has 0 bars for BTCUSD (need 200+) — fetching from MT5
+2026-05-10 05:59:04,197 [tradeclaw.agents.earnings[bot-4fd465ec]] WARNING: Failed to parse signal JSON: No JSON found in: **No.**
+
+BTCUSD (Bitcoin) is a decentralized cryptocurrency, not a corporation. It does not have earnings reports, quarterly filings, or consensus earnings expectations. Therefore, there is no earning
+2026-05-10 05:59:04,486 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-10 05:59:04,487 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-10 05:59:04,487 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-10 05:59:04,487 [tradeclaw] INFO: TradeClaw ready
+2026-05-10 05:59:05,576 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-10 05:59:05,578 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 2/10 this hour
+2026-05-10 05:59:05,578 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [sentiment] sentiment=+0.65 confidence=0.85
+2026-05-10 05:59:05,838 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-10 05:59:06,102 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-10 05:59:06,366 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-10 05:59:06,638 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-10 05:59:06,865 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Warmup: 200 bars loaded from MT5 for ETHUSD — back-filling Postgres
+2026-05-10 05:59:06,937 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-10 05:59:07,203 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-10 05:59:07,466 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-10 05:59:07,730 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-10 05:59:07,998 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-10 05:59:08,262 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-10 05:59:08,526 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-10 05:59:11,282 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Warmup: 200 bars loaded from MT5 for BTCUSD — back-filling Postgres
+2026-05-10 05:59:11,960 [tradeclaw.agents.macro[bot-4fd465ec]] WARNING: Failed to parse signal JSON: No JSON found in: ***Note: As an AI, I am simulating the macro environment for the requested date of May 10, 2026, based on projected trajectories and systemic relationships.***
+
+### Macro Analysis for BTCUSD: May 10, 
+2026-05-10 05:59:11,960 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [macro] sentiment=+0.00 confidence=0.00
+2026-05-10 05:59:11,960 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [earnings] sentiment=+0.00 confidence=0.00
+2026-05-10 05:59:11,961 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [technical] sentiment=+0.00 confidence=0.00
+2026-05-10 05:59:11,961 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [watchman] sentiment=+1.00 confidence=1.00
+2026-05-10 05:59:11,961 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [risk_manager] sentiment=+0.00 confidence=0.00
+2026-05-10 05:59:12,647 [tradeclaw.agents.macro[bot-731aafea]] WARNING: Failed to parse signal JSON: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+2026-05-10 05:59:12,647 [tradeclaw.agents.pool[bot-731aafea]] INFO: [macro] sentiment=+0.00 confidence=0.00
+2026-05-10 05:59:12,647 [tradeclaw.agents.pool[bot-731aafea]] INFO: [earnings] sentiment=+0.00 confidence=0.00
+2026-05-10 05:59:12,647 [tradeclaw.agents.pool[bot-731aafea]] INFO: [technical] sentiment=+0.00 confidence=0.00
+2026-05-10 05:59:12,647 [tradeclaw.agents.pool[bot-731aafea]] INFO: [watchman] sentiment=+1.00 confidence=1.00
+2026-05-10 05:59:12,647 [tradeclaw.agents.pool[bot-731aafea]] INFO: [risk_manager] sentiment=+0.00 confidence=0.00
+2026-05-10 05:59:13,156 [tradeclaw] WARNING: [MarketData] Data unavailable for ETHUSD: pickling is disabled
+2026-05-10 05:59:13,156 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-10 05:59:13,165 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 1
+2026-05-10 05:59:13,194 [tradeclaw] WARNING: [MarketData] Data unavailable for BTCUSD: pickling is disabled
+2026-05-10 05:59:13,674 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-10 05:59:13,752 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=33.0 | ATR_z=-0.84 | Trend=bearish
+2026-05-10 05:59:13,883 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-10 05:59:13,884 [tradeclaw.darwin[bot-731aafea]] INFO: No outcomes to process for Darwinian update.
+2026-05-10 05:59:13,884 [tradeclaw.darwin[bot-4fd465ec]] INFO: No outcomes to process for Darwinian update.
+2026-05-10 05:59:13,884 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-10 05:59:13,884 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-10 05:59:13,884 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for ETHUSD from PostgreSQL
+2026-05-10 05:59:14,190 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-10 05:59:14,519 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-10 05:59:16,480 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=33.1 | ATR_z=-1.36 | Trend=bearish
+2026-05-10 05:59:16,483 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=33.1 (need ranging, can_mr=False); RSI=53.3 (need <45.0); RVOL=0.21 (need ≥1.5)
+2026-05-10 05:59:16,707 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for BTCUSD from PostgreSQL
+2026-05-10 05:59:19,530 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-10 05:59:13,165 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 1
+2026-05-10 05:59:13,194 [tradeclaw] WARNING: [MarketData] Data unavailable for BTCUSD: pickling is disabled
+2026-05-10 05:59:13,674 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-10 05:59:13,752 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=33.0 | ATR_z=-0.84 | Trend=bearish
+2026-05-10 05:59:13,883 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-10 05:59:13,884 [tradeclaw.darwin[bot-731aafea]] INFO: No outcomes to process for Darwinian update.
+2026-05-10 05:59:13,884 [tradeclaw.darwin[bot-4fd465ec]] INFO: No outcomes to process for Darwinian update.
+2026-05-10 05:59:13,884 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-10 05:59:13,884 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-10 05:59:13,884 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for ETHUSD from PostgreSQL
+2026-05-10 05:59:14,190 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-10 05:59:14,519 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-10 05:59:16,480 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=33.1 | ATR_z=-1.36 | Trend=bearish
+2026-05-10 05:59:16,483 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=33.1 (need ranging, can_mr=False); RSI=53.3 (need <45.0); RVOL=0.21 (need ≥1.5)
+2026-05-10 05:59:16,707 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for BTCUSD from PostgreSQL
+2026-05-10 05:59:19,530 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-10 06:03:59,264 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-10 06:03:59,264 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-10 06:04:04,132 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-10 06:04:04,132 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-10 06:04:05,017 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-10 06:04:05,023 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-10 06:04:05,031 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-10 06:04:05,031 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-10 06:04:05,031 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-10 06:04:06,742 [tradeclaw.fleet] INFO: Restoring 2 bot(s) from PostgreSQL: ['bot-731aafea', 'bot-4fd465ec']
+2026-05-10 06:03:59,264 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-10 06:03:59,264 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-10 06:04:04,132 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-10 06:04:04,132 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-10 06:04:05,017 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-10 06:04:05,023 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-10 06:04:05,031 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-10 06:04:05,031 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-10 06:04:05,031 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-10 06:04:06,742 [tradeclaw.fleet] INFO: Restoring 2 bot(s) from PostgreSQL: ['bot-731aafea', 'bot-4fd465ec']
+2026-05-10 06:04:09,648 [tradeclaw.fleet] INFO: [bot-731aafea] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 06:04:09,648 [tradeclaw.agents.pool[bot-731aafea]] INFO: Sub-agent loop starting
+2026-05-10 06:04:09,649 [tradeclaw.agents.pool[bot-731aafea]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 06:04:09,649 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: SentimentAgent running for ETHUSD
+2026-05-10 06:04:09,649 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] SubAgentPool wired (6 agents)
+2026-05-10 06:04:09,649 [tradeclaw.agents.macro[bot-731aafea]] INFO: MacroAgent running for ETHUSD
+2026-05-10 06:04:09,649 [tradeclaw.agents.earnings[bot-731aafea]] INFO: EarningsAgent running for ETHUSD
+2026-05-10 06:04:09,649 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain loop running
+2026-05-10 06:04:09,649 [tradeclaw.agents.technical[bot-731aafea]] INFO: TechnicalAgent running for ETHUSD
+2026-05-10 06:04:09,649 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain started
+2026-05-10 06:04:09,650 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: No buffered headlines for ETHUSD. Using web search.
+2026-05-10 06:04:10,502 [tradeclaw.fleet] INFO: [bot-731aafea] Restored equity state: eq=100.00, pnl=0.00
+2026-05-10 06:04:10,503 [tradeclaw.fleet] INFO: [bot-731aafea] Auto-starting engine per config
+2026-05-10 06:04:10,504 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine started (restart). Symbol=ETHUSD
+2026-05-10 06:04:10,504 [tradeclaw.fleet] INFO: [bot-731aafea] Restored: ETHUSD | combined
+2026-05-10 06:04:10,512 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine RUNNING on MT5
+2026-05-10 06:04:10,513 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: PostgreSQL has 0 bars for ETHUSD (need 200+) — fetching from MT5
+2026-05-10 06:04:10,657 [tradeclaw.agents.earnings[bot-731aafea]] WARNING: Failed to parse signal JSON: No JSON found in: **No.**
+
+ETHUSD (Ethereum) is a cryptocurrency, not a corporation. It does not have earnings reports, quarterly financial statements, or "whisper numbers" in the way a publicly traded company does. Th
+2026-05-10 06:04:11,345 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 1/10 this hour
+2026-05-10 06:04:11,345 [tradeclaw.agents.pool[bot-731aafea]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-10 06:04:12,523 [tradeclaw.fleet] INFO: [bot-4fd465ec] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 06:04:12,523 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: Sub-agent loop starting
+2026-05-10 06:04:12,524 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: SentimentAgent running for BTCUSD
+2026-05-10 06:04:12,524 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 06:04:12,524 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: [bot-4fd465ec] SubAgentPool wired (6 agents)
+2026-05-10 06:04:12,524 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain loop running
+2026-05-10 06:04:12,524 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain started
+2026-05-10 06:04:12,524 [tradeclaw.agents.macro[bot-4fd465ec]] INFO: MacroAgent running for BTCUSD
+2026-05-10 06:04:12,524 [tradeclaw.agents.earnings[bot-4fd465ec]] INFO: EarningsAgent running for BTCUSD
+2026-05-10 06:04:12,524 [tradeclaw.agents.technical[bot-4fd465ec]] INFO: TechnicalAgent running for BTCUSD
+2026-05-10 06:04:12,525 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: No buffered headlines for BTCUSD. Using web search.
+2026-05-10 06:04:13,087 [tradeclaw.fleet] INFO: [bot-4fd465ec] Restored equity state: eq=20.00, pnl=0.00
+2026-05-10 06:04:13,087 [tradeclaw.fleet] INFO: [bot-4fd465ec] Auto-starting engine per config
+2026-05-10 06:04:13,087 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine started (restart). Symbol=BTCUSD
+2026-05-10 06:04:13,087 [tradeclaw.fleet] INFO: [bot-4fd465ec] Restored: BTCUSD | mean_reversion
+2026-05-10 06:04:13,087 [tradeclaw.fleet] INFO: Bot restoration complete: 2/2 restored
+2026-05-10 06:04:13,088 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-10 06:04:13,089 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-10 06:04:13,089 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-10 06:04:13,092 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine RUNNING on MT5
+2026-05-10 06:04:13,092 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: PostgreSQL has 0 bars for BTCUSD (need 200+) — fetching from MT5
+2026-05-10 06:04:13,938 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-10 06:04:13,939 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-10 06:04:13,939 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-10 06:04:13,939 [tradeclaw] INFO: TradeClaw ready
+2026-05-10 06:04:13,940 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 1
+2026-05-10 06:04:14,528 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 2/10 this hour
+2026-05-10 06:04:14,528 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [sentiment] sentiment=+0.65 confidence=0.85
+2026-05-10 06:04:14,968 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-10 06:04:15,222 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-10 06:04:15,492 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-10 06:04:15,758 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-10 06:04:16,019 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-10 06:04:16,053 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Warmup: 200 bars loaded from MT5 for ETHUSD — back-filling Postgres
+2026-05-10 06:04:16,278 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-10 06:04:16,542 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-10 06:04:16,803 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-10 06:04:17,062 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-10 06:04:17,323 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-10 06:04:17,582 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-10 06:04:17,843 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-10 06:04:18,688 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-10 06:04:19,191 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-10 06:04:09,648 [tradeclaw.fleet] INFO: [bot-731aafea] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 06:04:09,648 [tradeclaw.agents.pool[bot-731aafea]] INFO: Sub-agent loop starting
+2026-05-10 06:04:09,649 [tradeclaw.agents.pool[bot-731aafea]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 06:04:09,649 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: SentimentAgent running for ETHUSD
+2026-05-10 06:04:09,649 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] SubAgentPool wired (6 agents)
+2026-05-10 06:04:09,649 [tradeclaw.agents.macro[bot-731aafea]] INFO: MacroAgent running for ETHUSD
+2026-05-10 06:04:09,649 [tradeclaw.agents.earnings[bot-731aafea]] INFO: EarningsAgent running for ETHUSD
+2026-05-10 06:04:09,649 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain loop running
+2026-05-10 06:04:09,649 [tradeclaw.agents.technical[bot-731aafea]] INFO: TechnicalAgent running for ETHUSD
+2026-05-10 06:04:09,649 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain started
+2026-05-10 06:04:09,650 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: No buffered headlines for ETHUSD. Using web search.
+2026-05-10 06:04:10,502 [tradeclaw.fleet] INFO: [bot-731aafea] Restored equity state: eq=100.00, pnl=0.00
+2026-05-10 06:04:10,503 [tradeclaw.fleet] INFO: [bot-731aafea] Auto-starting engine per config
+2026-05-10 06:04:10,504 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine started (restart). Symbol=ETHUSD
+2026-05-10 06:04:10,504 [tradeclaw.fleet] INFO: [bot-731aafea] Restored: ETHUSD | combined
+2026-05-10 06:04:10,512 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine RUNNING on MT5
+2026-05-10 06:04:10,513 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: PostgreSQL has 0 bars for ETHUSD (need 200+) — fetching from MT5
+2026-05-10 06:04:10,656 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 06:04:10,657 [tradeclaw.agents.earnings[bot-731aafea]] WARNING: Failed to parse signal JSON: No JSON found in: **No.**
+
+ETHUSD (Ethereum) is a cryptocurrency, not a corporation. It does not have earnings reports, quarterly financial statements, or "whisper numbers" in the way a publicly traded company does. Th
+2026-05-10 06:04:10,731 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 200 OK"
+2026-05-10 06:04:11,341 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-10 06:04:11,345 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 1/10 this hour
+2026-05-10 06:04:11,345 [tradeclaw.agents.pool[bot-731aafea]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-10 06:04:12,523 [tradeclaw.fleet] INFO: [bot-4fd465ec] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 06:04:12,523 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: Sub-agent loop starting
+2026-05-10 06:04:12,524 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: SentimentAgent running for BTCUSD
+2026-05-10 06:04:12,524 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 06:04:12,524 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: [bot-4fd465ec] SubAgentPool wired (6 agents)
+2026-05-10 06:04:12,524 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain loop running
+2026-05-10 06:04:12,524 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain started
+2026-05-10 06:04:12,524 [tradeclaw.agents.macro[bot-4fd465ec]] INFO: MacroAgent running for BTCUSD
+2026-05-10 06:04:12,524 [tradeclaw.agents.earnings[bot-4fd465ec]] INFO: EarningsAgent running for BTCUSD
+2026-05-10 06:04:12,524 [tradeclaw.agents.technical[bot-4fd465ec]] INFO: TechnicalAgent running for BTCUSD
+2026-05-10 06:04:12,525 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: No buffered headlines for BTCUSD. Using web search.
+2026-05-10 06:04:13,087 [tradeclaw.fleet] INFO: [bot-4fd465ec] Restored equity state: eq=20.00, pnl=0.00
+2026-05-10 06:04:13,087 [tradeclaw.fleet] INFO: [bot-4fd465ec] Auto-starting engine per config
+2026-05-10 06:04:13,087 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine started (restart). Symbol=BTCUSD
+2026-05-10 06:04:13,087 [tradeclaw.fleet] INFO: [bot-4fd465ec] Restored: BTCUSD | mean_reversion
+2026-05-10 06:04:13,087 [tradeclaw.fleet] INFO: Bot restoration complete: 2/2 restored
+2026-05-10 06:04:13,088 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-10 06:04:13,089 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-10 06:04:13,089 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-10 06:04:13,092 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine RUNNING on MT5
+2026-05-10 06:04:13,092 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: PostgreSQL has 0 bars for BTCUSD (need 200+) — fetching from MT5
+2026-05-10 06:04:13,938 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-10 06:04:13,939 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-10 06:04:13,939 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-10 06:04:13,939 [tradeclaw] INFO: TradeClaw ready
+2026-05-10 06:04:13,940 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 1
+2026-05-10 06:04:14,523 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-10 06:04:14,528 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 2/10 this hour
+2026-05-10 06:04:14,528 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [sentiment] sentiment=+0.65 confidence=0.85
+2026-05-10 06:04:14,968 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-10 06:04:15,222 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-10 06:04:15,492 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-10 06:04:15,758 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-10 06:04:16,019 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-10 06:04:16,053 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Warmup: 200 bars loaded from MT5 for ETHUSD — back-filling Postgres
+2026-05-10 06:04:16,278 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-10 06:04:16,542 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-10 06:04:16,803 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-10 06:04:17,062 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-10 06:04:17,323 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-10 06:04:17,582 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-10 06:04:17,843 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-10 06:04:18,688 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-10 06:04:19,191 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-10 06:04:19,702 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-10 06:04:20,779 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Warmup: 200 bars loaded from MT5 for BTCUSD — back-filling Postgres
+2026-05-10 06:04:21,634 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-10 06:04:21,635 [tradeclaw.darwin[bot-731aafea]] INFO: No outcomes to process for Darwinian update.
+2026-05-10 06:04:21,635 [tradeclaw.darwin[bot-4fd465ec]] INFO: No outcomes to process for Darwinian update.
+2026-05-10 06:04:21,635 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-10 06:04:21,635 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-10 06:04:21,635 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for BTCUSD from PostgreSQL
+2026-05-10 06:04:21,860 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=33.2 | ATR_z=0.37 | Trend=bearish
+2026-05-10 06:04:22,500 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-10 06:04:24,482 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for ETHUSD from PostgreSQL
+2026-05-10 06:04:25,187 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=50.9 | ATR_z=0.31 | Trend=bearish
+2026-05-10 06:04:25,192 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=50.9 (need ranging, can_mr=False); RSI=48.2 (need <45.0); RVOL=0.38 (need ≥1.5)
+2026-05-10 06:04:27,309 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-10 06:04:19,702 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-10 06:04:20,779 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Warmup: 200 bars loaded from MT5 for BTCUSD — back-filling Postgres
+2026-05-10 06:04:21,634 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-10 06:04:21,635 [tradeclaw.darwin[bot-731aafea]] INFO: No outcomes to process for Darwinian update.
+2026-05-10 06:04:21,635 [tradeclaw.darwin[bot-4fd465ec]] INFO: No outcomes to process for Darwinian update.
+2026-05-10 06:04:21,635 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-10 06:04:21,635 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-10 06:04:21,635 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for BTCUSD from PostgreSQL
+2026-05-10 06:04:21,860 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=33.2 | ATR_z=0.37 | Trend=bearish
+2026-05-10 06:04:22,500 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-10 06:04:24,482 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for ETHUSD from PostgreSQL
+2026-05-10 06:04:25,187 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=50.9 | ATR_z=0.31 | Trend=bearish
+2026-05-10 06:04:25,192 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=50.9 (need ranging, can_mr=False); RSI=48.2 (need <45.0); RVOL=0.38 (need ≥1.5)
+2026-05-10 06:04:27,309 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-10 06:06:53,455 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-10 06:06:53,456 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-10 06:06:57,969 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-10 06:06:57,969 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-10 06:06:58,767 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-10 06:06:58,772 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-10 06:06:58,777 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-10 06:06:58,777 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-10 06:06:58,777 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-10 06:07:00,345 [tradeclaw.fleet] INFO: Restoring 2 bot(s) from PostgreSQL: ['bot-731aafea', 'bot-4fd465ec']
+2026-05-10 06:07:03,046 [tradeclaw.fleet] INFO: [bot-731aafea] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 06:07:03,046 [tradeclaw.agents.pool[bot-731aafea]] INFO: Sub-agent loop starting
+2026-05-10 06:07:03,046 [tradeclaw.agents.pool[bot-731aafea]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 06:07:03,046 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] SubAgentPool wired (6 agents)
+2026-05-10 06:07:03,047 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: SentimentAgent running for ETHUSD
+2026-05-10 06:07:03,047 [tradeclaw.agents.macro[bot-731aafea]] INFO: MacroAgent running for ETHUSD
+2026-05-10 06:07:03,047 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain loop running
+2026-05-10 06:07:03,047 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain started
+2026-05-10 06:07:03,047 [tradeclaw.agents.earnings[bot-731aafea]] INFO: EarningsAgent running for ETHUSD
+2026-05-10 06:07:03,047 [tradeclaw.agents.technical[bot-731aafea]] INFO: TechnicalAgent running for ETHUSD
+2026-05-10 06:07:03,048 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: No buffered headlines for ETHUSD. Using web search.
+2026-05-10 06:06:53,455 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-10 06:06:53,456 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-10 06:06:57,969 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-10 06:06:57,969 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-10 06:06:58,767 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-10 06:06:58,772 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-10 06:06:58,777 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-10 06:06:58,777 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-10 06:06:58,777 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-10 06:07:00,345 [tradeclaw.fleet] INFO: Restoring 2 bot(s) from PostgreSQL: ['bot-731aafea', 'bot-4fd465ec']
+2026-05-10 06:07:03,046 [tradeclaw.fleet] INFO: [bot-731aafea] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 06:07:03,046 [tradeclaw.agents.pool[bot-731aafea]] INFO: Sub-agent loop starting
+2026-05-10 06:07:03,046 [tradeclaw.agents.pool[bot-731aafea]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 06:07:03,046 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] SubAgentPool wired (6 agents)
+2026-05-10 06:07:03,047 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: SentimentAgent running for ETHUSD
+2026-05-10 06:07:03,047 [tradeclaw.agents.macro[bot-731aafea]] INFO: MacroAgent running for ETHUSD
+2026-05-10 06:07:03,047 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain loop running
+2026-05-10 06:07:03,047 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain started
+2026-05-10 06:07:03,047 [tradeclaw.agents.earnings[bot-731aafea]] INFO: EarningsAgent running for ETHUSD
+2026-05-10 06:07:03,047 [tradeclaw.agents.technical[bot-731aafea]] INFO: TechnicalAgent running for ETHUSD
+2026-05-10 06:07:03,048 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: No buffered headlines for ETHUSD. Using web search.
+2026-05-10 06:07:03,833 [tradeclaw.fleet] INFO: [bot-731aafea] Restored equity state: eq=100.00, pnl=0.00
+2026-05-10 06:07:03,833 [tradeclaw.fleet] INFO: [bot-731aafea] Auto-starting engine per config
+2026-05-10 06:07:03,833 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine started (restart). Symbol=ETHUSD
+2026-05-10 06:07:03,833 [tradeclaw.fleet] INFO: [bot-731aafea] Restored: ETHUSD | combined
+2026-05-10 06:07:03,840 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine RUNNING on MT5
+2026-05-10 06:07:03,840 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: PostgreSQL has 0 bars for ETHUSD (need 200+) — fetching from MT5
+2026-05-10 06:07:05,060 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 1/10 this hour
+2026-05-10 06:07:05,060 [tradeclaw.agents.pool[bot-731aafea]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-10 06:07:05,743 [tradeclaw.fleet] INFO: [bot-4fd465ec] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 06:07:05,743 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: Sub-agent loop starting
+2026-05-10 06:07:05,744 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: SentimentAgent running for BTCUSD
+2026-05-10 06:07:05,744 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 06:07:05,744 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: [bot-4fd465ec] SubAgentPool wired (6 agents)
+2026-05-10 06:07:05,744 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain loop running
+2026-05-10 06:07:05,744 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain started
+2026-05-10 06:07:05,744 [tradeclaw.agents.macro[bot-4fd465ec]] INFO: MacroAgent running for BTCUSD
+2026-05-10 06:07:05,744 [tradeclaw.agents.earnings[bot-4fd465ec]] INFO: EarningsAgent running for BTCUSD
+2026-05-10 06:07:05,745 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: No buffered headlines for BTCUSD. Using web search.
+2026-05-10 06:07:05,747 [tradeclaw.agents.technical[bot-4fd465ec]] INFO: TechnicalAgent running for BTCUSD
+2026-05-10 06:07:06,276 [tradeclaw.fleet] INFO: [bot-4fd465ec] Restored equity state: eq=20.00, pnl=0.00
+2026-05-10 06:07:06,276 [tradeclaw.fleet] INFO: [bot-4fd465ec] Auto-starting engine per config
+2026-05-10 06:07:06,277 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine started (restart). Symbol=BTCUSD
+2026-05-10 06:07:06,277 [tradeclaw.fleet] INFO: [bot-4fd465ec] Restored: BTCUSD | mean_reversion
+2026-05-10 06:07:06,277 [tradeclaw.fleet] INFO: Bot restoration complete: 2/2 restored
+2026-05-10 06:07:06,277 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-10 06:07:06,279 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-10 06:07:06,279 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-10 06:07:06,281 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine RUNNING on MT5
+2026-05-10 06:07:06,281 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: PostgreSQL has 0 bars for BTCUSD (need 200+) — fetching from MT5
+2026-05-10 06:07:07,096 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-10 06:07:07,097 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-10 06:07:07,097 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-10 06:07:07,097 [tradeclaw] INFO: TradeClaw ready
+2026-05-10 06:07:07,099 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 1
+2026-05-10 06:07:07,107 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 2/10 this hour
+2026-05-10 06:07:07,107 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [sentiment] sentiment=+0.65 confidence=0.85
+2026-05-10 06:07:08,145 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-10 06:07:08,401 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-10 06:07:08,480 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Warmup: 200 bars loaded from MT5 for ETHUSD — back-filling Postgres
+2026-05-10 06:07:08,676 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-10 06:07:08,936 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-10 06:07:09,204 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-10 06:07:09,476 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-10 06:07:09,745 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-10 06:07:10,014 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-10 06:07:10,281 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-10 06:07:10,549 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-10 06:07:10,824 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-10 06:07:11,080 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-10 06:07:11,879 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-10 06:07:12,408 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-10 06:07:13,009 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-10 06:07:03,833 [tradeclaw.fleet] INFO: [bot-731aafea] Restored equity state: eq=100.00, pnl=0.00
+2026-05-10 06:07:03,833 [tradeclaw.fleet] INFO: [bot-731aafea] Auto-starting engine per config
+2026-05-10 06:07:03,833 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine started (restart). Symbol=ETHUSD
+2026-05-10 06:07:03,833 [tradeclaw.fleet] INFO: [bot-731aafea] Restored: ETHUSD | combined
+2026-05-10 06:07:03,840 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine RUNNING on MT5
+2026-05-10 06:07:03,840 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: PostgreSQL has 0 bars for ETHUSD (need 200+) — fetching from MT5
+2026-05-10 06:07:05,056 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-10 06:07:05,060 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 1/10 this hour
+2026-05-10 06:07:05,060 [tradeclaw.agents.pool[bot-731aafea]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-10 06:07:05,743 [tradeclaw.fleet] INFO: [bot-4fd465ec] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 06:07:05,743 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: Sub-agent loop starting
+2026-05-10 06:07:05,744 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: SentimentAgent running for BTCUSD
+2026-05-10 06:07:05,744 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 06:07:05,744 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: [bot-4fd465ec] SubAgentPool wired (6 agents)
+2026-05-10 06:07:05,744 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain loop running
+2026-05-10 06:07:05,744 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain started
+2026-05-10 06:07:05,744 [tradeclaw.agents.macro[bot-4fd465ec]] INFO: MacroAgent running for BTCUSD
+2026-05-10 06:07:05,744 [tradeclaw.agents.earnings[bot-4fd465ec]] INFO: EarningsAgent running for BTCUSD
+2026-05-10 06:07:05,745 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: No buffered headlines for BTCUSD. Using web search.
+2026-05-10 06:07:05,747 [tradeclaw.agents.technical[bot-4fd465ec]] INFO: TechnicalAgent running for BTCUSD
+2026-05-10 06:07:06,276 [tradeclaw.fleet] INFO: [bot-4fd465ec] Restored equity state: eq=20.00, pnl=0.00
+2026-05-10 06:07:06,276 [tradeclaw.fleet] INFO: [bot-4fd465ec] Auto-starting engine per config
+2026-05-10 06:07:06,277 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine started (restart). Symbol=BTCUSD
+2026-05-10 06:07:06,277 [tradeclaw.fleet] INFO: [bot-4fd465ec] Restored: BTCUSD | mean_reversion
+2026-05-10 06:07:06,277 [tradeclaw.fleet] INFO: Bot restoration complete: 2/2 restored
+2026-05-10 06:07:06,277 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-10 06:07:06,279 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-10 06:07:06,279 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-10 06:07:06,281 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine RUNNING on MT5
+2026-05-10 06:07:06,281 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: PostgreSQL has 0 bars for BTCUSD (need 200+) — fetching from MT5
+2026-05-10 06:07:07,096 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-10 06:07:07,097 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-10 06:07:07,097 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-10 06:07:07,097 [tradeclaw] INFO: TradeClaw ready
+2026-05-10 06:07:07,099 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 1
+2026-05-10 06:07:07,106 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-10 06:07:07,107 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 2/10 this hour
+2026-05-10 06:07:07,107 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [sentiment] sentiment=+0.65 confidence=0.85
+2026-05-10 06:07:08,145 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-10 06:07:08,401 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-10 06:07:08,480 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Warmup: 200 bars loaded from MT5 for ETHUSD — back-filling Postgres
+2026-05-10 06:07:08,676 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-10 06:07:08,936 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-10 06:07:09,204 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-10 06:07:09,476 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-10 06:07:09,745 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-10 06:07:10,014 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-10 06:07:10,281 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-10 06:07:10,549 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-10 06:07:10,824 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-10 06:07:11,080 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-10 06:07:11,879 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-10 06:07:12,408 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-10 06:07:13,009 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-10 06:07:14,320 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Warmup: 200 bars loaded from MT5 for BTCUSD — back-filling Postgres
+2026-05-10 06:07:15,101 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-10 06:07:15,101 [tradeclaw.darwin[bot-731aafea]] INFO: No outcomes to process for Darwinian update.
+2026-05-10 06:07:15,101 [tradeclaw.darwin[bot-4fd465ec]] INFO: No outcomes to process for Darwinian update.
+2026-05-10 06:07:15,101 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-10 06:07:15,101 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-10 06:07:15,101 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for BTCUSD from PostgreSQL
+2026-05-10 06:07:15,277 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=35.8 | ATR_z=0.17 | Trend=bearish
+2026-05-10 06:07:15,939 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-10 06:07:18,004 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for ETHUSD from PostgreSQL
+2026-05-10 06:07:18,211 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=66.6 | ATR_z=0.82 | Trend=bearish
+2026-05-10 06:07:18,217 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=66.6 (need ranging, can_mr=False); RSI=50.5 (need <45.0); RVOL=0.25 (need ≥1.5)
+2026-05-10 06:07:18,217 [tradeclaw.confluence] INFO: [ICT] Conviction=HIGH | FVG=True | Sweep=False | KillZone=True
+2026-05-10 06:07:20,816 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-10 06:07:25,374 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-10 06:07:27,299 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=66.6 (need ranging, can_mr=False); RSI=48.5 (need <45.0); RVOL=0.43 (need ≥1.5)
+2026-05-10 06:07:27,299 [tradeclaw.confluence] INFO: [ICT] Conviction=HIGH | FVG=True | Sweep=False | KillZone=True
+2026-05-10 06:07:14,320 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Warmup: 200 bars loaded from MT5 for BTCUSD — back-filling Postgres
+2026-05-10 06:07:15,101 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-10 06:07:15,101 [tradeclaw.darwin[bot-731aafea]] INFO: No outcomes to process for Darwinian update.
+2026-05-10 06:07:15,101 [tradeclaw.darwin[bot-4fd465ec]] INFO: No outcomes to process for Darwinian update.
+2026-05-10 06:07:15,101 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-10 06:07:15,101 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-10 06:07:15,101 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for BTCUSD from PostgreSQL
+2026-05-10 06:07:15,277 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=35.8 | ATR_z=0.17 | Trend=bearish
+2026-05-10 06:07:15,939 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-10 06:07:18,004 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for ETHUSD from PostgreSQL
+2026-05-10 06:07:18,211 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=66.6 | ATR_z=0.82 | Trend=bearish
+2026-05-10 06:07:18,217 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=66.6 (need ranging, can_mr=False); RSI=50.5 (need <45.0); RVOL=0.25 (need ≥1.5)
+2026-05-10 06:07:18,217 [tradeclaw.confluence] INFO: [ICT] Conviction=HIGH | FVG=True | Sweep=False | KillZone=True
+2026-05-10 06:07:20,816 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-10 06:07:25,374 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-10 06:07:27,299 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=66.6 (need ranging, can_mr=False); RSI=48.5 (need <45.0); RVOL=0.43 (need ≥1.5)
+2026-05-10 06:07:27,299 [tradeclaw.confluence] INFO: [ICT] Conviction=HIGH | FVG=True | Sweep=False | KillZone=True
+2026-05-10 06:08:03,020 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-10 06:08:03,020 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-10 06:08:07,897 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-10 06:08:07,897 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-10 06:08:08,759 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-10 06:08:08,762 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-10 06:08:08,767 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-10 06:08:08,768 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-10 06:08:08,768 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-10 06:08:10,449 [tradeclaw.fleet] INFO: Restoring 2 bot(s) from PostgreSQL: ['bot-731aafea', 'bot-4fd465ec']
+2026-05-10 06:08:03,020 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-10 06:08:03,020 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-10 06:08:07,897 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-10 06:08:07,897 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-10 06:08:08,759 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-10 06:08:08,762 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-10 06:08:08,767 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-10 06:08:08,768 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-10 06:08:08,768 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-10 06:08:10,449 [tradeclaw.fleet] INFO: Restoring 2 bot(s) from PostgreSQL: ['bot-731aafea', 'bot-4fd465ec']
+2026-05-10 06:08:17,149 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-10 06:08:17,149 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-10 06:08:22,032 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-10 06:08:22,033 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-10 06:08:22,919 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-10 06:08:22,921 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-10 06:08:22,924 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-10 06:08:22,924 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-10 06:08:22,924 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-10 06:08:24,650 [tradeclaw.fleet] INFO: Restoring 2 bot(s) from PostgreSQL: ['bot-731aafea', 'bot-4fd465ec']
+2026-05-10 06:08:17,149 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-10 06:08:17,149 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-10 06:08:22,032 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-10 06:08:22,033 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-10 06:08:22,919 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-10 06:08:22,921 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-10 06:08:22,924 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-10 06:08:22,924 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-10 06:08:22,924 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-10 06:08:24,650 [tradeclaw.fleet] INFO: Restoring 2 bot(s) from PostgreSQL: ['bot-731aafea', 'bot-4fd465ec']
+2026-05-10 06:08:27,621 [tradeclaw.fleet] INFO: [bot-731aafea] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 06:08:27,621 [tradeclaw.agents.pool[bot-731aafea]] INFO: Sub-agent loop starting
+2026-05-10 06:08:27,621 [tradeclaw.agents.pool[bot-731aafea]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 06:08:27,621 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: SentimentAgent running for ETHUSD
+2026-05-10 06:08:27,621 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] SubAgentPool wired (6 agents)
+2026-05-10 06:08:27,622 [tradeclaw.agents.macro[bot-731aafea]] INFO: MacroAgent running for ETHUSD
+2026-05-10 06:08:27,622 [tradeclaw.fleet] ERROR: [bot-731aafea] Failed to restore from PostgreSQL: __init__() got an unexpected keyword argument 'persistence_store'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 240, in restore_bots_from_store
+    instance = self._build_bot_instance(config)
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 948, in _build_bot_instance
+    ai_brain = BotAIBrainScheduler(
+TypeError: __init__() got an unexpected keyword argument 'persistence_store'
+2026-05-10 06:08:27,623 [tradeclaw.agents.earnings[bot-731aafea]] INFO: EarningsAgent running for ETHUSD
+2026-05-10 06:08:27,623 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: No buffered headlines for ETHUSD. Using web search.
+2026-05-10 06:08:27,623 [tradeclaw.agents.technical[bot-731aafea]] INFO: TechnicalAgent running for ETHUSD
+2026-05-10 06:08:29,146 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-10 06:08:29,153 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 1/10 this hour
+2026-05-10 06:08:29,153 [tradeclaw.agents.pool[bot-731aafea]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-10 06:08:29,711 [tradeclaw.fleet] INFO: [bot-4fd465ec] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 06:08:29,712 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: Sub-agent loop starting
+2026-05-10 06:08:29,712 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: SentimentAgent running for BTCUSD
+2026-05-10 06:08:29,712 [tradeclaw.agents.macro[bot-4fd465ec]] INFO: MacroAgent running for BTCUSD
+2026-05-10 06:08:29,712 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 06:08:29,712 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: [bot-4fd465ec] SubAgentPool wired (6 agents)
+2026-05-10 06:08:29,713 [tradeclaw.fleet] ERROR: [bot-4fd465ec] Failed to restore from PostgreSQL: __init__() got an unexpected keyword argument 'persistence_store'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 240, in restore_bots_from_store
+    instance = self._build_bot_instance(config)
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 948, in _build_bot_instance
+    ai_brain = BotAIBrainScheduler(
+TypeError: __init__() got an unexpected keyword argument 'persistence_store'
+2026-05-10 06:08:29,713 [tradeclaw.fleet] INFO: Bot restoration complete: 0/2 restored
+2026-05-10 06:08:29,713 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-10 06:08:29,713 [tradeclaw.agents.earnings[bot-4fd465ec]] INFO: EarningsAgent running for BTCUSD
+2026-05-10 06:08:29,713 [tradeclaw.agents.technical[bot-4fd465ec]] INFO: TechnicalAgent running for BTCUSD
+2026-05-10 06:08:29,714 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: No buffered headlines for BTCUSD. Using web search.
+2026-05-10 06:08:29,721 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-10 06:08:29,722 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-10 06:08:30,586 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-10 06:08:30,587 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-10 06:08:30,587 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-10 06:08:30,587 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-10 06:08:30,587 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-10 06:08:30,587 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-10 06:08:30,587 [tradeclaw] INFO: TradeClaw ready
+2026-05-10 06:08:30,590 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 1
+2026-05-10 06:08:31,727 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-10 06:08:32,013 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-10 06:08:32,014 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-10 06:08:32,015 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 2/10 this hour
+2026-05-10 06:08:32,015 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [sentiment] sentiment=+0.65 confidence=0.85
+2026-05-10 06:08:32,294 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-10 06:08:32,583 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-10 06:08:32,871 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-10 06:08:32,874 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-10 06:08:33,159 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-10 06:08:33,447 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-10 06:08:33,739 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-10 06:08:34,026 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-10 06:08:34,314 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-10 06:08:34,602 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-10 06:08:34,890 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-10 06:08:35,746 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-10 06:08:36,321 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-10 06:08:36,911 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-10 06:08:27,621 [tradeclaw.fleet] INFO: [bot-731aafea] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 06:08:27,621 [tradeclaw.agents.pool[bot-731aafea]] INFO: Sub-agent loop starting
+2026-05-10 06:08:27,621 [tradeclaw.agents.pool[bot-731aafea]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 06:08:27,621 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: SentimentAgent running for ETHUSD
+2026-05-10 06:08:27,621 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] SubAgentPool wired (6 agents)
+2026-05-10 06:08:27,622 [tradeclaw.agents.macro[bot-731aafea]] INFO: MacroAgent running for ETHUSD
+2026-05-10 06:08:27,622 [tradeclaw.fleet] ERROR: [bot-731aafea] Failed to restore from PostgreSQL: __init__() got an unexpected keyword argument 'persistence_store'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 240, in restore_bots_from_store
+    instance = self._build_bot_instance(config)
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 948, in _build_bot_instance
+    ai_brain = BotAIBrainScheduler(
+TypeError: __init__() got an unexpected keyword argument 'persistence_store'
+2026-05-10 06:08:27,623 [tradeclaw.agents.earnings[bot-731aafea]] INFO: EarningsAgent running for ETHUSD
+2026-05-10 06:08:27,623 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: No buffered headlines for ETHUSD. Using web search.
+2026-05-10 06:08:27,623 [tradeclaw.agents.technical[bot-731aafea]] INFO: TechnicalAgent running for ETHUSD
+2026-05-10 06:08:29,153 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 1/10 this hour
+2026-05-10 06:08:29,153 [tradeclaw.agents.pool[bot-731aafea]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-10 06:08:29,711 [tradeclaw.fleet] INFO: [bot-4fd465ec] Gemini client initialized (model=gemini-3.1-flash-lite-preview)
+2026-05-10 06:08:29,712 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: Sub-agent loop starting
+2026-05-10 06:08:29,712 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: SentimentAgent running for BTCUSD
+2026-05-10 06:08:29,712 [tradeclaw.agents.macro[bot-4fd465ec]] INFO: MacroAgent running for BTCUSD
+2026-05-10 06:08:29,712 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-10 06:08:29,712 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: [bot-4fd465ec] SubAgentPool wired (6 agents)
+2026-05-10 06:08:29,713 [tradeclaw.fleet] ERROR: [bot-4fd465ec] Failed to restore from PostgreSQL: __init__() got an unexpected keyword argument 'persistence_store'
+Traceback (most recent call last):
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 240, in restore_bots_from_store
+    instance = self._build_bot_instance(config)
+  File "/Users/ikymasie/Documents/Work/Projects/MetaClaw-Symbol-Trader/backend/fleet.py", line 948, in _build_bot_instance
+    ai_brain = BotAIBrainScheduler(
+TypeError: __init__() got an unexpected keyword argument 'persistence_store'
+2026-05-10 06:08:29,713 [tradeclaw.fleet] INFO: Bot restoration complete: 0/2 restored
+2026-05-10 06:08:29,713 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-10 06:08:29,713 [tradeclaw.agents.earnings[bot-4fd465ec]] INFO: EarningsAgent running for BTCUSD
+2026-05-10 06:08:29,713 [tradeclaw.agents.technical[bot-4fd465ec]] INFO: TechnicalAgent running for BTCUSD
+2026-05-10 06:08:29,714 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: No buffered headlines for BTCUSD. Using web search.
+2026-05-10 06:08:29,721 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-10 06:08:29,722 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-10 06:08:30,586 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-10 06:08:30,587 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-10 06:08:30,587 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-10 06:08:30,587 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-10 06:08:30,587 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-10 06:08:30,587 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-10 06:08:30,587 [tradeclaw] INFO: TradeClaw ready
+2026-05-10 06:08:30,590 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 1
+2026-05-10 06:08:31,727 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-10 06:08:32,013 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-10 06:08:32,015 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 2/10 this hour
+2026-05-10 06:08:32,015 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [sentiment] sentiment=+0.65 confidence=0.85
+2026-05-10 06:08:32,294 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-10 06:08:32,583 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-10 06:08:32,871 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-10 06:08:32,874 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-10 06:08:33,159 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-10 06:08:33,447 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-10 06:08:33,739 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-10 06:08:34,026 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-10 06:08:34,314 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-10 06:08:34,602 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-10 06:08:34,890 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-10 06:08:35,746 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-10 06:08:36,321 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-10 06:08:36,911 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
