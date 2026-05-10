@@ -218,6 +218,16 @@ class TradingConfig:
         default_factory=lambda: os.getenv("DATABASE_URL", "")
     )
 
+    # ── Security ──────────────────────────────────────────────────────────
+    allowed_origins_raw: str = field(
+        default_factory=lambda: os.getenv("ALLOWED_ORIGINS", "http://localhost:3000")
+    )
+
+    @property
+    def allowed_origins(self) -> list[str]:
+        """Parse comma-separated origins into a list."""
+        return [x.strip() for x in self.allowed_origins_raw.split(",") if x.strip()]
+
 
 # Singleton config instance
 config = TradingConfig()

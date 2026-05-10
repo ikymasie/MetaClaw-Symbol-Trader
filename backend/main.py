@@ -502,7 +502,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Robust for dev/production flexibility
+    allow_origins=config.allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
