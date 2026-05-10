@@ -353,6 +353,8 @@ class ExecutionerAgent:
     def _execute_limit(
         self, side: str, qty: float, signal_price: float
     ) -> ExecutionResult:
+        # signal_price is now explicitly the expected execution price (ask for buy, bid for sell).
+        # We target a limit price slightly better than the current expected price.
         improvement = 0.0005
         if side == "buy":
             limit_price = self._round_price(signal_price * (1 - improvement))
