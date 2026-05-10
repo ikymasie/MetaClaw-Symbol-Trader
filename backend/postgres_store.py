@@ -612,13 +612,13 @@ async def load_darwinian_weights(bot_id: str) -> Optional[dict]:
 # COMPATIBILITY ALIASES (For main.py)
 # ─────────────────────────────────────────────
 
-async def insert_trade(bot_id: str = "master", trade: Optional[dict] = None, **kwargs):
+async def insert_trade(bot_id: str, trade: Optional[dict] = None, **kwargs):
     """Compatibility shim for main.py."""
     if trade is None:
         trade = kwargs
     await get_store().save_trade(bot_id, trade)
 
-async def insert_equity_snapshot(bot_id: str = "master", snapshot: Optional[dict] = None, **kwargs):
+async def insert_equity_snapshot(bot_id: str, snapshot: Optional[dict] = None, **kwargs):
     """Compatibility shim for main.py."""
     if snapshot is None:
         snapshot = kwargs
