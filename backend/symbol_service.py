@@ -37,13 +37,17 @@ class SymbolService:
 
             for sheet_name in excel_file.sheet_names:
                 df = excel_file.parse(sheet_name)
-                for _, row in df.iterrows():
-                    name = str(row.get("Symbol", "")).strip()
+
+                # Optimize dataframe iteration using vectorized operations
+                # Convert only required columns to string to handle nan/float values
+                # and use zip to iterate efficiently instead of iterrows()
+                symbols = df.get("Symbol", pd.Series([None] * len(df))).astype(str).str.strip()
+                categories = df.get("Category", pd.Series([sheet_name] * len(df))).astype(str).str.strip()
+                descriptions = df.get("Description", pd.Series([""] * len(df))).astype(str).str.strip()
+
+                for name, category, description in zip(symbols, categories, descriptions):
                     if not name or name == "nan":
                         continue
-                    
-                    category = str(row.get("Category", sheet_name)).strip()
-                    description = str(row.get("Description", "")).strip()
                     
                     # If we haven't seen this symbol yet, or if the current entry has better data
                     if name not in seen_symbols:

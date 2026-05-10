@@ -58,10 +58,9 @@ def test_bearish_alignment():
 def test_neutral_alignment():
     # Construct a flat then volatile price to get mixed EMAs
     # Fast might be above mid, but mid below slow, etc.
-    # Start with 60 periods of 100
-    prices = [100.0] * 60
-    # Suddenly drop fast, then bounce a bit
-    prices.extend([90.0, 95.0, 92.0])
+    # Create a mixed alignment by having a strong downtrend followed by a sharp bounce.
+    prices = [100.0 - i*0.5 for i in range(60)] # Downtrend
+    prices.extend([90.0, 100.0, 110.0, 120.0]) # Sharp bounce so fast > mid but mid < slow
 
     df = create_mock_df(prices)
     mf = MomentumFilter(ema_fast=8, ema_mid=21, ema_slow=55)

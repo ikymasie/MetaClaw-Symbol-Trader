@@ -392,27 +392,38 @@ class MeanReversionEngine:
                         self.current_price = price
 
                         # Build price history for frontend
-                        self.price_history = []
-                        self.bollinger_data = []
-                        for idx, row in df.iterrows():
-                            ts = idx.isoformat() if hasattr(idx, "isoformat") else str(idx)
-                            self.price_history.append(
-                                {
-                                    "time": ts,
-                                    "open": float(row["open"]),
-                                    "high": float(row["high"]),
-                                    "low": float(row["low"]),
-                                    "close": float(row["close"]),
-                                }
+
+                        # Optimize dataframe to dict conversion using vectorized operations
+                        # replacing slow iterrows() loop
+
+                        # Format datetime index to ISO format strings
+                        ts_index = [idx.isoformat() if hasattr(idx, "isoformat") else str(idx) for idx in df.index]
+
+                        # Fast zip iteration over columns instead of rows
+                        self.price_history = [
+                            {
+                                "time": ts,
+                                "open": float(o),
+                                "high": float(h),
+                                "low": float(l),
+                                "close": float(c),
+                            }
+                            for ts, o, h, l, c in zip(
+                                ts_index, df["open"], df["high"], df["low"], df["close"]
                             )
-                            self.bollinger_data.append(
-                                {
-                                    "time": ts,
-                                    "upper": float(row["upper_bb"]),
-                                    "middle": float(row["sma"]),
-                                    "lower": float(row["lower_bb"]),
-                                }
+                        ]
+
+                        self.bollinger_data = [
+                            {
+                                "time": ts,
+                                "upper": float(u),
+                                "middle": float(m),
+                                "lower": float(lo),
+                            }
+                            for ts, u, m, lo in zip(
+                                ts_index, df["upper_bb"], df["sma"], df["lower_bb"]
                             )
+                        ]
 
                     upper = float(latest["upper_bb"])
                     lower = float(latest["lower_bb"])

@@ -136,16 +136,21 @@ class MarketDataAggregator:
                     continue
                 
                 # Convert back to list of dicts for Firestore
-                bars_tf = []
-                for ts, row in df_tf.iterrows():
-                    bars_tf.append({
-                        "t": ts.isoformat(),
-                        "open": float(row["open"]),
-                        "high": float(row["high"]),
-                        "low": float(row["low"]),
-                        "close": float(row["close"]),
-                        "volume": float(row["volume"])
-                    })
+
+                # Optimize dataframe to dict conversion using vectorized operations
+                # replacing slow iterrows() loop
+
+                # Format datetime index to ISO format
+                df_tf_copy = df_tf.copy()
+                df_tf_copy['t'] = df_tf_copy.index.map(lambda x: x.isoformat())
+
+                # Keep only required columns and convert to list of dicts
+                cols = ['t', 'open', 'high', 'low', 'close', 'volume']
+                # Ensure float type for numeric columns (should already be numeric, but ensures float conversion)
+                for col in ['open', 'high', 'low', 'close', 'volume']:
+                    df_tf_copy[col] = df_tf_copy[col].astype(float)
+
+                bars_tf = df_tf_copy[cols].to_dict('records')
                 
                 result["aggregated_bars"][tf] = bars_tf
                 result["trend_summaries"][tf] = self.compute_trend_summary(df_tf, symbol, tf)
