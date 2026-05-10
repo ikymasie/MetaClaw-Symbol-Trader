@@ -2,7 +2,6 @@ import asyncio
 import logging
 import os
 import time
-from datetime import datetime, timezone
 from typing import List, Optional
 
 class BufferedFileHandler(logging.Handler):
@@ -53,12 +52,17 @@ class BufferedFileHandler(logging.Handler):
             self.buffer = []
             
             try:
-                with open(self.filename, "a", encoding="utf-8") as f:
-                    for line in lines_to_write:
-                        f.write(line + "\n")
+                loop = asyncio.get_running_loop()
+                await loop.run_in_executor(None, self._write_to_file, lines_to_write)
                 self._last_flush = time.time()
             except Exception as e:
                 print(f"Failed to flush logs to {self.filename}: {e}")
+
+    def _write_to_file(self, lines: List[str]):
+        """Synchronous helper to write lines to file."""
+        with open(self.filename, "a", encoding="utf-8") as f:
+            for line in lines:
+                f.write(line + "\n")
 
     def flush(self):
         """Synchronous flush for shutdown or non-async contexts."""
@@ -70,9 +74,7 @@ class BufferedFileHandler(logging.Handler):
         lines_to_write = self.buffer
         self.buffer = []
         try:
-            with open(self.filename, "a", encoding="utf-8") as f:
-                for line in lines_to_write:
-                    f.write(line + "\n")
+            self._write_to_file(lines_to_write)
         except Exception as e:
             print(f"Failed to sync-flush logs to {self.filename}: {e}")
 
