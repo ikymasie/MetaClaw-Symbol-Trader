@@ -31,6 +31,8 @@ frontend/next-env.d.ts
 
 # ── Secrets (NEVER commit) ───────────────────────────────
 service-account-key.json
+backend/data/config.json
+backend/data/.keyfile
 *.pem
 *.key
 
