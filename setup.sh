@@ -220,7 +220,7 @@ if [ "$SKIP_BACKEND_ENV" = false ]; then
     echo -e "  ${DIM}  Get a free key at: https://aistudio.google.com/apikey${RESET}"
     echo -e "  ${DIM}  Leave blank to use Ollama only.${RESET}"
     prompt_with_default GEMINI_KEY "  Gemini API Key" "" true
-    prompt_with_default GEMINI_MDL "  Gemini Model" "gemini-2.5-flash-lite-preview"
+    prompt_with_default GEMINI_MDL "  Gemini Model" "gemini-3.1-flash-lite"
 
     echo ""
     echo -e "  ${CYAN}${BOLD}  ── Ollama (Local LLM Fallback) ──${RESET}"

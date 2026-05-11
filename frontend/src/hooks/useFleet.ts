@@ -1,5 +1,30 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { tradingApi, BotDeployRequest, FleetConfig, BotSnapshot, FleetStatus } from '@/lib/api';
+import { 
+  tradingApi, 
+  accountsApi, 
+  type BotDeployRequest, 
+  type FleetConfig, 
+  type BotSnapshot, 
+  type FleetStatus,
+  type MT5Account,
+  type MT5Symbol,
+  type AvailableSymbol,
+  type WizardGenerateRequest,
+  type WizardResult
+} from '@/lib/api';
+
+export type { 
+  BotDeployRequest, 
+  FleetConfig, 
+  BotSnapshot, 
+  FleetStatus,
+  MT5Account,
+  MT5Symbol,
+  AvailableSymbol,
+  WizardGenerateRequest,
+  WizardResult
+};
+
 
 export const FLEET_KEY = 'fleet-status';
 export const FLEET_CONFIG_KEY = 'fleet-config';
@@ -147,13 +172,19 @@ export function useBotAIDecisions(botId: string | null) {
   });
 }
 
-/** MT5 Account Info — polls every 10 seconds (10,000 ms) */
+/** MT5 Account Info — polls every 10 s when connected, backs off to 30 s when disconnected */
 export function useMT5Account() {
   return useQuery({
     queryKey: ['mt5-account'],
     queryFn: tradingApi.getAccountInfo,
-    refetchInterval: 10_000,
-    retry: 3,
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (data && data.status === 'DISCONNECTED') {
+        return 30_000; // Back off when MT5 isn't reachable
+      }
+      return 10_000;
+    },
+    retry: 1,
   });
 }
 
@@ -185,6 +216,32 @@ export function useAvailableSymbols() {
     queryKey: ['available-symbols'],
     queryFn: tradingApi.getAvailableSymbols,
     staleTime: 60_000, // 1 minute
+  });
+}
+
+/** Fetch all configured MT5 accounts */
+export function useAccounts() {
+  return useQuery({
+    queryKey: ['accounts'],
+    queryFn: accountsApi.list,
+    staleTime: 30_000,
+  });
+}
+
+/** Fetch symbols for a specific account */
+export function useAccountSymbols(accountId: string | null) {
+  return useQuery({
+    queryKey: ['account-symbols', accountId],
+    queryFn: () => accountsApi.getSymbols(accountId!),
+    enabled: !!accountId,
+    staleTime: 60_000,
+  });
+}
+
+/** Generate a bot config via AI */
+export function useGenerateBot() {
+  return useMutation({
+    mutationFn: (req: WizardGenerateRequest) => tradingApi.wizardGenerate(req),
   });
 }
 

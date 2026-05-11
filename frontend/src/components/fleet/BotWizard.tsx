@@ -4,14 +4,22 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   X, Rocket, ChevronRight, ChevronLeft, RefreshCw,
   Zap, Shield, Brain, BarChart2, TrendingUp,
-  ArrowRight, Check, Loader2, Sparkles
+  ArrowRight, Check, Loader2, Sparkles, Server
 } from 'lucide-react';
-import { api } from '@/lib/api';
+import { api, accountsApi } from '@/lib/api';
 import {
   useDeployBot,
   useAvailableSymbols,
   useMT5Account,
   useFleetStatus,
+  useAccounts,
+  useAccountSymbols,
+  useGenerateBot,
+  type MT5Account,
+  type MT5Symbol,
+  type BotDeployRequest,
+  type WizardGenerateRequest,
+  type WizardResult,
 } from '@/hooks/useFleet';
 
 // ─────────────────────────────────────────────────────────
@@ -114,18 +122,7 @@ const FORGE_MESSAGES = [
   'Finalising battle configuration…',
 ];
 
-type Step = 'category' | 'symbol' | 'personality' | 'forge' | 'review' | 'deploy';
-
-interface WizardResult {
-  name: string;
-  description: string;
-  personality: string;
-  animal: string;
-  symbol: string;
-  category: string;
-  config: Record<string, any>;
-  ai_generated: boolean;
-}
+type Step = 'account' | 'category' | 'symbol' | 'personality' | 'forge' | 'review' | 'deploy';
 
 interface Props {
   onClose: () => void;
@@ -156,6 +153,7 @@ function RiskBar({ level, color }: { level: number; color: string }) {
 // STEP INDICATOR
 // ─────────────────────────────────────────────────────────
 const STEPS: { id: Step; label: string }[] = [
+  { id: 'account',     label: 'Broker' },
   { id: 'category',    label: 'Market' },
   { id: 'symbol',      label: 'Symbol' },
   { id: 'personality', label: 'Spirit' },
@@ -192,7 +190,12 @@ function StepIndicator({ current }: { current: Step }) {
 // MAIN WIZARD
 // ─────────────────────────────────────────────────────────
 export function BotWizard({ onClose, onDeployed }: Props) {
-  const [step, setStep]           = useState<Step>('category');
+  const [step, setStep]           = useState<Step>('account');
+  const [accountId, setAccountId] = useState('');
+  const { data: accountsData, isLoading: loadingAccounts } = useAccounts();
+  const accounts = accountsData?.accounts ?? [];
+  const { data: accountSymbolsData, isLoading: loadingAccountSymbols } = useAccountSymbols(accountId);
+  const accountSymbols = accountSymbolsData?.symbols ?? [];
   const [category, setCategory]   = useState('');
   const [symbol, setSymbol]       = useState('');
   const [customSymbol, setCustomSymbol] = useState('');
@@ -210,19 +213,32 @@ export function BotWizard({ onClose, onDeployed }: Props) {
   const [netProfitTarget, setNetProfitTarget] = useState(1);
   const [takeProfitUsd, setTakeProfitUsd] = useState(1);
   const deployBot = useDeployBot();
-  const { data: symbolsData, isLoading: isLoadingSymbols } = useAvailableSymbols();
+  const generateBot = useGenerateBot();
+  const { data: availableSymbolsData, isLoading: isLoadingSymbols } = useAvailableSymbols();
   const { data: accountInfo } = useMT5Account();
   const { data: fleetStatus } = useFleetStatus();
+
+  // ── Auto-select account ─────────────────────────────
+  useEffect(() => {
+    if (accounts.length > 0 && !accountId) {
+      const defaultAcct = accounts.find(a => a.is_default);
+      if (defaultAcct) setAccountId(defaultAcct.id);
+      else if (accounts.length === 1) setAccountId(accounts[0].id);
+    }
+  }, [accounts, accountId]);
 
   const totalAllocated = fleetStatus?.bots?.reduce((sum, b) => sum + b.capital_allocation, 0) ?? 0;
   const maxAllocation = accountInfo ? Math.max(0, accountInfo.equity - totalAllocated) : 0;
 
   // ── Dynamic Categories ────────────────────────────────
+  // Use account-specific symbols when available, fallback to global
+  const effectiveSymbols = accountSymbols.length > 0 ? accountSymbols : (availableSymbolsData?.symbols ?? []);
+
   const { categories, symbolsByCategory } = useMemo(() => {
-    if (!symbolsData?.symbols) return { categories: [], symbolsByCategory: {} };
+    if (!effectiveSymbols.length) return { categories: [], symbolsByCategory: {} };
 
     const catMap: Record<string, { ticker: string; name: string }[]> = {};
-    const rawSymbols = symbolsData.symbols;
+    const rawSymbols = effectiveSymbols;
 
     rawSymbols.forEach(s => {
       const cat = s.category || 'Uncategorized';
@@ -304,7 +320,7 @@ export function BotWizard({ onClose, onDeployed }: Props) {
     });
 
     return { categories: categoryList, symbolsByCategory: catMap };
-  }, [symbolsData]);
+  }, [effectiveSymbols]);
 
   const CATEGORIES = categories;
   const SYMBOLS_BY_CATEGORY = symbolsByCategory;
@@ -321,7 +337,7 @@ export function BotWizard({ onClose, onDeployed }: Props) {
   const selectedCategory    = CATEGORIES.find(c => c.id === category);
 
   const activeSymbol = customSymbol.trim().toUpperCase() || symbol;
-  const selectedSymbolInfo = symbolsData?.symbols.find(s => s.name === activeSymbol);
+  const selectedSymbolInfo = effectiveSymbols.find(s => s.name === activeSymbol);
   const volMin  = selectedSymbolInfo?.volume_min  ?? 0.01;
   const volMax  = selectedSymbolInfo?.volume_max  ?? 100.0;
   const volStep = selectedSymbolInfo?.volume_step ?? 0.01;
@@ -332,33 +348,40 @@ export function BotWizard({ onClose, onDeployed }: Props) {
     setStep('forge');
     setForgeError('');
     const sym = customSymbol.trim().toUpperCase() || symbol;
-    try {
-      const { data } = await api.post('/fleet/wizard/generate', {
-        symbol: sym,
-        category,
-        personality,
-        strategy: selectedPersonality?.strategy || 'combined',
-      });
-      setResult(data);
-      setLeverageEnabled(data.config.leverage_mode_enabled ?? false);
-      setLeverageFactor(data.config.leverage_factor ?? 20);
-      setIsolatedRisk(data.config.isolated_risk_usd ?? 40);
-      setNetProfitTarget(data.config.net_profit_target_usd ?? 1);
-      setTakeProfitUsd(data.config.take_profit_usd ?? 1);
-      setLotSize(selectedSymbolInfo?.volume_min ?? 0.01);
-      if (maxAllocation > 0) setCapitalAllocation(Math.min(10000, maxAllocation));
-      setStep('review');
-    } catch (err: any) {
-      setForgeError(err?.response?.data?.detail || 'Generation failed. Please try again.');
-      setStep('personality');
-    }
-  }, [symbol, customSymbol, category, personality]);
+
+    const request: WizardGenerateRequest = {
+      symbol: sym,
+      category,
+      personality,
+    };
+
+    generateBot.mutate(request, {
+      onSuccess: (data: WizardResult) => {
+        setResult(data);
+        setLeverageEnabled(data.config.leverage_mode_enabled ?? false);
+        setLeverageFactor(data.config.leverage_factor ?? 20);
+        setIsolatedRisk(data.config.isolated_risk_usd ?? 40);
+        setNetProfitTarget(data.config.net_profit_target_usd ?? 1);
+        setTakeProfitUsd(data.config.take_profit_usd ?? 1);
+        setLotSize(selectedSymbolInfo?.volume_min ?? 0.01);
+        if (maxAllocation > 0) setCapitalAllocation(Math.min(10000, maxAllocation));
+        setStep('review');
+      },
+      onError: (err: unknown) => {
+        const errorMsg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail 
+          || (err instanceof Error ? err.message : 'Generation failed. Please try again.');
+        setForgeError(errorMsg);
+        setStep('personality');
+      }
+    });
+  }, [symbol, customSymbol, category, personality, generateBot, selectedSymbolInfo, maxAllocation]);
 
   // ── Deploy ────────────────────────────────────────────
   const handleDeploy = () => {
     if (!result) return;
     const payload = {
       ...result.config,
+      account_id: accountId,
       name: result.name,
       description: result.description,
       personality: result.personality,
@@ -379,8 +402,8 @@ export function BotWizard({ onClose, onDeployed }: Props) {
       net_profit_target_usd: netProfitTarget,
       take_profit_usd: takeProfitUsd,
     };
-    deployBot.mutate(payload, {
-      onSuccess: (res: any) => {
+    deployBot.mutate(payload as BotDeployRequest, {
+      onSuccess: (res) => {
         onDeployed?.(res.bot_id);
         onClose();
       },
@@ -391,6 +414,78 @@ export function BotWizard({ onClose, onDeployed }: Props) {
   // RENDER STEPS
   // ─────────────────────────────────────────────────────
 
+  const renderAccount = () => (
+    <div className="space-y-4 animate-in fade-in duration-300">
+      <div className="text-center space-y-1 pb-2">
+        <h3 className="text-white font-semibold text-base">Select broker account</h3>
+        <p className="text-muted-foreground text-xs">Which MT5 account should this bot trade on?</p>
+      </div>
+
+      {loadingAccounts ? (
+        <div className="flex flex-col items-center gap-3 py-10">
+          <Loader2 className="w-5 h-5 text-primary animate-spin" />
+          <p className="text-xs text-muted-foreground font-mono">Loading accounts…</p>
+        </div>
+      ) : accounts.length === 0 ? (
+        <div className="text-center py-8 space-y-2">
+          <Server className="w-8 h-8 text-muted-foreground mx-auto opacity-40" />
+          <p className="text-xs text-muted-foreground">No MT5 accounts configured.</p>
+          <p className="text-[10px] text-muted-foreground">
+            Go to <a href="/setup" className="text-primary underline">Settings</a> to add a broker account.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {accounts.map(acct => (
+            <button
+              key={acct.id}
+              onClick={() => {
+                setAccountId(acct.id);
+                setCategory('');
+                setSymbol('');
+                setTimeout(() => setStep('category'), 180);
+              }}
+              className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all duration-200 group text-left ${
+                accountId === acct.id
+                  ? 'bg-primary/15 border-primary/50 shadow-lg shadow-primary/10'
+                  : 'bg-white/3 border-white/8 hover:border-white/20 hover:shadow-md'
+              }`}
+            >
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-all ${
+                accountId === acct.id
+                  ? 'bg-primary/20 border border-primary/40'
+                  : 'bg-white/5 border border-white/10'
+              }`}>
+                <Server className={`w-4 h-4 ${accountId === acct.id ? 'text-primary' : 'text-muted-foreground'}`} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <p className="text-white text-sm font-semibold truncate">{acct.label}</p>
+                  {acct.is_default && (
+                    <span className="px-1.5 py-0.5 rounded-sm bg-primary/15 border border-primary/25 text-[7px] font-mono text-primary uppercase tracking-widest">Default</span>
+                  )}
+                </div>
+                <p className="text-muted-foreground text-[10px] font-mono">
+                  {acct.mt5_server} · Login {acct.mt5_login}
+                </p>
+              </div>
+              <ChevronRight className={`w-4 h-4 transition-all ${
+                accountId === acct.id ? 'text-primary translate-x-0.5' : 'text-muted-foreground group-hover:text-white group-hover:translate-x-0.5'
+              }`} />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {loadingAccountSymbols && accountId && (
+        <div className="flex items-center gap-2 justify-center text-xs text-muted-foreground pt-2">
+          <Loader2 className="w-3 h-3 animate-spin" />
+          <span className="font-mono">Loading broker symbols…</span>
+        </div>
+      )}
+    </div>
+  );
+
   const renderCategory = () => {
     const filteredCategories = CATEGORIES.filter(cat => 
       cat.label.toLowerCase().includes(categorySearch.toLowerCase()) ||
@@ -399,9 +494,18 @@ export function BotWizard({ onClose, onDeployed }: Props) {
 
     return (
       <div className="space-y-4 animate-in fade-in duration-300">
-        <div className="text-center space-y-1 pb-2">
-          <h3 className="text-white font-semibold text-base">Choose your market</h3>
-          <p className="text-muted-foreground text-xs">Where does your bot hunt?</p>
+        <div className="flex items-center gap-2">
+          {accounts.length > 1 && (
+            <button onClick={() => setStep('account')} className="p-1.5 rounded-lg hover:bg-white/5 text-muted-foreground hover:text-white transition-colors">
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          )}
+          <div className="flex-1 text-center space-y-0.5">
+            <h3 className="text-white font-semibold text-base">Choose your market</h3>
+            <p className="text-muted-foreground text-xs">
+              {accounts.find(a => a.id === accountId)?.label ?? 'Default Account'} · Where does your bot hunt?
+            </p>
+          </div>
         </div>
 
         {/* Category Search */}
@@ -658,13 +762,15 @@ export function BotWizard({ onClose, onDeployed }: Props) {
     const p = PERSONALITIES.find(x => x.id === result.personality)!;
     const cfg = result.config;
 
+    const selectedAccount = accounts.find(a => a.id === accountId);
+
     const stats = [
+      { label: 'Broker',   value: selectedAccount?.label ?? 'Default',    icon: <Server className="w-3 h-3" /> },
       { label: 'Symbol',    value: result.symbol,                         icon: <BarChart2 className="w-3 h-3" /> },
       { label: 'Category',  value: result.category,                        icon: <TrendingUp className="w-3 h-3" /> },
       { label: 'Strategy',  value: (cfg.strategy ?? 'combined').toUpperCase().replace('_', ' '), icon: <Brain className="w-3 h-3" /> },
       { label: 'Agents',    value: `${(cfg.sub_agents ?? []).length} active`, icon: <Zap className="w-3 h-3" /> },
       { label: 'Stop Loss', value: `${cfg.stop_loss_pct ?? '—'}%`,        icon: <Shield className="w-3 h-3" /> },
-      { label: 'Max DD',    value: `${cfg.max_daily_drawdown_pct ?? '—'}%/day`, icon: <Shield className="w-3 h-3" /> },
     ];
 
     return (
@@ -899,6 +1005,7 @@ export function BotWizard({ onClose, onDeployed }: Props) {
 
         {/* Body */}
         <div className="p-5 max-h-[72vh] overflow-y-auto">
+          {step === 'account'     && renderAccount()}
           {step === 'category'    && renderCategory()}
           {step === 'symbol'      && renderSymbol()}
           {step === 'personality' && renderPersonality()}

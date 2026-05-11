@@ -55,7 +55,7 @@ async def maintenance_loop():
     """Periodically check and create partitions for the current and next month."""
     while True:
         try:
-            db_url = os.getenv("DATABASE_URL")
+            db_url = config.database_url
             if not db_url:
                 logger.error("Partition maintenance error: DATABASE_URL not set")
                 await asyncio.sleep(60)

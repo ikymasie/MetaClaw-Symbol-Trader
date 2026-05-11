@@ -61,6 +61,75 @@ class BotInstance:
     autoresearcher: object = field(default=None, repr=False)
     market_trends: dict = field(default_factory=dict) # Local trend cache for agents
 
+    # Phase 4 §7.3 — Per-bot event loop for failure-domain isolation.
+    # Each bot runs its own asyncio event loop in a dedicated daemon thread.
+    # Async operations (PostgreSQL writes, Darwinian persistence, research
+    # bridge) are scheduled on this loop instead of contending on the
+    # shared fleet `_main_loop`, so that one bot's 429/Neon-throttle does
+    # not delay coroutines of other bots.
+    _bot_loop: object = field(default=None, repr=False)
+    _bot_loop_thread: object = field(default=None, repr=False)
+
+    def start_bot_loop(self):
+        """Create and start a dedicated asyncio event loop for this bot."""
+        import asyncio
+        import threading
+        if self._bot_loop is not None and self._bot_loop.is_running():
+            return
+        self._bot_loop = asyncio.new_event_loop()
+        self._bot_loop_thread = threading.Thread(
+            target=self._bot_loop.run_forever,
+            daemon=True,
+            name=f"bot-loop-{self.bot_id}",
+        )
+        self._bot_loop_thread.start()
+        logger.debug(f"[{self.bot_id}] Dedicated event loop started")
+
+    def stop_bot_loop(self):
+        """Gracefully stop the bot's dedicated event loop."""
+        if self._bot_loop is None:
+            return
+        try:
+            self._bot_loop.call_soon_threadsafe(self._bot_loop.stop)
+        except Exception:
+            pass
+        self._bot_loop = None
+        self._bot_loop_thread = None
+
+    def run_async(self, coro, timeout: float = 10.0):
+        """
+        Schedule a coroutine on this bot's event loop and return the result.
+
+        Falls back to the fleet-level `_main_loop` if the bot's dedicated
+        loop is not running.
+        """
+        import asyncio
+        if self._bot_loop is None or not self._bot_loop.is_running():
+            # Try fleet's main loop
+            try:
+                # Access fleet singleton's main loop
+                loop = fleet._main_loop
+                if loop and loop.is_running():
+                    fut = asyncio.run_coroutine_threadsafe(coro, loop)
+                    return fut.result(timeout=timeout)
+            except Exception:
+                pass
+            raise RuntimeError(f"No event loop available for bot {self.bot_id}")
+        fut = asyncio.run_coroutine_threadsafe(coro, self._bot_loop)
+        return fut.result(timeout=timeout)
+
+    def run_async_fire_and_forget(self, coro) -> None:
+        """Schedule a coroutine on this bot's event loop without waiting for result."""
+        import asyncio
+        loop = self._bot_loop
+        if loop is None or not loop.is_running():
+            try:
+                loop = fleet._main_loop
+            except Exception:
+                return
+        if loop and loop.is_running():
+            asyncio.run_coroutine_threadsafe(coro, loop)
+
     def get_snapshot(self) -> dict:
         """Return a serialisable snapshot of this bot's current state."""
         status = {}
@@ -93,6 +162,7 @@ class BotInstance:
 
         return {
             "bot_id": self.bot_id,
+            "account_id": self.config.account_id,
             "name": self.config.name,
             "description": self.config.description,
             "personality": self.config.personality,
@@ -149,7 +219,8 @@ class FleetOrchestrator:
         self._main_loop: Optional[asyncio.AbstractEventLoop] = None
         self._last_darwinian_update = 0.0
         self._last_autoresearch_check = 0.0
-        self._last_market_aggregation = 0.0
+        self._last_research_bridge_check = 0.0
+        self._last_symbol_research_times: dict[str, float] = {}
         self._last_market_aggregation = 0.0
         self._last_telemetry_push = 0.0  # Throttle snapshot updates
         self._last_telemetry_prune = 0.0 # Hourly maintenance
@@ -303,6 +374,7 @@ class FleetOrchestrator:
         """
         Spawn a new isolated bot instance.
         Raises ValueError if max_bots cap is reached.
+        Triggers lazy MT5 initialization if the terminal wasn't connected at startup.
         """
         with self._config_lock:
             max_bots = self._fleet_config.max_bots
@@ -316,6 +388,40 @@ class FleetOrchestrator:
                     f"Max bots cap reached ({max_bots}). "
                     f"Increase max_bots in Fleet Settings to deploy more."
                 )
+
+        # ── Lazy MT5 initialization ──────────────────────────────────────
+        # If the terminal wasn't available at app startup, init it now
+        # using the bot's assigned account or the default account.
+        if not mt5_hub._initialized:
+            from config_manager import config_manager
+            import os
+
+            acct = None
+            if config.account_id:
+                acct = config_manager.get_account(config.account_id)
+
+            if not acct:
+                acct = config_manager.get_default_account()
+
+            if acct:
+                logger.info(
+                    f"[deploy_bot] Lazy-initializing MT5 hub with account "
+                    f"'{acct.get('label', acct.get('id', '?'))}'"
+                )
+                mt5_hub.init(
+                    login=acct.get("mt5_login", 0),
+                    password=acct.get("mt5_password", ""),
+                    server=acct.get("mt5_server", ""),
+                )
+            else:
+                logger.info("[deploy_bot] Lazy-initializing MT5 hub from env vars")
+                mt5_hub.init(
+                    login=int(os.getenv("MT5_LOGIN", "0") or "0"),
+                    password=os.getenv("MT5_PASSWORD", ""),
+                    server=os.getenv("MT5_SERVER", ""),
+                )
+
+            mt5_hub.start()
 
         # Apply fleet-level overrides
         effective_config = deepcopy(config)
@@ -541,8 +647,15 @@ class FleetOrchestrator:
         logger.info("Fleet monitor started")
 
     def stop_monitor(self):
-        """Stop the fleet monitor loop."""
+        """Stop the fleet monitor loop and gracefully shut down all bot loops."""
         self._stop_event.set()
+        with self._lock:
+            bots = list(self._bots.values())
+        for bot in bots:
+            try:
+                bot.stop_bot_loop()
+            except Exception as e:
+                logger.warning(f"[{bot.bot_id}] Error stopping bot loop: {e}")
         logger.info("Fleet monitor stopped")
 
     def _monitor_loop(self):
@@ -559,6 +672,7 @@ class FleetOrchestrator:
                 self._flush_db_queues()
                 self._check_darwinian_evolution()
                 self._check_autoresearch_evolution()
+                self._check_research_bridge_cycle()
                 self._run_market_aggregation()
                 
                 # Maintenance: Prune old telemetry every hour
@@ -613,6 +727,77 @@ class FleetOrchestrator:
                     logger.error(f"Autoresearch cycle failed for bot {bot.bot_id}: {e}")
 
         self._last_autoresearch_check = now
+
+    def _check_research_bridge_cycle(self):
+        """Periodically run the TradingAgentsGraph research framework and update bot sub_agent_pools."""
+        now = time.time()
+        
+        if not self._main_loop:
+            return
+
+        with self._lock:
+            bot_instances = list(self._bots.values())
+
+        # Track which symbols we've already triggered in this pass to avoid duplicates
+        triggered_symbols = set()
+
+        for bot in bot_instances:
+            symbol = bot.config.symbol
+            if symbol in triggered_symbols:
+                continue
+
+            # Check if research framework is enabled for this bot
+            is_enabled = bot.config.research_enabled and "research_framework" in (bot.config.sub_agents or [])
+            if not is_enabled:
+                continue
+
+            # Check interval
+            last_run = self._last_symbol_research_times.get(symbol, 0.0)
+            interval_seconds = bot.config.research_interval_hours * 3600
+            
+            if now - last_run >= interval_seconds:
+                logger.info(
+                    f"[Fleet] Triggering research cycle for {symbol} "
+                    f"(interval: {bot.config.research_interval_hours}h)",
+                    extra={
+                        "event": "research_cycle_triggered",
+                        "symbol": symbol,
+                        "interval_hours": bot.config.research_interval_hours,
+                        "last_run_ago_seconds": round(now - last_run, 1),
+                    },
+                )
+                asyncio.run_coroutine_threadsafe(
+                    self._run_research_graph_async(bot),
+                    self._main_loop
+                )
+                self._last_symbol_research_times[symbol] = now
+                triggered_symbols.add(symbol)
+
+    async def _run_research_graph_async(self, bot: BotInstance):
+        """Run the heavy TradingAgentsGraph.propagate in a background thread and push the signal."""
+        try:
+            from research_bridge import research_bridge
+            
+            logger.info(f"[{bot.bot_id}] Triggering research cycle via ResearchBridge for {bot.config.symbol}...")
+            signal = await research_bridge.run_research(bot.config.symbol)
+            
+            # Push signal to the bot's SubAgentPool
+            if bot.sub_agent_pool:
+                bot.sub_agent_pool.push_signal(signal)
+                logger.info(
+                    f"[{bot.bot_id}] Research cycle complete: "
+                    f"sentiment={signal.sentiment} conf={signal.confidence}",
+                    extra={
+                        "event": "research_cycle_complete",
+                        "bot_id": bot.bot_id,
+                        "symbol": bot.config.symbol,
+                        "sentiment": round(signal.sentiment, 3),
+                        "confidence": round(signal.confidence, 3),
+                    },
+                )
+                
+        except Exception as e:
+            logger.error(f"[{bot.bot_id}] ResearchBridge cycle failed: {e}", exc_info=True)
 
     def _flush_db_queues(self):
         """
@@ -791,6 +976,10 @@ class FleetOrchestrator:
                         self._store.save_trend_summary(symbol, tf, summary), loop
                     )
                 
+                # Phase 3 §9.1 — Raw DataFrames for in-process consumers.
+                # Stripped before any DB write / WS payload (not serialisable).
+                _dataframes = analysis.get("dataframes", {}) or {}
+
                 # 4. Push to local bot instances for zero-latency deliberation
                 with self._lock:
                     for bot in self._bots.values():
@@ -800,6 +989,11 @@ class FleetOrchestrator:
                             # receive trends in both background runs & deliberate()
                             if bot.sub_agent_pool:
                                 bot.sub_agent_pool.update_market_trends(trend_summaries)
+                                # Phase 3 §9.1 — Hand raw frames to the pool
+                                # for agents like CorrelationAgent that need
+                                # direct pandas access without re-allocation.
+                                if _dataframes:
+                                    bot.sub_agent_pool.update_market_data_frames(_dataframes)
 
             except Exception as e:
                 logger.error(f"Market aggregation failed for {symbol}: {e}")
@@ -898,13 +1092,13 @@ class FleetOrchestrator:
         from sub_agents import SubAgentPool
         from prompt_autoresearcher import PromptAutoResearcher
         from openai import OpenAI
-        import os
-
-        # Build Gemini client using OpenAI-compatible endpoint
-        gemini_api_key = os.getenv("GEMINI_API_KEY", "")
-        gemini_model = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
-        ollama_base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-        ollama_model = os.getenv("OLLAMA_MODEL_NAME", "gemma2:4b")
+        from config import config as sys_config
+        
+        # Build Gemini client using config
+        gemini_api_key = sys_config.openclaw_token or os.getenv("GEMINI_API_KEY", "")
+        gemini_model = sys_config.openclaw_model or os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+        ollama_base_url = sys_config.ollama_base_url or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        ollama_model = sys_config.ollama_model or os.getenv("OLLAMA_MODEL_NAME", "gemma2:4b")
 
         openclaw_client = None
         openclaw_model = gemini_model
@@ -955,7 +1149,7 @@ class FleetOrchestrator:
             openclaw_model=openclaw_model,
             ollama_base_url=ollama_base_url,
             ollama_model=ollama_model,
-            persistence_store=self._store,
+            store=self._store,
             main_loop=self._main_loop,
         )
         if config.ai_brain_enabled:
@@ -977,6 +1171,11 @@ class FleetOrchestrator:
             vital_signs=vital_signs,
             autoresearcher=autoresearcher,
         )
+        # Phase 4 §7.3 — spawn dedicated event loop for this bot
+        instance.start_bot_loop()
+        # Wire the bot's own loop into the sub-agent pool for DB persistence
+        if sub_agent_pool and instance._bot_loop:
+            sub_agent_pool.set_bot_loop(instance._bot_loop)
         return instance
 
 

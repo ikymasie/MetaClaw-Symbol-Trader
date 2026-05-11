@@ -1,43 +1,84 @@
 """
 TradeClaw Configuration Management
-Loads environment variables and provides a mutable runtime config.
+Reads from ConfigManager (config.json) with .env fallback for backward compatibility.
+Provides a mutable runtime config singleton.
 """
 
 import os
-from dataclasses import dataclass, field
-from dotenv import load_dotenv
 import threading
+from dataclasses import dataclass, field
 
-load_dotenv()
+from config_manager import config_manager
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+# Bootstrap the config manager on module load.
+# This loads config.json (or creates it) and auto-migrates from .env if needed.
+try:
+    config_manager.bootstrap()
+except Exception as _e:
+    import logging
+    logging.getLogger("tradeclaw.config").error(f"ConfigManager bootstrap failed: {_e}")
+
+
+def _cfg(key: str, section: str = "", default: str = "") -> str:
+    """Read a value from ConfigManager, falling back to env vars."""
+    if section:
+        val = config_manager._data.get(section, {}).get(key, "")
+        if val:
+            return str(val)
+    return os.getenv(key.upper(), default)
+
+
+def _cfg_api(key: str, default: str = "") -> str:
+    """Read an API key from ConfigManager."""
+    val = config_manager.get_api_key(key)
+    return val if val else os.getenv(key.upper(), default)
+
+
+def _cfg_default(key: str, default: str = "") -> str:
+    """Read a trading default from ConfigManager."""
+    val = config_manager.get_trading_defaults().get(key, "")
+    if val:
+        return str(val)
+    return default
+
+
+# Database URL — top-level for backward compatibility
+DATABASE_URL = config_manager.get_database_url() or os.getenv("DATABASE_URL", "")
 
 
 @dataclass
 class TradingConfig:
     """Mutable trading configuration — can be updated from the UI at runtime."""
 
-    # MetaTrader 5 credentials
-    mt5_login: int = field(default_factory=lambda: int(os.getenv("MT5_LOGIN", "0") or "0"))
-    mt5_password: str = field(default_factory=lambda: os.getenv("MT5_PASSWORD", ""))
-    mt5_server: str = field(default_factory=lambda: os.getenv("MT5_SERVER", ""))
+    # MetaTrader 5 credentials (from default account)
+    mt5_login: int = field(default_factory=lambda: _get_default_mt5_login())
+    mt5_password: str = field(default_factory=lambda: _get_default_mt5_password())
+    mt5_server: str = field(default_factory=lambda: _get_default_mt5_server())
 
     # Trading params
-    symbol: str = field(default_factory=lambda: os.getenv("DEFAULT_SYMBOL", "SPY"))
+    symbol: str = field(default_factory=lambda: _cfg_default("symbol", os.getenv("DEFAULT_SYMBOL", "SPY")))
     qty: float = field(
-        default_factory=lambda: float(os.getenv("DEFAULT_QTY", "1.0"))
+        default_factory=lambda: float(_cfg_default("qty", os.getenv("DEFAULT_QTY", "1.0")))
     )
     max_daily_drawdown_pct: float = field(
-        default_factory=lambda: float(os.getenv("MAX_DAILY_DRAWDOWN_PCT", "6.0"))
+        default_factory=lambda: float(
+            _cfg_default("max_daily_drawdown_pct", os.getenv("MAX_DAILY_DRAWDOWN_PCT", "6.0"))
+        )
     )
     stop_loss_pct: float = field(
-        default_factory=lambda: float(os.getenv("DEFAULT_STOP_LOSS_PCT", "1.0"))
+        default_factory=lambda: float(
+            _cfg_default("stop_loss_pct", os.getenv("DEFAULT_STOP_LOSS_PCT", "1.0"))
+        )
     )
     bb_period: int = field(
-        default_factory=lambda: int(os.getenv("DEFAULT_BB_PERIOD", "20"))
+        default_factory=lambda: int(
+            _cfg_default("bb_period", os.getenv("DEFAULT_BB_PERIOD", "20"))
+        )
     )
     bb_std_dev: float = field(
-        default_factory=lambda: float(os.getenv("DEFAULT_BB_STD_DEV", "2.0"))
+        default_factory=lambda: float(
+            _cfg_default("bb_std_dev", os.getenv("DEFAULT_BB_STD_DEV", "2.0"))
+        )
     )
 
     # ── Fibonacci Retracement Config ──────────────────────────────────────
@@ -50,11 +91,9 @@ class TradingConfig:
     fib_bounce_threshold_pct: float = field(
         default_factory=lambda: float(os.getenv("FIB_BOUNCE_THRESHOLD_PCT", "0.20"))
     )
-    # "AND" = Fib + BB must both agree; "OR" = either signal can trigger entry
     fib_entry_mode: str = field(
         default_factory=lambda: os.getenv("FIB_ENTRY_MODE", "AND")
     )
-    # Comma-separated list of active Fib levels, e.g. "23.6,38.2,50.0,61.8"
     fib_active_levels_raw: str = field(
         default_factory=lambda: os.getenv("FIB_ACTIVE_LEVELS", "23.6,38.2,50.0,61.8")
     )
@@ -101,12 +140,9 @@ class TradingConfig:
     vwap_enabled: bool = field(
         default_factory=lambda: os.getenv("VWAP_ENABLED", "true").lower() == "true"
     )
-    # Minimum standard deviations from VWAP required to flag an entry zone
-    # 2.5 = institutional standard; raise to 3.0 for stricter filtering
     vwap_entry_sd: float = field(
         default_factory=lambda: float(os.getenv("VWAP_ENTRY_SD", "2.5"))
     )
-    # "AND" = BB + VWAP must both confirm; "OR" = either can trigger alone
     vwap_entry_mode: str = field(
         default_factory=lambda: os.getenv("VWAP_ENTRY_MODE", "AND")
     )
@@ -124,27 +160,31 @@ class TradingConfig:
         default_factory=lambda: os.getenv("OPENCLAW_BASE_URL", "http://127.0.0.1:18789")
     )
     openclaw_token: str = field(
-        default_factory=lambda: os.getenv("OPENCLAW_TOKEN", "")
+        default_factory=lambda: _cfg_api("gemini_api_key", os.getenv("OPENCLAW_TOKEN", ""))
     )
     openclaw_model: str = field(
-        default_factory=lambda: os.getenv("OPENCLAW_MODEL", "google/gemini-flash-latest")
+        default_factory=lambda: _cfg_api("gemini_model", os.getenv("OPENCLAW_MODEL", "google/gemini-flash-latest"))
+    )
+    deep_think_model: str = field(
+        default_factory=lambda: os.getenv("DEEP_THINK_MODEL", "gemini-3.1-pro")
+    )
+    quick_think_model: str = field(
+        default_factory=lambda: os.getenv("QUICK_THINK_MODEL", "gemini-3.1-flash-preview")
     )
     ollama_base_url: str = field(
-        default_factory=lambda: os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        default_factory=lambda: _get_ollama("base_url", os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"))
     )
-    # Model name used via OpenClaw proxy for Ollama
     ollama_model: str = field(
-        default_factory=lambda: os.getenv("OLLAMA_MODEL", "ollama/gemma4:e4b")
+        default_factory=lambda: _get_ollama("model", os.getenv("OLLAMA_MODEL", "ollama/gemma4:e4b"))
     )
-    # Model name used for direct Ollama REST API fallback
     ollama_model_name: str = field(
-        default_factory=lambda: os.getenv("OLLAMA_MODEL_NAME", "gemma2:4b")
+        default_factory=lambda: _get_ollama("model_name", os.getenv("OLLAMA_MODEL_NAME", "gemma2:4b"))
     )
     ai_brain_enabled: bool = field(
-        default_factory=lambda: os.getenv("AI_BRAIN_ENABLED", "true").lower() == "true"
+        default_factory=lambda: _get_ai_brain_enabled()
     )
     ai_interval_minutes: int = field(
-        default_factory=lambda: int(os.getenv("AI_ANALYSIS_INTERVAL_MINUTES", "60"))
+        default_factory=lambda: _get_ai_interval()
     )
     ai_min_trades_trigger: int = field(
         default_factory=lambda: int(os.getenv("AI_MIN_TRADES_TRIGGER", "10"))
@@ -204,6 +244,8 @@ class TradingConfig:
                 "openclaw_base_url": self.openclaw_base_url,
                 "openclaw_token": self.openclaw_token,
                 "openclaw_model": self.openclaw_model,
+                "deep_think_model": self.deep_think_model,
+                "quick_think_model": self.quick_think_model,
                 "ollama_base_url": self.ollama_base_url,
                 "ollama_model": self.ollama_model,
                 "ollama_model_name": self.ollama_model_name,
@@ -215,8 +257,54 @@ class TradingConfig:
 
     # ── Database ──────────────────────────────────────────────────────────
     database_url: str = field(
-        default_factory=lambda: os.getenv("DATABASE_URL", "")
+        default_factory=lambda: config_manager.get_database_url() or os.getenv("DATABASE_URL", "")
     )
+
+
+# ── Helper Functions ──────────────────────────────────────────────────────
+
+def _get_default_mt5_login() -> int:
+    """Get MT5 login from the default account in ConfigManager."""
+    acct = config_manager.get_default_account()
+    if acct:
+        return acct.get("mt5_login", 0)
+    return int(os.getenv("MT5_LOGIN", "0") or "0")
+
+
+def _get_default_mt5_password() -> str:
+    acct = config_manager.get_default_account()
+    if acct:
+        return acct.get("mt5_password", "")
+    return os.getenv("MT5_PASSWORD", "")
+
+
+def _get_default_mt5_server() -> str:
+    acct = config_manager.get_default_account()
+    if acct:
+        return acct.get("mt5_server", "")
+    return os.getenv("MT5_SERVER", "")
+
+
+def _get_ollama(key: str, default: str) -> str:
+    """Read Ollama config from ConfigManager."""
+    val = config_manager._data.get("ollama", {}).get(key, "")
+    return val if val else default
+
+
+def _get_ai_brain_enabled() -> bool:
+    """Read AI brain enabled state from ConfigManager."""
+    val = config_manager._data.get("ai_brain", {}).get("enabled")
+    if val is not None:
+        return bool(val)
+    return os.getenv("AI_BRAIN_ENABLED", "true").lower() == "true"
+
+
+def _get_ai_interval() -> int:
+    """Read AI analysis interval from ConfigManager."""
+    val = config_manager._data.get("ai_brain", {}).get("analysis_interval_minutes")
+    if val is not None:
+        return int(val)
+    return int(os.getenv("AI_ANALYSIS_INTERVAL_MINUTES", "60"))
 
 
 # Singleton config instance

@@ -157,6 +157,121 @@ class MT5Hub:
     def get_stats(self) -> dict:
         return dict(self._stats)
 
+    @property
+    def active_login(self) -> int:
+        """Return the currently authenticated MT5 login number."""
+        return self._login
+
+    # ── Dynamic Account Switching ─────────────────────────────────────────────
+
+    def switch_account(
+        self,
+        login: int,
+        password: str,
+        server: str,
+    ) -> bool:
+        """
+        Re-authenticate the MT5 terminal to a different broker account.
+        Returns True on success. The previous session is implicitly replaced
+        by MT5 — only one login can be active at a time.
+
+        Thread-safe: uses an internal lock to prevent concurrent switches.
+        """
+        if not self._initialized:
+            logger.error("[MT5Hub] Cannot switch account — terminal not initialized")
+            return False
+
+        # Skip if already on the requested account
+        if login == self._login:
+            return True
+
+        if not hasattr(self, "_switch_lock"):
+            import threading
+            self._switch_lock = threading.Lock()
+
+        with self._switch_lock:
+            for attempt in range(3):
+                if mt5.login(login, password=password, server=server):
+                    logger.info(
+                        f"[MT5Hub] Account switch successful: "
+                        f"{self._login} → {login} (attempt {attempt + 1})"
+                    )
+                    self._login = login
+                    self._password = password
+                    self._server = server
+                    return True
+                else:
+                    err = mt5.last_error()
+                    logger.warning(
+                        f"[MT5Hub] Account switch attempt {attempt + 1} failed "
+                        f"({self._login} → {login}): {err}"
+                    )
+                    import time as _time
+                    _time.sleep(2)
+
+            logger.error(
+                f"[MT5Hub] Account switch failed after 3 attempts: "
+                f"{self._login} → {login}"
+            )
+            return False
+
+    def ensure_account_context(self, account_id: str):
+        """
+        Context manager that switches to the given ConfigManager account
+        for the duration of a trade operation, then restores the default.
+
+        Usage:
+            with mt5_hub.ensure_account_context("acc-abc12345"):
+                mt5.order_send(...)  # Executes on the target account
+
+        If account_id is empty or matches the current login, this is a no-op.
+        """
+        import contextlib
+
+        @contextlib.contextmanager
+        def _ctx():
+            if not account_id:
+                yield True
+                return
+
+            from config_manager import config_manager as cm
+            acct = cm.get_account(account_id)
+            if not acct:
+                logger.warning(
+                    f"[MT5Hub] Account {account_id} not found in ConfigManager"
+                )
+                yield False
+                return
+
+            target_login = acct.get("mt5_login", 0)
+
+            # Already on the right account — no switch needed
+            if target_login == self._login:
+                yield True
+                return
+
+            # get_account() already returns the decrypted password
+            target_password = acct.get("mt5_password", "")
+            target_server = acct.get("mt5_server", "")
+
+            # Switch to target
+            ok = self.switch_account(target_login, target_password, target_server)
+            try:
+                yield ok
+            finally:
+                # Restore default account if we switched away
+                if ok and target_login != self._login:
+                    default = cm.get_default_account()
+                    if default and default.get("mt5_login") != target_login:
+                        # get_default_account() also returns decrypted password
+                        self.switch_account(
+                            default["mt5_login"],
+                            default.get("mt5_password", ""),
+                            default.get("mt5_server", ""),
+                        )
+
+        return _ctx()
+
     # ── Market Data API ───────────────────────────────────────────────────────
 
     async def subscribe(self, symbol: str, queue: asyncio.Queue):

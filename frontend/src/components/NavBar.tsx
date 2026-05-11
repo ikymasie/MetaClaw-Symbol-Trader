@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Zap, Bot, LayoutDashboard, Radio,
   ChevronDown, Wallet, TrendingUp, TrendingDown,
-  DollarSign, CreditCard, Power, Loader2, Coffee
+  DollarSign, CreditCard, Power, Loader2, Coffee, Settings
 } from 'lucide-react';
 import { useFleetStatus, useMT5Account } from '@/hooks/useFleet';
 import { FleetStatus } from '@/lib/api';
@@ -18,6 +18,7 @@ const links = [
   { href: '/bnb',            label: 'BNB PULSE',     icon: <Zap className="w-3.5 h-3.5 text-amber-400" /> },
   { href: '/fleet',          label: 'FLEET COMMAND', icon: <Bot className="w-3.5 h-3.5" /> },
   { href: '/situation-room', label: 'SITUATION ROOM',icon: <Radio className="w-3.5 h-3.5" /> },
+  { href: '/setup',          label: 'SETTINGS',      icon: <Settings className="w-3.5 h-3.5" /> },
 ];
 
 function ServerPowerButton() {

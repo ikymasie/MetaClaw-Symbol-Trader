@@ -571,6 +571,68 @@ class PostgresStore:
             return row['prompt_text'] if row else None
 
     # ─────────────────────────────────────────────
+    # RESEARCH REPORTS (TradingAgents framework cache)
+    # ─────────────────────────────────────────────
+
+    async def save_research_report(self, symbol: str, payload: dict) -> None:
+        """
+        Persist (or update) the latest research report for a symbol.
+
+        `payload` is the translated AgentSignal as a dict, plus optional raw
+        context (e.g. final_state digest). Keyed by symbol — one row per symbol.
+        Used by ResearchBridge.run_research() for TTL caching.
+        """
+        if not isinstance(symbol, str) or not symbol:
+            raise ValueError("save_research_report: symbol must be a non-empty string")
+        if payload is None:
+            payload = {}
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                """
+                INSERT INTO research_reports (symbol, payload, updated_at)
+                VALUES ($1, $2::jsonb, NOW())
+                ON CONFLICT (symbol) DO UPDATE
+                    SET payload = EXCLUDED.payload,
+                        updated_at = NOW()
+                """,
+                symbol, json.dumps(payload)
+            )
+
+    async def get_latest_research_report(
+        self, symbol: str
+    ) -> Optional[tuple]:
+        """
+        Return (payload: dict, updated_at: datetime) for the latest cached
+        research report for `symbol`, or None if no row exists.
+
+        ResearchBridge.run_research() applies its own TTL check on the
+        `updated_at` value returned here (default 4h via RESEARCH_CACHE_TTL).
+        """
+        if not symbol:
+            return None
+        async with self.pool.acquire() as conn:
+            row = await conn.fetchrow(
+                "SELECT payload, updated_at FROM research_reports WHERE symbol = $1",
+                symbol
+            )
+            if not row:
+                return None
+            raw = row['payload']
+            # asyncpg may return JSONB as str (if no codec) or already-decoded dict.
+            if isinstance(raw, (bytes, bytearray)):
+                raw = raw.decode("utf-8")
+            if isinstance(raw, str):
+                try:
+                    payload = json.loads(raw)
+                except Exception:
+                    payload = {}
+            elif isinstance(raw, dict):
+                payload = raw
+            else:
+                payload = {}
+            return payload, row['updated_at']
+
+    # ─────────────────────────────────────────────
     # HELPERS
     # ─────────────────────────────────────────────
 
@@ -608,6 +670,104 @@ async def load_darwinian_weights(bot_id: str) -> Optional[dict]:
             return None
     return None
 
+def is_initialized() -> bool:
+    return _store is not None and _store.pool is not None
+
+# ─────────────────────────────────────────────
+# BARS & TRENDS
+# ─────────────────────────────────────────────
+
+async def load_bars(symbol: str, timeframe: str = "1m", limit: int = 1000) -> List[dict]:
+    """Retrieve recent bars from PostgreSQL."""
+    async with get_store().pool.acquire() as conn:
+        rows = await conn.fetch(
+            """SELECT timestamp as time, "open", high, low, "close", volume 
+               FROM market_bars 
+               WHERE symbol = $1 AND timeframe = $2 
+               ORDER BY timestamp ASC LIMIT $3""",
+            symbol, timeframe, limit
+        )
+        return [dict(r) for r in rows]
+
+async def prune_bars(symbol: str, timeframe: str = "1m", keep: int = 1200):
+    """Delete old bars for a symbol, keeping only the most recent N."""
+    async with get_store().pool.acquire() as conn:
+        # Get the timestamp of the N-th most recent bar
+        row = await conn.fetchrow(
+            "SELECT timestamp FROM market_bars WHERE symbol = $1 AND timeframe = $2 ORDER BY timestamp DESC OFFSET $3 LIMIT 1",
+            symbol, timeframe, keep - 1
+        )
+        if row:
+            cutoff = row['timestamp']
+            await conn.execute(
+                "DELETE FROM market_bars WHERE symbol = $1 AND timeframe = $2 AND timestamp < $3",
+                symbol, timeframe, cutoff
+            )
+
+async def append_bars_batch(symbol: str, bars: List[dict], timeframe: str = "1m"):
+    """Persist a batch of bars using the batcher."""
+    store = get_store()
+    for bar in bars:
+        ts = store._parse_ts(bar.get('t') or bar.get('timestamp') or bar.get('time'))
+        if ts:
+            await store.bars_batcher.add(
+                symbol, timeframe, ts,
+                float(bar.get('o') or bar.get('open', 0)),
+                float(bar.get('h') or bar.get('high', 0)),
+                float(bar.get('l') or bar.get('low', 0)),
+                float(bar.get('c') or bar.get('close', 0)),
+                int(bar.get('v') or bar.get('volume', 0))
+            )
+
+async def get_trend_summary(symbol: str, timeframe: str) -> Optional[dict]:
+    return await get_store().get_trend_summary(symbol, timeframe)
+
+async def save_trend_summary(symbol: str, timeframe: str, summary: dict):
+    await get_store().save_trend_summary(symbol, timeframe, summary)
+
+async def push_fleet_telemetry(state: dict):
+    await get_store().push_fleet_telemetry(state)
+
+async def get_live_telemetry(id: str) -> Optional[dict]:
+    return await get_store().get_live_telemetry(id)
+
+async def push_live_telemetry(bot_id: str, state: dict):
+    await get_store().push_live_telemetry(bot_id, state)
+
+async def push_telemetry_history(bot_id: str, state: dict):
+    await get_store().push_telemetry_history(bot_id, state)
+
+async def save_fleet_config(config: dict):
+    await get_store().save_fleet_config(config)
+
+async def load_bot_config(bot_id: str) -> Optional[dict]:
+    return await get_store().load_bot_config(bot_id)
+
+async def delete_bot_config(bot_id: str):
+    await get_store().delete_bot_config(bot_id)
+
+async def save_trade(bot_id: str, trade_data: dict):
+    await get_store().save_trade(bot_id, trade_data)
+
+async def save_equity_snapshot(bot_id: str, snapshot: dict):
+    await get_store().save_equity_snapshot(bot_id, snapshot)
+
+async def prune_old_telemetry(hours: int = 48):
+    await get_store().prune_old_telemetry(hours)
+
+async def push_system_metric(metric_name: str, value: float):
+    await get_store().push_system_metric(metric_name, value)
+
+async def retrieve_recent_strategy_contexts(bot_id: str, limit: int = 50) -> List[dict]:
+    return await get_store().retrieve_recent_strategy_contexts(bot_id, limit)
+
+async def update_bot_config(bot_id: str, config_dict: dict):
+    """Alias for save_bot_config."""
+    await get_store().save_bot_config(bot_id, config_dict)
+
+async def save_strategy_context(bot_id: str, context: dict, **kwargs):
+    await get_store().save_strategy_context(bot_id, context, **kwargs)
+
 # ─────────────────────────────────────────────
 # COMPATIBILITY ALIASES (For main.py)
 # ─────────────────────────────────────────────
@@ -641,22 +801,34 @@ async def _legacy_get_equity_history(bot_id: str, limit: int = 200) -> List[dict
         )
         return [dict(r) for r in rows]
 
-async def _legacy_get_daily_pnl_sum(bot_id: str) -> float:
+async def _legacy_get_daily_pnl_sum(bot_id: Optional[str] = None) -> float:
     async with get_store().pool.acquire() as conn:
-        row = await conn.fetchrow(
-            "SELECT SUM(pnl) as total FROM trades WHERE bot_id = $1 AND entry_time >= CURRENT_DATE",
-            bot_id
-        )
+        if bot_id:
+            row = await conn.fetchrow(
+                "SELECT SUM(pnl) as total FROM trades WHERE bot_id = $1 AND entry_time >= CURRENT_DATE",
+                bot_id
+            )
+        else:
+            row = await conn.fetchrow(
+                "SELECT SUM(pnl) as total FROM trades WHERE entry_time >= CURRENT_DATE"
+            )
         return row['total'] or 0.0
 
-async def _legacy_get_trade_stats_today(bot_id: str) -> dict:
+async def _legacy_get_trade_stats_today(bot_id: Optional[str] = None) -> dict:
     async with get_store().pool.acquire() as conn:
-        row = await conn.fetchrow(
-            """SELECT COUNT(*) as count, SUM(pnl) as pnl, 
-                      COUNT(CASE WHEN pnl > 0 THEN 1 END) as wins 
-               FROM trades WHERE bot_id = $1 AND entry_time >= CURRENT_DATE""",
-            bot_id
-        )
+        if bot_id:
+            row = await conn.fetchrow(
+                """SELECT COUNT(*) as count, SUM(pnl) as pnl, 
+                          COUNT(CASE WHEN pnl > 0 THEN 1 END) as wins 
+                   FROM trades WHERE bot_id = $1 AND entry_time >= CURRENT_DATE""",
+                bot_id
+            )
+        else:
+            row = await conn.fetchrow(
+                """SELECT COUNT(*) as count, SUM(pnl) as pnl, 
+                          COUNT(CASE WHEN pnl > 0 THEN 1 END) as wins 
+                   FROM trades WHERE entry_time >= CURRENT_DATE"""
+            )
         return dict(row)
 
 async def _legacy_set_bot_state(bot_id: str, key: str, value: str):
@@ -700,8 +872,32 @@ async def prune_old_telemetry(hours: int = 48):
 async def load_fleet_config() -> Optional[dict]:
     return await get_store().load_fleet_config()
 
+async def save_fleet_config(config_dict: dict):
+    await get_store().save_fleet_config(config_dict)
+
+async def save_bot_config(bot_id: str, config_dict: dict):
+    await get_store().save_bot_config(bot_id, config_dict)
+
+async def load_bot_config(bot_id: str) -> Optional[dict]:
+    return await get_store().load_bot_config(bot_id)
+
+async def delete_bot_config(bot_id: str):
+    await get_store().delete_bot_config(bot_id)
+
 async def list_bot_ids() -> List[str]:
     return await get_store().list_bot_ids()
 
 async def push_fleet_telemetry(state: dict):
     await get_store().push_fleet_telemetry(state)
+
+async def push_telemetry_history(bot_id: str, state: dict):
+    await get_store().push_telemetry_history(bot_id, state)
+
+async def push_system_metric(name: str, value: float, metadata: dict = None):
+    await get_store().push_system_metric(name, value, metadata)
+
+async def save_trade(bot_id: str, trade: dict):
+    await get_store().save_trade(bot_id, trade)
+
+async def save_equity_snapshot(bot_id: str, snapshot: dict):
+    await get_store().save_equity_snapshot(bot_id, snapshot)

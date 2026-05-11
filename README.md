@@ -57,8 +57,22 @@ TradeClaw is an AI-powered algorithmic trading platform built on a **Multi-Agent
 │  │  Fibonacci · Bollinger · Kelly Sizing   │        │
 │  └─────────────────────────────────────────┘        │
 │                     │                                │
-│          MetaTrader 5 API (Paper/Live)                      │
-└─────────────────────────────────────────────────────┘
+│              ┌──────▼──────┐                         │
+│              │  RPyC Bridge │ (network)              │
+│              └──────┬──────┘                         │
+└──────────────────────┼──────────────────────────────┘
+                       │ MT5_BRIDGE_HOST (host.docker.internal:18812)
+         ┌─────────────▼─────────────┐
+         │    MT5 Bridge Server      │
+         │   (mt5_bridge_server.py)  │
+         │  Runs on HOST (not Docker)│
+         └─────────────┬─────────────┘
+                       │
+         ┌─────────────▼─────────────┐
+         │    MetaTrader 5 Terminal   │
+         │  • Windows: native         │
+         │  • macOS: via Wine wrapper │
+         └───────────────────────────┘
 ```
 
 ---
@@ -116,8 +130,11 @@ This launches **both** backend and frontend with a branded console:
 
 1. **Prerequisites**: Docker, MetaTrader 5 Account (Demo or Live).
 2. **Setup**: Run `./setup.sh`. It will prompt for your MT5 broker credentials and AI API keys.
-3. **Launch**: `./start_all.sh`.
-4. **Access**: `http://localhost:3000`.
+3. **Start MT5 + Bridge on host**:
+   - **macOS**: Run `./start_all.sh` (starts MT5 terminal in Wine + bridge server).
+   - **Windows**: Ensure MT5 terminal is running, then `python backend/mt5_bridge_server.py`.
+4. **Launch Docker**: `docker compose up -d`.
+5. **Access**: `http://localhost:3000`.
 
 ## 🛠 Tech Stack
 
@@ -125,7 +142,8 @@ This launches **both** backend and frontend with a branded console:
 - **Backend**: Python (FastAPI), MetaTrader5 (Python SDK), LangGraph (Agentic Framework).
 - **AI Brain**: Google Gemini 1.5 Pro, Ollama (Local LLM fallback).
 - **Persistence**: Firestore (Decision Logs, Fleet State).
-- **Terminal**: MT5 Windows Terminal running in Wine/Docker (linux/amd64).
+- **Terminal**: MT5 Windows Terminal running natively on the host (Windows native, macOS via Wine wrapper).
+- **Bridge**: RPyC server (`mt5_bridge_server.py`) runs on the host — the Docker container connects to it via `host.docker.internal:18812`.
 
 ## 🔑 Environment Variables
 
@@ -137,6 +155,8 @@ The `./setup.sh` script generates a `.env` file for you. If you need to configur
 | `MT5_PASSWORD` | MetaTrader 5 Password | — |
 | `MT5_SERVER` | MetaTrader 5 Server Name | `MetaQuotes-Demo` |
 | `MT5_SYMBOL_SUFFIX` | Broker symbol suffix (e.g. `_i`, `.m`) | (Optional) |
+| `MT5_BRIDGE_HOST` | RPyC bridge host (Docker: `host.docker.internal`, native: `localhost`) | `localhost` |
+| `MT5_BRIDGE_PORT` | RPyC bridge port | `18812` |
 | `GEMINI_API_KEY` | Google AI Studio Key | — |
 | `FIRESTORE_PROJECT_ID` | Firebase Project ID | — |
 | `WS_URL` | WebSocket endpoint for data feed | `ws://backend:8000/ws` |
@@ -165,18 +185,29 @@ TradeClaw/
 │   ├── sub_agents.py        # 6 MAS agents (Sentiment, Macro, etc.)
 │   ├── ai_brain.py          # Singleton AI strategy evolution
 │   ├── strategy.py          # Mean reversion + indicator engine
+│   ├── mt5_bridge.py        # RPyC client — connects to host MT5 bridge
+│   ├── mt5_bridge_server.py # RPyC server — runs on host near MT5 terminal
+│   ├── mt5_hub.py           # Market data polling hub
 │   ├── config.py            # Runtime configuration
-│   ├── firebase_store.py    # Firestore persistence
+│   ├── config_manager.py    # Persistent JSON config + encryption
+│   ├── postgres_store.py    # PostgreSQL persistence layer
 │   ├── requirements.txt     # Python dependencies
 │   └── .env.example         # Environment template
 ├── frontend/                # Next.js dashboard
 │   ├── src/                 # React components + pages
 │   ├── package.json         # Node dependencies
 │   └── .env.example         # Environment template
+├── mt5/                     # Host-side MT5 config template
+│   ├── config.ini.template
+│   └── entrypoint.sh
 ├── docs/                    # Architecture & strategy docs
+├── mac_mt5_bridge_setup.sh  # macOS: install Python+MT5 deps in Wine prefix
+├── start_all.sh             # macOS: start MT5 terminal + bridge server
 ├── setup.sh                 # First-time setup wizard
-├── start.sh                 # Launch backend + frontend
+├── start.sh                 # Launch backend + frontend (native, no Docker)
 ├── stop.sh                  # Graceful shutdown
+├── Dockerfile               # Container: backend + frontend only (no Wine/MT5)
+├── docker-compose.yml       # Container orchestration
 ├── LICENSE                  # Proprietary license
 └── README.md                # This file
 ```
@@ -210,6 +241,7 @@ ollama pull gemma4:e4b
 
 | Document | Description |
 |----------|-------------|
+| [Windows Setup](docs/setup_windows.md) | Step-by-step setup for Windows (native MT5) |
 | [Architecture Writeup](docs/TradeClaw_Architecture_Writeup.md) | Full system architecture & MAS protocol |
 | [Spirit Animals](docs/SituationRoom_SpiritAnimals_Writeup.md) | Bot personality system |
 | [Commercialization Strategy](docs/tradeclaw_commercialization_strategy.md) | Business models & monetization |

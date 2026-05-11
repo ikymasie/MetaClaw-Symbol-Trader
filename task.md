@@ -58,13 +58,13 @@ This task list tracks the progress of the four-phase ATLAS Gap implementation pl
 
 - [x] **Darwinian Weights**: Verify weights stay within [0.3, 2.5] bounds over 100 cycles
 - [x] **Deliberation regression**: Weighted score with all agents at weight 1.0 matches old quorum logic
-- [ ] **CRO Agent**: VETO fires with 2+ structural objections; passes cleanly with none
-- [ ] **Macro Veto (Phase 3)**: BUY blocked at sentiment=-0.7/confidence=0.8; SELL allowed
-- [ ] **Macro Veto (Phase 3)**: BUY allowed at sentiment=-0.4 (below threshold)
-- [ ] **LangGraph graph**: Imports cleanly; falls back gracefully when `langgraph` not installed
-- [ ] **Event streaming**: `deliberation_event` messages appear in WS client during active deliberation
-- [ ] **Autoresearch**: Git branch creation, Sharpe eval, merge/revert flow on local repo
-- [ ] **Prompt files**: `_load_prompt("macro")` returns correct system + user_template content
+- [x] **CRO Agent**: VETO fires with 2+ structural objections; passes cleanly with none
+- [x] **Macro Veto (Phase 3)**: BUY blocked at sentiment=-0.7/confidence=0.8; SELL allowed
+- [x] **Macro Veto (Phase 3)**: BUY allowed at sentiment=-0.4 (below threshold)
+- [x] **LangGraph graph**: Imports cleanly; falls back gracefully when `langgraph` not installed
+- [x] **Event streaming**: `deliberation_event` messages appear in WS client during active deliberation
+- [x] **Autoresearch**: Git branch creation, Sharpe eval, merge/revert flow on local repo
+- [x] **Prompt files**: `_load_prompt("macro")` returns correct system + user_template content
 
 ## Phase 6: Darwinian Scalper (Leverage Mode)
 - [x] Add leverage settings to `BotConfig` (`leverage_mode_enabled`, `leverage_factor`, `isolated_risk_usd`, `net_profit_target_usd`)

@@ -20,7 +20,9 @@ const ALL_AGENTS = ['sentiment', 'macro', 'earnings', 'technical'];
 const DEFAULT_FORM: BotDeployRequest = {
   name: '',
   symbol: '',
+  account_id: '',
   strategy: 'mean_reversion',
+  max_daily_drawdown_pct: 5.0,
   capital_allocation: 10000.0,
   qty: 1,
   short_selling_enabled: true,

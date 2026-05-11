@@ -36,8 +36,30 @@ from openai import OpenAI
 from mt5_hub import mt5_hub
 from gemini_budget import gemini_budget
 from prompt_loader import PromptLoader
+from agent_schemas import (
+    AgentSignalSchema,
+    AgentVoteSchema,
+    CROObjectionSchema,
+    to_gemini_response_format,
+)
+from pydantic import BaseModel as _PydanticBaseModel
+from llm_cache import llm_cache   # Phase 4 §6.3 — content-addressable LRU
+from ollama_pool import get_ollama_model  # Phase 4 §6.4 — per-agent model selection
 
 logger = logging.getLogger("tradeclaw.sub_agents")
+
+# Standard correlation mappings for major assets
+CORRELATION_MAP = {
+    "EURUSD": ["GBPUSD", "DXY", "XAUUSD", "USDJPY"],
+    "GBPUSD": ["EURUSD", "DXY", "XAUUSD"],
+    "USDJPY": ["XAUUSD", "DXY", "US30", "EURUSD"],
+    "XAUUSD": ["USDJPY", "DXY", "EURUSD", "US30"],
+    "BTCUSD": ["ETHUSD", "US100", "US30", "DXY"],
+    "ETHUSD": ["BTCUSD", "US100", "US30"],
+    "US30": ["US100", "US500", "DXY", "USDJPY"],
+    "US100": ["US500", "US30", "BTCUSD"],
+    "US500": ["US100", "US30", "DXY"],
+}
 
 # Module-level flag: once we discover Ollama doesn't support /api/generate for
 # a given model, mark it so every subsequent ephemeral agent skips the call
@@ -155,15 +177,40 @@ class BaseAgent:
         self._ollama_base_url = ollama_base_url
         self._ollama_model = ollama_model
         self.market_trends = market_trends or {}
+        # Phase 3 §9.1 — Optional in-process DataFrame injection. Populated
+        # by SubAgentPool when MarketDataAggregator emits aggregated frames.
+        # Keys: "1m", "15m", "1h", "1d", "1wk", "1mo". Values: pd.DataFrame
+        # with OHLCV columns and a DatetimeIndex.
+        self.dataframes: dict = {}
         self._logger = logging.getLogger(f"tradeclaw.agents.{self.AGENT_NAME}[{bot_id}]")
 
     def run(self) -> AgentSignal:
         raise NotImplementedError
 
     def _call_openclaw(
-        self, system: str, prompt: str, model: Optional[str] = None, temperature: float = 0.3, include_search: bool = True
+        self,
+        system: str,
+        prompt: str,
+        model: Optional[str] = None,
+        temperature: float = 0.3,
+        include_search: bool = True,
+        schema: Optional[type] = None,
     ) -> Optional[str]:
-        """Call Gemini via OpenAI-compatible endpoint (budget-gated)."""
+        """
+        Call Gemini via OpenAI-compatible endpoint (budget-gated).
+
+        Phase 2 (§6.2) Structured Output:
+        ---------------------------------
+        If `schema` (a Pydantic `BaseModel` subclass) is provided, this method
+        will attempt to bind it via Gemini's `response_format={"type":
+        "json_schema", ...}` payload so the model is *forced* to emit
+        conforming JSON. On any failure (bad-request, schema-unsupported
+        model, network error), it falls back to plain
+        `response_format={"type": "json_object"}` and retries once.
+
+        Callers should always re-validate the returned text via the same
+        Pydantic schema — see `_parse_signal_from_json` / `_parse_vote_from_json`.
+        """
         if not self._openclaw_client:
             return None
 
@@ -172,40 +219,124 @@ class BaseAgent:
             self._logger.info("Gemini call skipped (budget exhausted) — use Ollama fallback")
             return None
 
-        try:
-            model = model or self._openclaw_model
-            # Strip any prefix (e.g. "google/gemini-flash-latest" → "gemini-flash-latest")
-            if "/" in model:
-                model = model.split("/", 1)[1]
-            messages = [
-                {"role": "system", "content": system},
-                {"role": "user", "content": prompt},
-            ]
-            
+        # Phase 4 §6.3 — content-addressable LLM response cache.
+        # Check BEFORE making the API call; identical prompts within the
+        # TTL window are served from in-memory LRU (zero latency).
+        model = model or self._openclaw_model
+        # Strip any prefix (e.g. "google/gemini-flash-latest" → "gemini-flash-latest")
+        if "/" in model:
+            model = model.split("/", 1)[1]
+        # Phase 3 §6.1c — auto-downgrade to -lite variant when budget pressure ≥ 80%
+        model = gemini_budget.get_recommended_model(model)
+        messages = [
+            {"role": "system", "content": system},
+            {"role": "user", "content": prompt},
+        ]
+
+        # Phase 4 §6.3 — content-addressable LLM response cache.
+        # Hash (agent + system + prompt) and check LRU before any API call.
+        _cached = llm_cache.get(self.AGENT_NAME, system, prompt)
+        if _cached is not None:
+            # Cache hit — skip the API call entirely. The cached response
+            # was written by a successful _call_openclaw/ollama path below.
+            self._logger.debug(f"[{self.AGENT_NAME}] LLM cache hit — serving from memory")
+            gemini_budget.record_call(model=model, tokens=len(_cached.split()))
+            return _cached
+
+        # Build initial response_format — prefer json_schema when a schema
+        # is supplied so the model is forced to conform.
+        use_schema = schema is not None and isinstance(schema, type) and issubclass(schema, _PydanticBaseModel)
+        if use_schema:
+            try:
+                primary_rf = to_gemini_response_format(schema)
+            except Exception as _se:
+                self._logger.debug(f"Schema → JSON-Schema build failed ({_se}); using json_object")
+                primary_rf = {"type": "json_object"}
+                use_schema = False
+        else:
+            primary_rf = {"type": "json_object"}
+
+        def _do_call(rf):
             kwargs = {
                 "model": model,
                 "messages": messages,
                 "temperature": temperature,
                 "max_tokens": 512,
-                "response_format": {"type": "json_object"},
+                "response_format": rf,
             }
-                
-            resp = self._openclaw_client.chat.completions.create(**kwargs, timeout=30)
-            gemini_budget.record_call()
-            return resp.choices[0].message.content
+            return self._openclaw_client.chat.completions.create(**kwargs, timeout=30)
+
+        def _extract_tokens(_resp) -> int:
+            """Best-effort completion-token extraction for cost attribution."""
+            try:
+                usage = getattr(_resp, "usage", None)
+                if usage is not None:
+                    return int(getattr(usage, "completion_tokens", 0)) or 400
+            except Exception:
+                pass
+            return 400
+
+        try:
+            resp = _do_call(primary_rf)
+            gemini_budget.record_call(model=model, tokens=_extract_tokens(resp))
+            _raw = resp.choices[0].message.content
+            llm_cache.put(self.AGENT_NAME, system, prompt, _raw)
+            return _raw
         except Exception as e:
-            # Detect 429 and trip circuit breaker
             err_str = str(e)
+            # 429 / quota → trip the circuit breaker; do not fall back.
             if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
                 gemini_budget.record_429()
+                self._logger.warning(f"Gemini call failed (rate-limited): {e}")
+                return None
+
+            # If json_schema was rejected (400 / unsupported response_format),
+            # retry once with the looser json_object mode.
+            schema_related = use_schema and (
+                "400" in err_str
+                or "response_format" in err_str.lower()
+                or "json_schema" in err_str.lower()
+                or "schema" in err_str.lower()
+            )
+            if schema_related:
+                self._logger.info(
+                    "Gemini json_schema mode rejected — falling back to json_object: "
+                    f"{err_str[:160]}",
+                    extra={
+                        "event": "llm_schema_fallback",
+                        "agent": self.AGENT_NAME,
+                        "model": model,
+                        "reason": err_str[:120],
+                    },
+                )
+                try:
+                    resp = _do_call({"type": "json_object"})
+                    gemini_budget.record_call(model=model, tokens=_extract_tokens(resp))
+                    _raw2 = resp.choices[0].message.content
+                    llm_cache.put(self.AGENT_NAME, system, prompt, _raw2)
+                    return _raw2
+                except Exception as e2:
+                    err_str2 = str(e2)
+                    if "429" in err_str2 or "RESOURCE_EXHAUSTED" in err_str2:
+                        gemini_budget.record_429()
+                    self._logger.warning(f"Gemini call failed (after fallback): {e2}")
+                    return None
+
             self._logger.warning(f"Gemini call failed: {e}")
             return None
 
-    def _call_ollama(self, prompt: str) -> Optional[str]:
-        """Call local Ollama via /api/generate."""
+    def _call_ollama(self, prompt: str, system_hint: str = "") -> Optional[str]:
+        """Call local Ollama via /api/generate.  Phase 4 §6.3 — checks LLM cache first."""
         key = (self._ollama_base_url, self._ollama_model)
         if key in _ollama_generate_unsupported:
             return None
+
+        # Phase 4 §6.3 — content-addressable LLM cache
+        _cached = llm_cache.get(self.AGENT_NAME, system_hint, prompt)
+        if _cached is not None:
+            self._logger.debug(f"[{self.AGENT_NAME}] Ollama cache hit — serving from memory")
+            return _cached
+
         try:
             resp = httpx.post(
                 f"{self._ollama_base_url}/api/generate",
@@ -227,7 +358,10 @@ class BaseAgent:
                 )
                 return None
             resp.raise_for_status()
-            return resp.json().get("response", "")
+            _raw = resp.json().get("response", "")
+            if _raw:
+                llm_cache.put(self.AGENT_NAME, system_hint, prompt, _raw)
+            return _raw
         except Exception as e:
             self._logger.warning(f"Ollama call failed: {e}")
             return None
@@ -250,24 +384,81 @@ class BaseAgent:
         raise ValueError(f"No JSON found in: {raw[:200]}")
 
     def _parse_signal_from_json(self, raw: str, agent_name: str) -> AgentSignal:
-        """Parse a structured AgentSignal from LLM JSON output."""
+        """Parse a structured AgentSignal from LLM JSON output using AgentSignalSchema."""
         try:
-            parsed = self._extract_json(raw)
-            sentiment = float(parsed.get("sentiment", 0.0))
-            sentiment = max(-1.0, min(1.0, sentiment))
-            confidence = float(parsed.get("confidence", 0.5))
-            confidence = max(0.0, min(1.0, confidence))
+            parsed_dict = self._extract_json(raw)
+            # Validate via Pydantic
+            validated = AgentSignalSchema(**parsed_dict)
+            
             return AgentSignal(
                 agent=agent_name,
-                sentiment=sentiment,
-                confidence=confidence,
-                reasoning=parsed.get("reasoning", "No reasoning provided."),
-                sources=parsed.get("sources", []),
+                sentiment=validated.sentiment,
+                confidence=validated.confidence,
+                reasoning=validated.reasoning,
+                sources=validated.sources,
                 raw_response=raw[:500],
             )
         except Exception as e:
-            self._logger.warning(f"Failed to parse signal JSON: {e}")
-            return AgentSignal.neutral(agent_name, f"Parse error: {e}")
+            self._logger.warning(f"Failed to parse signal JSON for {agent_name}: {e}")
+            # Fallback to manual extraction if Pydantic fails
+            try:
+                parsed = self._extract_json(raw)
+                sentiment = float(parsed.get("sentiment", 0.0))
+                sentiment = max(-1.0, min(1.0, sentiment))
+                confidence = float(parsed.get("confidence", 0.5))
+                confidence = max(0.0, min(1.0, confidence))
+                return AgentSignal(
+                    agent=agent_name,
+                    sentiment=sentiment,
+                    confidence=confidence,
+                    reasoning=parsed.get("reasoning", "No reasoning provided."),
+                    sources=parsed.get("sources", []),
+                    raw_response=raw[:500],
+                )
+            except Exception:
+                return AgentSignal.neutral(agent_name, f"Parse error: {e}")
+
+    def _parse_vote_from_json(self, raw: str, agent_name: str) -> AgentVote:
+        """Parse a structured AgentVote from LLM JSON output using AgentVoteSchema."""
+        try:
+            parsed_dict = self._extract_json(raw)
+            # Normalise vote casing BEFORE Pydantic Literal validation.
+            # LLMs occasionally emit lowercase / mixed-case ("buy", "Sell").
+            if isinstance(parsed_dict, dict) and "vote" in parsed_dict:
+                _v = parsed_dict["vote"]
+                if isinstance(_v, str):
+                    parsed_dict["vote"] = _v.strip().upper()
+            validated = AgentVoteSchema(**parsed_dict)
+
+            return AgentVote(
+                agent=agent_name,
+                vote=validated.vote,  # Already uppercase + Literal-validated
+                confidence=validated.confidence,
+                reasoning=validated.reasoning,
+                veto_reason=validated.veto_reason,
+            )
+        except Exception as e:
+            self._logger.warning(f"Failed to parse vote JSON for {agent_name}: {e}")
+            # Fallback to manual extraction
+            try:
+                parsed = self._extract_json(raw)
+                vote = str(parsed.get("vote", "HOLD")).strip().upper()
+                if vote not in ("BUY", "SELL", "HOLD", "VETO"):
+                    vote = "HOLD"
+                return AgentVote(
+                    agent=agent_name,
+                    vote=vote,
+                    confidence=float(parsed.get("confidence", 0.5)),
+                    reasoning=parsed.get("reasoning", "No reasoning provided."),
+                    veto_reason=parsed.get("veto_reason"),
+                )
+            except Exception:
+                return AgentVote(
+                    agent=agent_name,
+                    vote="HOLD",
+                    confidence=0.0,
+                    reasoning=f"Parse error: {e}",
+                )
 
 
 # ─────────────────────────────────────────────
@@ -304,7 +495,7 @@ class SentimentAgent(BaseAgent):
             raw = self._call_ollama(prompt)
             if raw:
                 return self._parse_signal_from_json(raw, self.AGENT_NAME)
-            raw = self._call_openclaw(system, prompt, include_search=False)
+            raw = self._call_openclaw(system, prompt, include_search=False, schema=AgentSignalSchema)
         else:
             # 2b. No buffered headlines — delegate search to OpenClaw
             self._logger.info(f"No buffered headlines for {self.symbol}. Using web search.")
@@ -315,7 +506,9 @@ class SentimentAgent(BaseAgent):
                 f'{{ "sentiment": <float -1.0 to 1.0>, "confidence": <float 0.0 to 1.0>, '
                 f'"reasoning": "<2-3 sentences>", "sources": ["<url-or-source>"] }}'
             )
-            raw = self._call_openclaw(system, search_prompt, include_search=True)
+            # Note: include_search=True grounding may be incompatible with json_schema mode;
+            # the _call_openclaw fallback will downgrade to json_object on rejection.
+            raw = self._call_openclaw(system, search_prompt, include_search=True, schema=AgentSignalSchema)
 
         if raw:
             return self._parse_signal_from_json(raw, self.AGENT_NAME)
@@ -347,8 +540,8 @@ class MacroAgent(BaseAgent):
         raw = self._call_ollama(prompt)
         if raw:
             return self._parse_signal_from_json(raw, self.AGENT_NAME)
-        # Fallback: Gemini via OpenClaw
-        raw = self._call_openclaw(system, prompt)
+        # Fallback: Gemini via OpenClaw — bind AgentSignalSchema for structured output
+        raw = self._call_openclaw(system, prompt, schema=AgentSignalSchema)
         if raw:
             return self._parse_signal_from_json(raw, self.AGENT_NAME)
         return AgentSignal.neutral(self.AGENT_NAME, "All LLM endpoints unavailable")
@@ -379,8 +572,8 @@ class EarningsAgent(BaseAgent):
         raw = self._call_ollama(prompt)
         if raw:
             return self._parse_signal_from_json(raw, self.AGENT_NAME)
-        # Fallback: Gemini via OpenClaw
-        raw = self._call_openclaw(system, prompt)
+        # Fallback: Gemini via OpenClaw — bind AgentSignalSchema for structured output
+        raw = self._call_openclaw(system, prompt, schema=AgentSignalSchema)
         if raw:
             return self._parse_signal_from_json(raw, self.AGENT_NAME)
         return AgentSignal.neutral(self.AGENT_NAME, "All LLM endpoints unavailable")
@@ -415,11 +608,194 @@ class TechnicalAgent(BaseAgent):
         if raw:
             return self._parse_signal_from_json(raw, self.AGENT_NAME)
         
-        # Fallback: OpenClaw
-        raw = self._call_openclaw(system, prompt)
+        # Fallback: OpenClaw — bind AgentSignalSchema for structured output
+        raw = self._call_openclaw(system, prompt, schema=AgentSignalSchema)
         if raw:
             return self._parse_signal_from_json(raw, self.AGENT_NAME)
         return AgentSignal.neutral(self.AGENT_NAME, "All endpoints unavailable")
+
+
+# ─────────────────────────────────────────────
+# CORRELATION AGENT (Pure-math)
+# ─────────────────────────────────────────────
+
+class CorrelationAgent(BaseAgent):
+    """
+    Detects inter-asset correlation shifts that invalidate mean-reversion.
+    Analyses rolling 20-period Pearson correlation across related markets.
+    """
+
+    AGENT_NAME = "correlation"
+
+    def run(self) -> AgentSignal:
+        """
+        Compute correlation health across the inter-market basket for self.symbol.
+
+        Data source priority (Phase 3 §9.1):
+          1. Pre-aggregated DataFrames injected by FleetOrchestrator via
+             SubAgentPool.market_data_frames → self.dataframes (zero-cost).
+          2. Direct MetaTrader5 bar fetch as fallback (requires MT5 module).
+          3. Neutral signal if neither is available.
+
+        Returns AgentSignal where:
+          - sentiment encodes correlation HEALTH (0.0 = neutral, never directional)
+          - Used by `get_vote()` to produce a HOLD or VETO directional decision.
+          - Bounded confidence so deliberation can weigh against fresh LLM votes.
+        """
+        self._logger.info(f"CorrelationAgent running for {self.symbol}")
+
+        from symbol_service import symbol_service
+        clean_symbol = symbol_service.get_clean_symbol(self.symbol)
+        others = CORRELATION_MAP.get(clean_symbol, [])
+
+        if not others:
+            return AgentSignal.neutral(self.AGENT_NAME, f"No correlation mapping for {clean_symbol}")
+
+        import numpy as np
+        import pandas as pd
+
+        # ── Source 1: Pre-aggregated DataFrames (preferred, zero-cost) ──
+        # `self.dataframes` is injected by SubAgentPool at agent-build time
+        # if FleetOrchestrator has computed multi-symbol aggregates.
+        injected = getattr(self, "dataframes", None) or {}
+        target_close: Optional[pd.Series] = None
+        peer_closes: dict[str, pd.Series] = {}
+
+        if isinstance(injected, dict) and injected:
+            # Look for a 1h-aligned frame for the target
+            target_frame = injected.get("1h") or injected.get("15m") or injected.get("1m")
+            if isinstance(target_frame, pd.DataFrame) and "close" in target_frame.columns:
+                target_close = target_frame["close"].astype(float)
+
+        # ── Source 2: Direct MT5 fetch (fallback) ──
+        if target_close is None or len(target_close) < 20:
+            if _mt5 is None:
+                return AgentSignal.neutral(
+                    self.AGENT_NAME,
+                    "No DataFrame injection and MetaTrader5 module unavailable",
+                )
+            broker_target = symbol_service.get_broker_symbol(clean_symbol)
+            rates = _mt5.copy_rates_from_pos(broker_target, _mt5.TIMEFRAME_H1, 0, 50)
+            if rates is None or len(rates) < 20:
+                return AgentSignal.neutral(
+                    self.AGENT_NAME, "Insufficient price history for target"
+                )
+            df_target = pd.DataFrame(rates)
+            target_close = df_target["close"].astype(float)
+
+        correlations: list[float] = []
+        objections: list[str] = []
+
+        # Fetch closes for each correlated symbol — fall back to MT5 per peer
+        for other in others:
+            other_close: Optional[pd.Series] = None
+            broker_other = symbol_service.get_broker_symbol(other)
+            if _mt5 is not None:
+                o_rates = _mt5.copy_rates_from_pos(broker_other, _mt5.TIMEFRAME_H1, 0, 50)
+                if o_rates is not None and len(o_rates) >= 20:
+                    df_other = pd.DataFrame(o_rates)
+                    other_close = df_other["close"].astype(float)
+            if other_close is None or len(other_close) < 20:
+                continue
+            peer_closes[other] = other_close
+
+            min_len = min(len(target_close), len(other_close))
+            corr = target_close.tail(min_len).corr(other_close.tail(min_len))
+
+            if not np.isnan(corr):
+                correlations.append(corr)
+                # Flag if correlation is unusually weak or inverted for highly correlated pairs
+                if other in ("GBPUSD", "ETHUSD", "US100", "US500") and corr < 0.6:
+                    objections.append(
+                        f"Correlation break: {clean_symbol} ↔ {other} is weak ({corr:.2f})"
+                    )
+                elif other == "DXY" and corr > -0.6:
+                    # DXY usually inversely correlated with majors/gold
+                    objections.append(
+                        f"Correlation break: {clean_symbol} ↔ DXY not inverse enough ({corr:.2f})"
+                    )
+
+        if not correlations:
+            return AgentSignal.neutral(self.AGENT_NAME, "Failed to compute any correlations")
+
+        avg_abs_corr = float(np.mean([abs(c) for c in correlations]))
+
+        # Health: 1.0 = all pairs aligned; each broken correlation deducts 0.4
+        health = 1.0 - (len(objections) * 0.4)
+        health = max(-1.0, min(1.0, health))
+
+        reasoning = f"Avg |correlation|={avg_abs_corr:.2f} across {len(correlations)} peers. "
+        if objections:
+            reasoning += "Alerts: " + " | ".join(objections)
+        else:
+            reasoning += "Inter-market correlations are healthy and aligned."
+
+        return AgentSignal(
+            agent=self.AGENT_NAME,
+            sentiment=health,
+            confidence=0.8,
+            reasoning=reasoning,
+            sources=["DataFrame injection" if injected else "MT5 Live Ticks", "Inter-market Mapper"],
+        )
+
+    def get_vote(self) -> AgentVote:
+        """
+        Gate vote based on correlation health (Phase 3 §3.1).
+
+        Decision matrix:
+          - health < -0.4  → VETO  (≥2 correlation breaks — regime invalidated)
+          - health < 0     → HOLD  (1 break — soft warning, reduced confidence)
+          - health ≥ 0     → HOLD  (healthy — defer to panel direction)
+
+        Weight 1.25 is set on the AgentVote directly (gates do not use the
+        panel `_static` weights table).
+        """
+        try:
+            signal = self.run()
+        except Exception as e:
+            return AgentVote(
+                agent=self.AGENT_NAME,
+                vote="HOLD",
+                confidence=0.0,
+                reasoning=f"CorrelationAgent.run() failed: {e}",
+                weight=1.25,
+            )
+
+        if signal.confidence < 0.1:
+            return AgentVote(
+                agent=self.AGENT_NAME,
+                vote="HOLD",
+                confidence=0.1,
+                reasoning=signal.reasoning[:200],
+                weight=1.25,
+            )
+
+        if signal.sentiment < -0.4:
+            return AgentVote(
+                agent=self.AGENT_NAME,
+                vote="VETO",
+                confidence=signal.confidence,
+                reasoning=f"CORRELATION BREAK: {signal.reasoning[:200]}",
+                veto_reason=signal.reasoning[:120],
+                weight=1.25,
+            )
+
+        if signal.sentiment < 0:
+            return AgentVote(
+                agent=self.AGENT_NAME,
+                vote="HOLD",
+                confidence=0.4,
+                reasoning=f"Correlation weakening: {signal.reasoning[:150]}",
+                weight=1.25,
+            )
+
+        return AgentVote(
+            agent=self.AGENT_NAME,
+            vote="HOLD",
+            confidence=0.7,
+            reasoning=f"Correlations healthy. {signal.reasoning[:150]}",
+            weight=1.25,
+        )
 
 
 # ─────────────────────────────────────────────
@@ -538,6 +914,343 @@ class WatchmanAgent(BaseAgent):
         quality = max(0.0, min(1.0, quality))
         alert_str = " | ".join(alerts) if alerts else None
         return quality, alert_str
+
+
+# ─────────────────────────────────────────────
+# ORDER FLOW AGENT (Phase 4 §3.2)
+# ─────────────────────────────────────────────
+
+class OrderFlowAgent(BaseAgent):
+    """
+    Order Flow & Volume Profile Agent — Pure-math gate, no LLM.
+
+    Analyses tick-level volume distribution to detect institutional
+    accumulation (buying into dips) vs. distribution (selling into rallies).
+
+    Metrics:
+      · Cumulative delta: Σ(buy_volume — sell_volume) over the last 500 ticks
+      · Delta divergence: price making new highs while delta is declining → distribution
+      · Volume-weighted average price (VWAP) displacement vs. current price
+        Above VWAP → premium (sellers active); below VWAP → discount (buyers active).
+
+    Decision matrix (gate, weight=1.5 baked into the AgentVote):
+      · Extreme distribution (delta < -0.7 z-score AND price above VWAP):
+        VETO on BUY signals — institutions are selling, not buying.
+      · Accumulation (delta > +0.5 z-score, price below VWAP):
+        HOLD with strong confidence (favours buying on dips).
+      · Neutral: HOLD (no institutional footprint detected).
+    """
+
+    AGENT_NAME = "orderflow"
+    TICK_WINDOW = 500          # last N ticks to analyse
+    DELTA_Z_VETO = -0.7        # cumulative delta below this z-score → VETO
+    DELTA_Z_ACCUMULATION = 0.5  # above this → accumulation detected
+
+    def run(self) -> AgentSignal:
+        return AgentSignal.neutral(self.AGENT_NAME, "OrderFlow agent is pure-math, not LLM-based.")
+
+    def get_vote(
+        self,
+        raw_signal: str = "",
+        price_history=None,
+    ) -> AgentVote:
+        """
+        Analyse tick-level order flow and return a gate vote.
+
+        Data sources (best-effort):
+          1. MT5 tick buffer via `mt5_hub.get_tick(symbol)` → last tick bid/ask/volume
+          2. `price_history` deque of {price, volume} dicts (BotEngine provides this)
+          3. Falls back to HOLD with neutral confidence when no data is available.
+        """
+        import numpy as np
+
+        # ── Source 1: MT5 tick buffer ──────────────────────────────────
+        tick_bid, tick_ask, tick_vol = None, None, 0.0
+        try:
+            mt5_tick = mt5_hub.get_tick(self.symbol)
+            if mt5_tick:
+                tick_bid = getattr(mt5_tick, "bid", None) or getattr(mt5_tick, "_bid", None)
+                tick_ask = getattr(mt5_tick, "ask", None) or getattr(mt5_tick, "_ask", None)
+                tick_vol = getattr(mt5_tick, "volume", 0.0) or getattr(mt5_tick, "_volume", 0.0)
+        except Exception:
+            pass
+
+        # ── Source 2: price_history → pseudo-tick volume + price ───────
+        # We only have per-trade volume from the tick pipeline, not buy/sell
+        # breakdown. We proxy delta by comparing consecutive price directions:
+        #   price↑ on volume → volume counted as buy
+        #   price↓ on volume → volume counted as sell
+        if not price_history or len(price_history) < 10:
+            return AgentVote(
+                agent=self.AGENT_NAME,
+                vote="HOLD",
+                confidence=0.3,
+                reasoning="Insufficient tick-level price history for order flow analysis.",
+                weight=1.5,
+            )
+
+        prices = [float(p.get("price", 0)) for p in price_history]
+        volumes = [float(p.get("volume", 0)) for p in price_history]
+        window_size = min(self.TICK_WINDOW, len(prices))
+
+        # Build pseudo buy/sell delta from directional tick volume
+        buy_vol = 0.0
+        sell_vol = 0.0
+        for i in range(max(1, len(prices) - window_size), len(prices)):
+            dp = prices[i] - prices[i - 1]
+            vol = volumes[i] if i < len(volumes) else 0.0
+            if dp > 0:
+                buy_vol += vol
+            elif dp < 0:
+                sell_vol += vol
+
+        delta = buy_vol - sell_vol
+        total_vol = buy_vol + sell_vol
+
+        # ── Delta z-score (normalised by total volume) ─────────────────
+        # When buy_vol == sell_vol the delta is zero. A strong negative
+        # delta in absolute terms is the distribution signal.
+        if total_vol < 1e-6:
+            return AgentVote(
+                agent=self.AGENT_NAME,
+                vote="HOLD",
+                confidence=0.3,
+                reasoning="Zero total volume — cannot assess order flow balance.",
+                weight=1.5,
+            )
+
+        # Mean delta over the window (expectation ≈ 0 when balanced)
+        # We normalise by sqrt(total_vol) as a simple statistical proxy
+        delta_z = float(delta / np.sqrt(max(1.0, total_vol)))
+
+        # ── VWAP displacement ──────────────────────────────────────────
+        win_prices = prices[-window_size:]
+        win_vols = volumes[-window_size:]
+        vwap_num = sum(p * v for p, v in zip(win_prices, win_vols) if v > 0)
+        vwap_den = sum(v for v in win_vols if v > 0)
+        vwap = vwap_num / max(vwap_den, 1e-6)
+
+        current_price = win_prices[-1] if win_prices else 0.0
+        displacement_pct = ((current_price - vwap) / vwap * 100) if vwap > 0 else 0.0
+
+        # ── Decision logic ─────────────────────────────────────────────
+        reasoning_parts = [
+            f"delta_z={delta_z:.2f} (total_vol={total_vol:.0f})",
+            f"vwap_displacement={displacement_pct:+.2f}%",
+        ]
+
+        # Extreme distribution: VETO on BUY signals
+        if delta_z < self.DELTA_Z_VETO and raw_signal == "BUY" and displacement_pct > 0:
+            reasoning = (
+                f"ORDERFLOW VETO: Extreme distribution detected (delta_z={delta_z:.2f}). "
+                f"Price above VWAP ({displacement_pct:+.2f}%) — institutions selling into "
+                f"rallies. Blocking BUY entry. {' | '.join(reasoning_parts)}"
+            )
+            return AgentVote(
+                agent=self.AGENT_NAME,
+                vote="VETO",
+                confidence=min(0.9, abs(delta_z) * 0.6),
+                reasoning=reasoning[:300],
+                veto_reason=f"Order flow distribution (delta_z={delta_z:.2f}, VWAP={displacement_pct:+.1f}%)",
+                weight=1.5,
+            )
+
+        # Accumulation: delta strongly positive + price discount
+        if delta_z > self.DELTA_Z_ACCUMULATION and displacement_pct < 0:
+            reasoning = (
+                f"Order flow shows accumulation (delta_z={delta_z:.2f}, "
+                f"VWAP gap={displacement_pct:+.2f}%). Institutional buying "
+                f"at discount — favourable for long entries. "
+                f"{' | '.join(reasoning_parts)}"
+            )
+            return AgentVote(
+                agent=self.AGENT_NAME,
+                vote="HOLD",
+                confidence=0.75,
+                reasoning=reasoning[:300],
+                weight=1.5,
+            )
+
+        # Net selling in the book
+        if delta_z < -0.3:
+            reasoning = (
+                f"Order flow shows mild distribution (delta_z={delta_z:.2f}). "
+                f"{' | '.join(reasoning_parts)}"
+            )
+            return AgentVote(
+                agent=self.AGENT_NAME,
+                vote="HOLD",
+                confidence=0.4,
+                reasoning=reasoning[:250],
+                weight=1.5,
+            )
+
+        # Net buying or flat
+        reasoning = (
+            f"Order flow balanced/accumulative (delta_z={delta_z:.2f}). "
+            f"{' | '.join(reasoning_parts)}"
+        )
+        return AgentVote(
+            agent=self.AGENT_NAME,
+            vote="HOLD",
+            confidence=0.7,
+            reasoning=reasoning[:250],
+            weight=1.5,
+        )
+
+
+# ─────────────────────────────────────────────
+# CALENDAR AGENT (Phase 4 §3.4)
+# ─────────────────────────────────────────────
+
+# Recurring high-impact economic events with their typical cadence.
+# Each entry: (month_day, event_name, impact_minutes_before, impact_minutes_after)
+# impact_minutes_before = window during which entries are VETO'd (usually 30 min)
+# impact_minutes_after  = window after the event during which confidence is reduced
+#
+# This is a best-effort calendar. A full implementation would pull from an
+# economic calendar API (ForexFactory, Investing.com). The hardcoded list
+# covers the highest-volume events that reliably move forex markets.
+_ECONOMIC_CALENDAR: list[tuple[int, str, int, int]] = [
+    # US Federal Reserve
+    (0,    "FOMC Rate Decision + Press Conference", 30, 120),  # day 0 = check any Wed
+    (0,    "FOMC Minutes",                           30,  90),
+    # US Labour market
+    (0,    "Non-Farm Payrolls (NFP)",                30, 120),  # first Friday
+    (0,    "CPI (Consumer Price Index)",             30, 120),
+    (0,    "PPI (Producer Price Index)",             30,  90),
+    (0,    "Retail Sales (US)",                      30,  90),
+    (0,    "GDP (Advance)",                          30, 120),
+    # Central Banks
+    (0,    "ECB Rate Decision",                      30, 120),
+    (0,    "BOE Rate Decision",                      30, 120),
+    (0,    "BOJ Rate Decision",                      30, 120),
+    # PMIs
+    (0,    "ISM Manufacturing PMI",                  30,  90),
+    (0,    "ISM Services PMI",                       30,  90),
+    # Monthly
+    (0,    "Fed Beige Book",                         30,  60),
+]
+
+# Important days of the month that always carry calendar risk
+_IMPORTANT_CALENDAR_DAYS = frozenset({
+    1,    # ISM Manufacturing PMI
+    3,    # ADP / Services PMI
+    7,    # NFP / Employment
+    12,   # CPI
+    15,   # Retail Sales / PPI
+    22,   # Existing Home Sales
+    28,   # GDP (Advance)
+})
+
+
+def _is_high_impact_window(now_utc: "datetime") -> tuple[bool, Optional[str], Optional[int]]:
+    """
+    Quick heuristic: returns (is_veto, event_name, minutes_remaining_in_veto).
+
+    Strategy:
+      · Weekdays only (excludes Saturday/Sunday).
+      · If the calendar day-of-month is in the known high-impact list AND
+        we're within the NY/London session window (0800–1600 UTC), flag it.
+      · Historical data shows the vast majority of high-impact events cluster
+        around 0830, 1000, 1230, 1400, 1600 UTC. We apply a blanket 30 min
+        VETO window around ALL those times on high-impact calendar days.
+    """
+    wd = now_utc.weekday()  # 0=Mon, 6=Sun
+    if wd >= 5:
+        return False, None, None
+
+    day = now_utc.day
+    hour = now_utc.hour
+    minute = now_utc.minute
+
+    # Known event release times (UTC): NFP 1330, CPI 1330, FOMC 1900, ISM 1500, etc.
+    # We widen to a blanket rule: high-impact calendar days in session hours.
+    if day in _IMPORTANT_CALENDAR_DAYS and 8 <= hour <= 18:
+        # Check against the most common release times
+        _release_times = [
+            (8, 30), (9, 30), (10, 0), (12, 30),
+            (13, 30), (14, 0), (15, 0), (16, 0), (18, 0),
+        ]
+        now_mins = hour * 60 + minute
+        for rh, rm in _release_times:
+            r_mins = rh * 60 + rm
+            delta = now_mins - r_mins
+            if 0 <= delta <= 30:
+                event_name = f"High-impact calendar cluster (day {day}, {rh:02d}:{rm:02d} UTC)"
+                return True, event_name, 30 - delta
+            if -30 <= delta < 0:
+                event_name = f"High-impact calendar cluster (day {day}, {rh:02d}:{rm:02d} UTC)"
+                return True, event_name, abs(delta)
+
+    return False, None, None
+
+
+class CalendarAgent(BaseAgent):
+    """
+    Economic Calendar Gate (Phase 4 §3.4).
+
+    Purely event-time-based — no LLM, no API call. The agent checks whether
+    the current UTC timestamp falls within a VETO window of a known
+    high-impact economic event.
+
+    Decision:
+      · ±30 min of a known release → VETO (no entries)
+      · ±2h of a known release → HOLD with reduced confidence (0.4)
+      · Otherwise → HOLD with 0.7 confidence (no calendar risk)
+
+    Weight: N/A (veto-only gate — weight is on the VETO itself).
+    This agent also participates in the gate section of `deliberate()`.
+    """
+
+    AGENT_NAME = "calendar"
+    VETO_WINDOW_MINUTES = 30
+    WARNING_WINDOW_MINUTES = 120
+
+    def run(self) -> AgentSignal:
+        return AgentSignal.neutral(self.AGENT_NAME, "Calendar agent is event-time-based, not LLM.")
+
+    def get_vote(self) -> AgentVote:
+        from datetime import timezone as _tz
+        now_utc = datetime.now(_tz.utc)
+
+        is_veto, event_name, mins_remain = _is_high_impact_window(now_utc)
+
+        if is_veto:
+            return AgentVote(
+                agent=self.AGENT_NAME,
+                vote="VETO",
+                confidence=1.0,
+                reasoning=f"CALENDAR VETO: Within ±{self.VETO_WINDOW_MINUTES}min of {event_name}. "
+                          f"No new entries permitted until the event passes.",
+                veto_reason=event_name or "Economic calendar event window",
+                weight=1.0,
+            )
+
+        # Check warning window (within ±2h of any event on a high-impact day)
+        if now_utc.day in _IMPORTANT_CALENDAR_DAYS and now_utc.weekday() < 5:
+            hour = now_utc.hour
+            # Broad session check: if within ~2h of common release times
+            _release_hours = {8, 9, 10, 12, 13, 14, 15, 16, 18}
+            near_event = any(abs(hour - rh) <= 2 for rh in _release_hours)
+            if near_event and 6 <= hour <= 20:
+                return AgentVote(
+                    agent=self.AGENT_NAME,
+                    vote="HOLD",
+                    confidence=0.4,
+                    reasoning=f"Calendar awareness: possible economic event within "
+                              f"±{self.WARNING_WINDOW_MINUTES}min (day {now_utc.day}). "
+                              f"Confidence reduced — defer to LLM panel.",
+                    weight=1.0,
+                )
+
+        return AgentVote(
+            agent=self.AGENT_NAME,
+            vote="HOLD",
+            confidence=0.7,
+            reasoning="No economic calendar events within VETO or warning window.",
+            weight=1.0,
+        )
 
 
 # ─────────────────────────────────────────────
@@ -964,25 +1677,22 @@ class CROAgent(BaseAgent):
 
         raw = self._call_ollama(prompt)
         if not raw:
-            raw = self._call_openclaw(system, prompt, include_search=False)
+            # Bind CROObjectionSchema for structured output
+            raw = self._call_openclaw(system, prompt, include_search=False, schema=CROObjectionSchema)
 
         if raw:
             try:
-                # Basic cleanup for common LLM artifacts
-                if "```json" in raw:
-                    raw = raw.split("```json")[1].split("```")[0].strip()
-                elif "{" in raw and "}" in raw:
-                    raw = "{" + raw.split("{", 1)[1].rsplit("}", 1)[0] + "}"
-
-                import json
-                parsed = json.loads(raw)
-                obj = parsed.get("objection", "").strip()
-                severity = float(parsed.get("severity", 0.0))
-                confidence = float(parsed.get("confidence", 0.0))
+                parsed_dict = self._extract_json(raw)
+                validated = CROObjectionSchema(**parsed_dict)
+                
+                obj = validated.objection.strip()
+                severity = validated.severity
+                confidence = validated.confidence
+                
                 if obj and severity > 0.5 and confidence > 0.5:
                     objections.append(f"[LLM CRO] {obj}")
             except Exception as e:
-                self._logger.debug(f"CRO LLM parse error: {e}")
+                self._logger.debug(f"CRO LLM parse/validation error: {e}")
 
         # ── Verdict ─────────────────────────────────────────────────────
         if len(objections) >= 2:
@@ -1010,6 +1720,174 @@ class CROAgent(BaseAgent):
 
 
 # ─────────────────────────────────────────────
+# CROSS-TIMEFRAME TREND AGENT (Pure-math, no LLM)
+# ─────────────────────────────────────────────
+
+class CrossTimeframeTrendAgent(BaseAgent):
+    """
+    Formalises the multi-timeframe trend data into a voting agent.
+    Checks alignment across 1m, 15m, 1h, 1d timeframes.
+    Votes BUY/SELL if >= 3/4 timeframes agree on direction.
+    """
+
+    AGENT_NAME = "trend"
+
+    def run(self) -> AgentSignal:
+        return AgentSignal.neutral(self.AGENT_NAME, "Trend agent is pure-math, not LLM-based.")
+
+    def get_vote(
+        self,
+        market_trends: dict = None,
+    ) -> AgentVote:
+        market_trends = market_trends or self.market_trends
+        
+        if not market_trends:
+            return AgentVote(
+                agent=self.AGENT_NAME,
+                vote="HOLD",
+                confidence=0.2,
+                reasoning="No multi-timeframe trend data available.",
+                weight=1.0,
+            )
+
+        tfs = ["1m", "15m", "1h", "1d", "1wk", "1mo"]
+        directions = []
+        for tf in tfs:
+            if tf in market_trends:
+                direction = market_trends[tf].get("trend_direction", "flat")
+                directions.append(direction)
+        
+        if not directions:
+            return AgentVote(
+                agent=self.AGENT_NAME,
+                vote="HOLD",
+                confidence=0.2,
+                reasoning="Missing trend direction data in market_trends.",
+                weight=1.0,
+            )
+            
+        bullish_count = sum(1 for d in directions if d == "bullish")
+        bearish_count = sum(1 for d in directions if d == "bearish")
+        total_valid = len(directions)
+        
+        required_count = max(3, int(total_valid * 0.75))
+        
+        if bullish_count >= required_count:
+            confidence = 0.5 + (0.5 * (bullish_count / total_valid))
+            return AgentVote(
+                agent=self.AGENT_NAME,
+                vote="BUY",
+                confidence=confidence,
+                reasoning=f"Trend aligned: {bullish_count}/{total_valid} timeframes are bullish.",
+                weight=1.0,
+            )
+        elif bearish_count >= required_count:
+            confidence = 0.5 + (0.5 * (bearish_count / total_valid))
+            return AgentVote(
+                agent=self.AGENT_NAME,
+                vote="SELL",
+                confidence=confidence,
+                reasoning=f"Trend aligned: {bearish_count}/{total_valid} timeframes are bearish.",
+                weight=1.0,
+            )
+        else:
+            return AgentVote(
+                agent=self.AGENT_NAME,
+                vote="HOLD",
+                confidence=0.5,
+                reasoning=f"Trend conflict or ranging. Bullish: {bullish_count}, Bearish: {bearish_count}, Total: {total_valid}.",
+                weight=1.0,
+            )
+
+
+# ─────────────────────────────────────────────
+# VOLATILITY REGIME AGENT (Pure-math, no LLM)
+# ─────────────────────────────────────────────
+
+class VolatilityRegimeAgent(BaseAgent):
+    """
+    Classifies market regime as RANGING, TRENDING, or VOLATILE based on ATR z-score, ADX, and BB width.
+    This was previously a silent gate in strategy.py, now formalised into the quorum.
+    """
+    AGENT_NAME = "regime"
+
+    def run(self) -> AgentSignal:
+        return AgentSignal.neutral(self.AGENT_NAME, "Regime agent is pure-math, not LLM-based.")
+
+    def get_vote(
+        self,
+        raw_signal: str,
+        market_trends: dict = None,
+    ) -> AgentVote:
+        market_trends = market_trends or self.market_trends
+        
+        # Use 15m or 1m timeframe for regime detection if available
+        regime_data = market_trends.get("15m") or market_trends.get("1m") or {}
+        
+        if not regime_data:
+            return AgentVote(
+                agent=self.AGENT_NAME,
+                vote="HOLD",
+                confidence=0.2,
+                reasoning="No regime data available.",
+                weight=1.0,
+            )
+
+        regime = regime_data.get("regime", "RANGING")
+        adx = regime_data.get("adx", 0.0)
+        atr_z = regime_data.get("atr_zscore", 0.0)
+        
+        if regime in ("TRENDING", "VOLATILE"):
+            return AgentVote(
+                agent=self.AGENT_NAME,
+                vote="HOLD",
+                confidence=min(1.0, 0.5 + abs(atr_z) * 0.1),
+                reasoning=f"Market is {regime} (ADX={adx:.1f}, ATR_z={atr_z:.2f}). Mean reversion is risky.",
+                weight=1.0,
+            )
+        else:
+            return AgentVote(
+                agent=self.AGENT_NAME,
+                vote=raw_signal,
+                confidence=0.7,
+                reasoning=f"Market is {regime} (ADX={adx:.1f}, ATR_z={atr_z:.2f}). Favourable for mean reversion.",
+                weight=1.0,
+            )
+
+
+# ─────────────────────────────────────────────
+# RESEARCH BRIDGE AGENT (External signal injection)
+# ─────────────────────────────────────────────
+
+class ResearchBridgeAgent(BaseAgent):
+    """
+    Placeholder agent for the TradingAgents research framework integration.
+
+    This agent does NOT run inline LLM calls. Its signal is produced
+    asynchronously by `research_bridge.ResearchBridge.run_research()` and
+    pushed into `SubAgentPool.latest_signals["research_framework"]` via
+    `push_signal()` on a scheduled cycle (see `Fleet._check_research_bridge_cycle`).
+
+    The class exists so:
+      1. `AGENT_CLASSES["research_framework"]` resolves to a real class.
+      2. `build_agent("research_framework", ...)` cannot crash if accidentally
+         called (returns a neutral signal — deliberate() already skips inline
+         refresh for this agent, see `panel_agents` loop guards).
+    """
+
+    AGENT_NAME = "research_framework"
+
+    def run(self) -> AgentSignal:
+        return AgentSignal.neutral(
+            self.AGENT_NAME,
+            reason=(
+                "ResearchBridgeAgent is externally injected via "
+                "ResearchBridge.run_research(); not run inline."
+            ),
+        )
+
+
+# ─────────────────────────────────────────────
 # AGENT FACTORY
 # ─────────────────────────────────────────────
 
@@ -1018,10 +1896,15 @@ AGENT_CLASSES = {
     "macro": MacroAgent,
     "earnings": EarningsAgent,
     "technical": TechnicalAgent,
-    "watchman": WatchmanAgent,
+    "correlation": CorrelationAgent,
+    "orderflow": OrderFlowAgent,
+    "calendar": CalendarAgent,
+    "research_framework": ResearchBridgeAgent,
     "risk_manager": RiskManagerAgent,
     "ict": ICTAgent,
     "cro": CROAgent,
+    "trend": CrossTimeframeTrendAgent,
+    "regime": VolatilityRegimeAgent,
 }
 
 
@@ -1039,13 +1922,16 @@ def build_agent(
     if cls is None:
         logger.warning(f"Unknown agent: {agent_name}")
         return None
+    # Phase 4 §6.4 — per-agent Ollama model pool (heavier models for
+    # complex agents like macro/cro, lightweight models for others).
+    resolved_ollama = get_ollama_model(agent_name, fleet_default=ollama_model)
     return cls(
         bot_id=bot_id,
         symbol=symbol,
         openclaw_client=openclaw_client,
         openclaw_model=openclaw_model,
         ollama_base_url=ollama_base_url,
-        ollama_model=ollama_model,
+        ollama_model=resolved_ollama,
         market_trends=market_trends,
     )
 
@@ -1071,19 +1957,23 @@ class DarwinianWeightStore:
     UP_FACTOR   = 1.05
     DOWN_FACTOR = 0.95
 
-    # Agents that have static roles and should NOT be Darwinian-weighted
-    EXCLUDED = {"watchman", "risk_manager", "ict"}
+    # Agents that have static roles and should NOT be Darwinian-weighted.
+    # These are gate agents (watchman, ict, correlation, trend, regime) and the
+    # always-on risk manager — their fixed weights are encoded in their
+    # AgentVote.weight at vote time and the panel weights table does not apply.
+    EXCLUDED = {"watchman", "risk_manager", "ict", "correlation", "trend", "regime", "orderflow", "calendar"}
 
     def __init__(self, bot_id: str):
         self.bot_id = bot_id
         self._lock = threading.Lock()
         # Initial neutral weights for all panel agents
         self._weights: dict[str, float] = {
-            "sentiment":  1.0,
-            "macro":      1.0,
-            "earnings":   1.5,
-            "technical":  0.75,
-            "cro":        1.5,
+            "sentiment":          1.0,
+            "macro":              1.0,
+            "earnings":           1.5,
+            "technical":          0.75,
+            "cro":                1.5,
+            "research_framework": 1.0,  # multiplies static panel weight of 2.0
         }
         # Outcome log for rolling Sharpe per agent
         # Each entry: {"agent": str, "voted": str, "trade_direction": str, "pnl": float}
@@ -1207,18 +2097,81 @@ class DarwinianWeightStore:
             for agent in self._weights:
                 if agent in self.EXCLUDED:
                     continue
+                old_w = self._weights[agent]
                 if agent in top_agents:
                     self._weights[agent] = min(self.CEILING, self._weights[agent] * self.UP_FACTOR)
-                    self._logger.info(f"[Darwin] {agent} ↑ {self._weights[agent]:.3f} (top quartile)")
+                    self._logger.info(
+                        f"[Darwin] {agent} ↑ {self._weights[agent]:.3f} (top quartile)",
+                        extra={
+                            "event": "darwin_update",
+                            "agent": agent,
+                            "direction": "up",
+                            "old_weight": round(old_w, 4),
+                            "new_weight": round(self._weights[agent], 4),
+                        },
+                    )
                 elif agent in bottom_agents:
                     self._weights[agent] = max(self.FLOOR, self._weights[agent] * self.DOWN_FACTOR)
-                    self._logger.info(f"[Darwin] {agent} ↓ {self._weights[agent]:.3f} (bottom quartile)")
+                    self._logger.info(
+                        f"[Darwin] {agent} ↓ {self._weights[agent]:.3f} (bottom quartile)",
+                        extra={
+                            "event": "darwin_update",
+                            "agent": agent,
+                            "direction": "down",
+                            "old_weight": round(old_w, 4),
+                            "new_weight": round(self._weights[agent], 4),
+                        },
+                    )
+
+        # ── Exponential decay (Phase 3 §4.2) ─────────────────────────────
+        # All non-excluded agents regress toward 1.0 each cycle. Applied AFTER
+        # the quartile selection so high-performers decay slightly even after
+        # being bumped, preventing permanent ceiling/floor lock-in for agents
+        # that aren't currently producing trade outcomes.
+        _DECAY_RATE = 0.02
+        with self._lock:
+            for _agent, _w in list(self._weights.items()):
+                if _agent in self.EXCLUDED:
+                    continue
+                # Weighted-mean decay toward 1.0: w' = w + DECAY_RATE * (1.0 - w)
+                _new = _w + _DECAY_RATE * (1.0 - _w)
+                self._weights[_agent] = max(self.FLOOR, min(self.CEILING, _new))
 
         self._save_to_db()
 
     def get_all_weights(self) -> dict[str, float]:
         with self._lock:
             return dict(self._weights)
+
+    def set_weight(self, agent: str, value: float) -> float:
+        """
+        Manually override an agent's Darwinian weight (Phase 3 §5.3).
+
+        Used by the operator REST endpoint `PUT /fleet/bot/{id}/agents/weights`.
+        Clamps the supplied value to [FLOOR, CEILING] and persists to Postgres.
+        Returns the actual stored weight after clamping.
+
+        Excluded gate agents (watchman, ict, correlation, etc.) refuse override —
+        their weights are baked into their AgentVote.weight at vote time.
+        """
+        if agent in self.EXCLUDED:
+            raise ValueError(
+                f"Agent '{agent}' is excluded from Darwinian weighting "
+                f"(gate agents use fixed weights at vote time)."
+            )
+        try:
+            v = float(value)
+        except (TypeError, ValueError) as e:
+            raise ValueError(f"weight must be numeric: {e}")
+        v = max(self.FLOOR, min(self.CEILING, v))
+        with self._lock:
+            self._weights[agent] = v
+        self._save_to_db()
+        self._logger.info(
+            f"[Darwin] {agent} weight manually set to {v:.3f}",
+            extra={"event": "darwin_manual_override", "agent": agent, "new_weight": v},
+        )
+        return v
 
 
 # ─────────────────────────────────────────────
@@ -1282,6 +2235,21 @@ class SubAgentPool:
         # Local cache of multi-timeframe trends for the background loop
         self.market_trends: dict = {}
 
+        # Phase 3 §9.1 — Raw multi-timeframe DataFrames pushed by FleetOrchestrator
+        # after MarketDataAggregator.process_symbol. In-process only; never
+        # serialised or persisted. Consumed by agents whose `dataframes` attr
+        # is set at build time (see build_agent + deliberate() correlation gate).
+        self.market_data_frames: dict = {}
+
+        # Phase 4 §7.3 — Per-bot event loop (injected by fleet after bot loop starts).
+        # If set, _persist_deliberation and Darwinian weight persistence will use
+        # this loop instead of contending on the fleet-level _main_event_loop.
+        self._bot_loop: Optional[Any] = None
+
+    def set_bot_loop(self, loop):
+        """Inject the bot's dedicated event loop (Phase 4 §7.3)."""
+        self._bot_loop = loop
+
     def start(self):
         """Start the background agent polling loop."""
         if self._thread and self._thread.is_alive():
@@ -1293,7 +2261,31 @@ class SubAgentPool:
             name=f"sub-agents-{self.bot_id}",
         )
         self._thread.start()
+        
+        # Initial research fetch (pull from PostgreSQL cache)
+        self._fetch_cached_research()
+        
         self._logger.info(f"SubAgentPool started. Agents: {self.enabled_agents}")
+
+    def _fetch_cached_research(self):
+        """Pull the latest research signal from PostgreSQL if available."""
+        if "research_framework" not in (self.enabled_agents or []):
+            return
+            
+        loop = _main_event_loop
+        if loop and loop.is_running():
+            try:
+                from research_bridge import research_bridge
+                # run_research(force=False) uses cache
+                future = asyncio.run_coroutine_threadsafe(
+                    research_bridge.run_research(self.symbol), loop
+                )
+                # Short timeout, we don't want to block startup too long
+                signal = future.result(timeout=10)
+                if signal and signal.confidence > 0:
+                    self.push_signal(signal)
+            except Exception as e:
+                self._logger.debug(f"Initial research fetch failed: {e}")
 
     def stop(self):
         """Stop the background loop and executor."""
@@ -1317,6 +2309,28 @@ class SubAgentPool:
         """Update the local cache of multi-timeframe trends (pushed from FleetManager)."""
         with self._lock:
             self.market_trends = trends or {}
+
+    def update_market_data_frames(self, frames: dict) -> None:
+        """
+        Update in-process DataFrames (Phase 3 §9.1).
+
+        Called by FleetOrchestrator after MarketDataAggregator.process_symbol().
+        Stored separately from `market_trends` (which is JSON-friendly) because
+        DataFrames are not serialisable and must not leak into WS payloads.
+        """
+        with self._lock:
+            self.market_data_frames = frames or {}
+
+    def push_signal(self, signal: AgentSignal):
+        """
+        Manually inject a signal (e.g. from the ResearchBridge).
+        This allows high-latency research results to be injected into the 
+        real-time pool for deliberation.
+        """
+        with self._lock:
+            self.latest_signals[signal.agent] = signal
+            self._vote_timestamps[signal.agent] = time.time()
+        self._logger.info(f"Signal pushed for agent: {signal.agent} (sentiment={signal.sentiment})")
 
     def run_now(self) -> dict[str, AgentSignal]:
         """Run all agents immediately and return their signals."""
@@ -1434,6 +2448,7 @@ class SubAgentPool:
                 if _decision is not None:
                     with self._lock:
                         self.last_deliberation = _decision
+                    self._persist_deliberation(_decision)
                     return _decision
             except Exception as _ge:
                 self._logger.warning(
@@ -1442,6 +2457,26 @@ class SubAgentPool:
 
         votes: list[AgentVote] = []
         veto_agents: list[str] = []
+
+        # ── Calendar Gate (Phase 4 §3.4) ───────────────────────────────
+        # FIRST gate — economic calendar VETO blocks all entries within ±30
+        # min of high-impact events (FOMC, NFP, CPI, etc.). No other analysis
+        # should run when the calendar prohibits entry.
+        if "calendar" in self.enabled_agents:
+            try:
+                cal_agent = CalendarAgent(
+                    bot_id=self.bot_id, symbol=self.symbol,
+                    openclaw_client=self._openclaw_client,
+                    openclaw_model=self._openclaw_model,
+                    ollama_base_url=self._ollama_base_url,
+                    ollama_model=self._ollama_model,
+                )
+                cal_vote = cal_agent.get_vote()
+                votes.append(cal_vote)
+                if cal_vote.vote == "VETO":
+                    veto_agents.append(cal_vote.agent)
+            except Exception as e:
+                self._logger.warning(f"CalendarAgent vote error: {e}")
 
         # ── Watchman (real-time gate, always fresh) ────────────────────
         try:
@@ -1473,6 +2508,87 @@ class SubAgentPool:
                 votes.append(ict_vote)
             except Exception as e:
                 self._logger.warning(f"ICTAgent vote error: {e}")
+
+        # ── Cross-Timeframe Trend (pure-math, always fresh, no LLM) ───
+        if "trend" in self.enabled_agents:
+            try:
+                trend_agent = CrossTimeframeTrendAgent(
+                    bot_id=self.bot_id, symbol=self.symbol,
+                    openclaw_client=self._openclaw_client,
+                    openclaw_model=self._openclaw_model,
+                    ollama_base_url=self._ollama_base_url,
+                    ollama_model=self._ollama_model,
+                    market_trends=market_trends or self.market_trends,
+                )
+                trend_vote = trend_agent.get_vote()
+                votes.append(trend_vote)
+            except Exception as e:
+                self._logger.warning(f"TrendAgent vote error: {e}")
+
+        # ── Volatility Regime (pure-math, always fresh, no LLM) ───────
+        if "regime" in self.enabled_agents:
+            try:
+                regime_agent = VolatilityRegimeAgent(
+                    bot_id=self.bot_id, symbol=self.symbol,
+                    openclaw_client=self._openclaw_client,
+                    openclaw_model=self._openclaw_model,
+                    ollama_base_url=self._ollama_base_url,
+                    ollama_model=self._ollama_model,
+                    market_trends=market_trends or self.market_trends,
+                )
+                regime_vote = regime_agent.get_vote(raw_signal=raw_signal)
+                votes.append(regime_vote)
+            except Exception as e:
+                self._logger.warning(f"RegimeAgent vote error: {e}")
+
+        # ── Correlation Gate (Phase 3 §3.1) ─────────────────────────────
+        # Pure-stats inter-market correlation check. Issues a VETO when ≥2
+        # historical correlations break (e.g. EURUSD ↔ DXY positive). Acts
+        # as a gate like Watchman/ICT — NOT a panel voter — with weight 1.25
+        # already encoded in the AgentVote returned by get_vote().
+        if "correlation" in self.enabled_agents:
+            try:
+                corr_agent = CorrelationAgent(
+                    bot_id=self.bot_id, symbol=self.symbol,
+                    openclaw_client=self._openclaw_client,
+                    openclaw_model=self._openclaw_model,
+                    ollama_base_url=self._ollama_base_url,
+                    ollama_model=self._ollama_model,
+                    market_trends=market_trends or self.market_trends,
+                )
+                # Inject DataFrames if available (Phase 3 §9.1)
+                if hasattr(self, "market_data_frames"):
+                    corr_agent.dataframes = self.market_data_frames
+                corr_vote = corr_agent.get_vote()
+                votes.append(corr_vote)
+                if corr_vote.vote == "VETO":
+                    veto_agents.append(corr_vote.agent)
+            except Exception as e:
+                self._logger.warning(f"CorrelationAgent vote error: {e}")
+
+        # ── Order Flow Gate (Phase 4 §3.2) ─────────────────────────────
+        # Pure-math tick-level order flow analysis (cumulative delta divergence
+        # + VWAP displacement). Flags institutional distribution (VETO on BUY)
+        # and accumulation (strong HOLD). Weight 1.5 baked into the AgentVote.
+        if "orderflow" in self.enabled_agents:
+            try:
+                of_agent = OrderFlowAgent(
+                    bot_id=self.bot_id, symbol=self.symbol,
+                    openclaw_client=self._openclaw_client,
+                    openclaw_model=self._openclaw_model,
+                    ollama_base_url=self._ollama_base_url,
+                    ollama_model=self._ollama_model,
+                    market_trends=market_trends or self.market_trends,
+                )
+                of_vote = of_agent.get_vote(
+                    raw_signal=raw_signal,
+                    price_history=price_history,
+                )
+                votes.append(of_vote)
+                if of_vote.vote == "VETO":
+                    veto_agents.append(of_vote.agent)
+            except Exception as e:
+                self._logger.warning(f"OrderFlowAgent vote error: {e}")
 
         # ── PHASE 3: Macro Regime Pre-Filter ────────────────────────────
         # Fast-path veto before running the full LLM panel: if the MacroAgent's
@@ -1537,30 +2653,41 @@ class SubAgentPool:
                 with self._lock:
                     self.last_deliberation = decision
                 self._logger.warning(
-                    f"[{self.bot_id}] MACRO RISK_OFF PRE-FILTER — {_macro_veto_vote.reasoning[:100]}"
+                    f"[{self.bot_id}] MACRO RISK_OFF PRE-FILTER — {_macro_veto_vote.reasoning[:100]}",
+                    extra={
+                        "event": "macro_risk_off_veto",
+                        "bot_id": self.bot_id,
+                        "symbol": self.symbol,
+                        "signal": raw_signal,
+                        "macro_sentiment": round(_macro_cached.sentiment, 3),
+                        "macro_confidence": round(_macro_cached.confidence, 3),
+                    },
                 )
+                self._persist_deliberation(decision)
                 return decision
 
         # ── LLM panel votes (use cached results, refresh if stale) ────
-        panel_agents = ["sentiment", "macro", "earnings", "technical"]
+        panel_agents = ["sentiment", "macro", "earnings", "technical", "research_framework"]
         
         # Static base weights × live Darwinian multipliers
-        _static = {"sentiment": 1.0, "macro": 1.0, "earnings": 1.5, "technical": 0.75}
+        _static = {"sentiment": 1.0, "macro": 1.0, "earnings": 1.5, "technical": 0.75, "research_framework": 2.0}
 
         with self._lock:
             current_signals = dict(self.latest_signals)
+            current_timestamps = dict(self._vote_timestamps)
 
         failed_agents: list[str] = []  # Track agents that failed to respond
 
         for agent_name in panel_agents:
-            if agent_name not in self.enabled_agents:
+            if agent_name not in self.enabled_agents and agent_name != "research_framework":
+                # Only check enabled_agents for built-in agents
                 continue
 
             signal = current_signals.get(agent_name)
-            age = time.time() - self._vote_timestamps.get(agent_name, 0)
+            age = time.time() - current_timestamps.get(agent_name, 0)
 
-            # Refresh if stale or missing
-            if signal is None or age > vote_cache_ttl:
+            # Refresh if stale or missing (only for built-in agents, research_framework is updated externally)
+            if (signal is None or age > vote_cache_ttl) and agent_name != "research_framework":
                 try:
                     agent = build_agent(
                         agent_name=agent_name,
@@ -1663,7 +2790,18 @@ class SubAgentPool:
             dw = getattr(v, "darwinian_weight", 1.0)
             self._logger.info(
                 f"[{self.bot_id}] │ {v.agent:<14} [{arrow}]  conf={v.confidence:.0%}"
-                f"  w={v.weight:.2f}×{dw:.2f}  {v.reasoning[:80]}"
+                f"  w={v.weight:.2f}×{dw:.2f}  {v.reasoning[:80]}",
+                extra={
+                    "event": "agent_vote",
+                    "bot_id": self.bot_id,
+                    "symbol": self.symbol,
+                    "raw_signal": raw_signal,
+                    "agent": v.agent,
+                    "vote": v.vote,
+                    "confidence": round(v.confidence, 3),
+                    "weight": round(v.weight, 3),
+                    "darwinian_weight": round(dw, 3),
+                },
             )
         self._logger.info(f"[{self.bot_id}] └──────────────────────────────────────────────────────")
 
@@ -1682,8 +2820,18 @@ class SubAgentPool:
             with self._lock:
                 self.last_deliberation = decision
             self._logger.warning(
-                f"[{self.bot_id}] DELIBERATION VETO — {decision.reasoning}"
+                f"[{self.bot_id}] DELIBERATION VETO — {decision.reasoning}",
+                extra={
+                    "event": "deliberation_veto",
+                    "bot_id": self.bot_id,
+                    "symbol": self.symbol,
+                    "signal": raw_signal,
+                    "veto_agents": list(veto_agents),
+                    "vote_count": len(votes),
+                },
             )
+            # Phase 3 §5.3 — persist deliberation to strategy_contexts
+            self._persist_deliberation(decision)
             return decision
 
         # ── Degraded-quorum safety check ─────────────────────────────────
@@ -1709,8 +2857,17 @@ class SubAgentPool:
             with self._lock:
                 self.last_deliberation = decision
             self._logger.warning(
-                f"[{self.bot_id}] DELIBERATION DEGRADED — {decision.reasoning}"
+                f"[{self.bot_id}] DELIBERATION DEGRADED — {decision.reasoning}",
+                extra={
+                    "event": "deliberation_degraded",
+                    "bot_id": self.bot_id,
+                    "symbol": self.symbol,
+                    "signal": raw_signal,
+                    "failed_agents": list(failed_agents),
+                    "enabled_panel_count": enabled_panel_count,
+                },
             )
+            self._persist_deliberation(decision)
             return decision
 
         # ── Quorum calculation (non-Risk / non-Watchman / non-ICT direction votes) ─
@@ -1738,8 +2895,15 @@ class SubAgentPool:
             with self._lock:
                 self.last_deliberation = _decision
             self._logger.warning(
-                f"[{self.bot_id}] DELIBERATION BLOCKED — all panel agents unavailable (LLM outage)"
+                f"[{self.bot_id}] DELIBERATION BLOCKED — all panel agents unavailable (LLM outage)",
+                extra={
+                    "event": "deliberation_blocked_llm_outage",
+                    "bot_id": self.bot_id,
+                    "symbol": self.symbol,
+                    "signal": raw_signal,
+                },
             )
+            self._persist_deliberation(_decision)
             return _decision
 
         # Weighted net-score using effective weight (static × Darwinian)
@@ -1759,7 +2923,7 @@ class SubAgentPool:
             f"weighted_score={weighted_score:.3f} (need ≥0.25) | {'PASS' if quorum_met else 'FAIL'}"
         )
 
-        if not quorum_met or weighted_score < 0.2:
+        if not quorum_met:
             decision = TradeDecision(
                 approved=False,
                 signal=raw_signal,
@@ -1776,8 +2940,18 @@ class SubAgentPool:
             with self._lock:
                 self.last_deliberation = decision
             self._logger.info(
-                f"[{self.bot_id}] DELIBERATION NO-QUORUM — {decision.reasoning}"
+                f"[{self.bot_id}] DELIBERATION NO-QUORUM — {decision.reasoning}",
+                extra={
+                    "event": "deliberation_no_quorum",
+                    "bot_id": self.bot_id,
+                    "symbol": self.symbol,
+                    "signal": raw_signal,
+                    "agree_count": agree_count,
+                    "total_panel": total_panel,
+                    "quorum_score": round(weighted_score, 3),
+                },
             )
+            self._persist_deliberation(decision)
             return decision
 
         # ── Risk Manager final approval ────────────────────────────────
@@ -1814,8 +2988,17 @@ class SubAgentPool:
                 with self._lock:
                     self.last_deliberation = decision
                 self._logger.warning(
-                    f"[{self.bot_id}] DELIBERATION RISK VETO — {risk_vote.veto_reason}"
+                    f"[{self.bot_id}] DELIBERATION RISK VETO — {risk_vote.veto_reason}",
+                    extra={
+                        "event": "deliberation_risk_veto",
+                        "bot_id": self.bot_id,
+                        "symbol": self.symbol,
+                        "signal": raw_signal,
+                        "veto_reason": risk_vote.veto_reason,
+                        "quorum_score": round(weighted_score, 3),
+                    },
                 )
+                self._persist_deliberation(decision)
                 return decision
         except Exception as e:
             self._logger.error(f"RiskManagerAgent error: {e} — blocking trade for safety")
@@ -1831,6 +3014,7 @@ class SubAgentPool:
             )
             with self._lock:
                 self.last_deliberation = decision
+            self._persist_deliberation(decision)
             return decision
 
         # ── APPROVED ──────────────────────────────────────────────────
@@ -1857,14 +3041,52 @@ class SubAgentPool:
             self.last_deliberation = decision
 
         self._logger.info(
-            f"[{self.bot_id}] DELIBERATION APPROVED — {decision.reasoning}"
+            f"[{self.bot_id}] DELIBERATION APPROVED — {decision.reasoning}",
+            extra={
+                "event": "deliberation_approved",
+                "bot_id": self.bot_id,
+                "symbol": self.symbol,
+                "signal": raw_signal,
+                "approved_qty": approved_qty,
+                "order_urgency": urgency,
+                "quorum_score": round(weighted_score, 3),
+                "agree_count": agree_count,
+                "total_panel": total_panel,
+                "avg_confidence": round(avg_conf, 3),
+            },
         )
+        self._persist_deliberation(decision)
         return decision
 
     def get_last_deliberation(self) -> Optional[dict]:
         """Return the last deliberation result as a dict (for API endpoints)."""
         with self._lock:
             return self.last_deliberation.to_dict() if self.last_deliberation else None
+
+    def _persist_deliberation(self, decision: "TradeDecision") -> None:
+        """
+        Persist a TradeDecision to PostgreSQL (Phase 3 §5.3).
+
+        Writes to the `strategy_contexts` table via `save_strategy_context`.
+        Phase 4 §7.3 — prefers the bot's own event loop over the fleet-level
+        `_main_event_loop` to isolate per-bot DB contention.
+        Fire-and-forget — failures do NOT block deliberation.
+        """
+        try:
+            import postgres_store
+            loop = self._bot_loop or _main_event_loop
+            if not (loop and loop.is_running()):
+                return
+            store = postgres_store.get_store() if postgres_store.is_initialized() else None
+            if store is None:
+                return
+            payload = decision.to_dict() if hasattr(decision, "to_dict") else dict(decision)
+            payload["_kind"] = "deliberation"
+            asyncio.run_coroutine_threadsafe(
+                store.save_strategy_context(self.bot_id, payload), loop
+            )
+        except Exception as e:
+            self._logger.debug(f"Deliberation persistence skipped: {e}")
 
     def get_agent_status(self) -> dict:
         """
@@ -1939,4 +3161,5 @@ class SubAgentPool:
             self.last_run_at = now
             self.total_runs += 1
 
+        return results
         return results

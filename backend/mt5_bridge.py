@@ -6,6 +6,11 @@ import time
 
 logger = logging.getLogger("tradeclaw.mt5_bridge")
 
+# Bridge host: when running inside Docker, connect to host via host.docker.internal.
+# Override via MT5_BRIDGE_HOST env var (default: localhost for native/host-side runs).
+MT5_BRIDGE_HOST = os.getenv("MT5_BRIDGE_HOST", "localhost")
+MT5_BRIDGE_PORT = int(os.getenv("MT5_BRIDGE_PORT", "18812"))
+
 # If we're on Linux/macOS, we use RPyC to connect to the Windows Python running in Wine
 if os.name != 'nt':
     try:
@@ -38,10 +43,12 @@ if os.name != 'nt':
                 return getattr(self._remote, name)
 
         def get_mt5_bridge():
-            """Attempt to connect to the RPyC bridge server."""
+            """Attempt to connect to the RPyC bridge server.
+            Connects to MT5_BRIDGE_HOST (default localhost) on MT5_BRIDGE_PORT (default 18812).
+            Inside Docker, set MT5_BRIDGE_HOST=host.docker.internal to reach the host's bridge."""
             for i in range(15):
                 try:
-                    conn = rpyc.connect("localhost", 18812, config={
+                    conn = rpyc.connect(MT5_BRIDGE_HOST, MT5_BRIDGE_PORT, config={
                         'allow_public_attrs': True,
                         'sync_request_timeout': 60
                     })

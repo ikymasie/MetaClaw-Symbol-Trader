@@ -1009,3 +1009,673 @@ DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
 DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
 2026-05-09 23:30:17,042 [tradeclaw.postgres_store] ERROR: Failed to flush batch to telemetry: insert or update on table "telemetry_y2026m05" violates foreign key constraint "telemetry_bot_id_fkey"
 DETAIL:  Key (bot_id)=(fleet) is not present in table "bots".
+2026-05-11 00:15:30,938 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-11 00:15:30,938 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-11 00:15:35,373 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-11 00:15:35,373 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-11 00:15:36,139 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-11 00:15:36,141 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-11 00:15:36,144 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-11 00:15:36,145 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-11 00:15:36,145 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-11 00:15:37,665 [tradeclaw.fleet] INFO: Restoring 2 bot(s) from PostgreSQL: ['bot-731aafea', 'bot-4fd465ec']
+2026-05-11 00:15:40,215 [tradeclaw.fleet] INFO: [bot-731aafea] Gemini client initialized (model=gemini-3.1-flash-lite)
+2026-05-11 00:15:40,215 [tradeclaw.agents.pool[bot-731aafea]] INFO: Sub-agent loop starting
+2026-05-11 00:15:40,215 [tradeclaw.agents.pool[bot-731aafea]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-11 00:15:40,216 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] SubAgentPool wired (6 agents)
+2026-05-11 00:15:40,216 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: SentimentAgent running for ETHUSD
+2026-05-11 00:15:40,216 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain loop running
+2026-05-11 00:15:40,216 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain started
+2026-05-11 00:15:40,216 [tradeclaw.agents.macro[bot-731aafea]] INFO: MacroAgent running for ETHUSD
+2026-05-11 00:15:40,216 [tradeclaw.agents.earnings[bot-731aafea]] INFO: EarningsAgent running for ETHUSD
+2026-05-11 00:15:40,217 [tradeclaw.agents.technical[bot-731aafea]] INFO: TechnicalAgent running for ETHUSD
+2026-05-11 00:15:40,217 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: No buffered headlines for ETHUSD. Using web search.
+2026-05-11 00:15:40,506 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 404 Not Found"
+2026-05-11 00:15:40,507 [tradeclaw.agents.technical[bot-731aafea]] WARNING: Ollama model 'ollama/gemma4:31b-cloud' generate unavailable (Not Found) — disabling Ollama for this session.
+2026-05-11 00:15:40,514 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 404 Not Found"
+2026-05-11 00:15:40,514 [tradeclaw.agents.earnings[bot-731aafea]] WARNING: Ollama model 'ollama/gemma4:31b-cloud' generate unavailable (Not Found) — disabling Ollama for this session.
+2026-05-11 00:15:40,518 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 404 Not Found"
+2026-05-11 00:15:40,518 [tradeclaw.agents.macro[bot-731aafea]] WARNING: Ollama model 'ollama/gemma4:31b-cloud' generate unavailable (Not Found) — disabling Ollama for this session.
+2026-05-11 00:15:30,938 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-11 00:15:30,938 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-11 00:15:35,373 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-11 00:15:35,373 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-11 00:15:36,139 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-11 00:15:36,141 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-11 00:15:36,144 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-11 00:15:36,145 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-11 00:15:36,145 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-11 00:15:37,665 [tradeclaw.fleet] INFO: Restoring 2 bot(s) from PostgreSQL: ['bot-731aafea', 'bot-4fd465ec']
+2026-05-11 00:15:40,215 [tradeclaw.fleet] INFO: [bot-731aafea] Gemini client initialized (model=gemini-3.1-flash-lite)
+2026-05-11 00:15:40,215 [tradeclaw.agents.pool[bot-731aafea]] INFO: Sub-agent loop starting
+2026-05-11 00:15:40,215 [tradeclaw.agents.pool[bot-731aafea]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-11 00:15:40,216 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] SubAgentPool wired (6 agents)
+2026-05-11 00:15:40,216 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: SentimentAgent running for ETHUSD
+2026-05-11 00:15:40,216 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain loop running
+2026-05-11 00:15:40,216 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain started
+2026-05-11 00:15:40,216 [tradeclaw.agents.macro[bot-731aafea]] INFO: MacroAgent running for ETHUSD
+2026-05-11 00:15:40,216 [tradeclaw.agents.earnings[bot-731aafea]] INFO: EarningsAgent running for ETHUSD
+2026-05-11 00:15:40,217 [tradeclaw.agents.technical[bot-731aafea]] INFO: TechnicalAgent running for ETHUSD
+2026-05-11 00:15:40,217 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: No buffered headlines for ETHUSD. Using web search.
+2026-05-11 00:15:40,507 [tradeclaw.agents.technical[bot-731aafea]] WARNING: Ollama model 'ollama/gemma4:31b-cloud' generate unavailable (Not Found) — disabling Ollama for this session.
+2026-05-11 00:15:40,514 [tradeclaw.agents.earnings[bot-731aafea]] WARNING: Ollama model 'ollama/gemma4:31b-cloud' generate unavailable (Not Found) — disabling Ollama for this session.
+2026-05-11 00:15:40,518 [tradeclaw.agents.macro[bot-731aafea]] WARNING: Ollama model 'ollama/gemma4:31b-cloud' generate unavailable (Not Found) — disabling Ollama for this session.
+2026-05-11 00:15:30,938 [tradeclaw] INFO: TradeClaw starting up...
+2026-05-11 00:15:30,938 [tradeclaw.postgres_store] INFO: Connecting to PostgreSQL (Neon)...
+2026-05-11 00:15:35,373 [tradeclaw.postgres_store] INFO: PostgreSQL Store ready.
+2026-05-11 00:15:35,373 [tradeclaw.postgres_store] INFO: [FLEET_EVENT] SYSTEM_STARTUP: TradeClaw Execution Engine starting up | Metadata: None
+2026-05-11 00:15:36,139 [tradeclaw.mt5_hub] INFO: [MT5Hub] mt5.initialize() successful on attempt 1
+2026-05-11 00:15:36,141 [tradeclaw.mt5_hub] INFO: [MT5Hub] Login successful on attempt 1
+2026-05-11 00:15:36,144 [tradeclaw.mt5_hub] INFO: [MT5Hub] Connected to MT5 terminal (build=5834, connected=True)
+2026-05-11 00:15:36,145 [tradeclaw.mt5_hub] INFO: [MT5Hub] Polling loops started
+2026-05-11 00:15:36,145 [tradeclaw.fleet] INFO: Persistence store injected (main_loop captured: True)
+2026-05-11 00:15:37,665 [tradeclaw.fleet] INFO: Restoring 2 bot(s) from PostgreSQL: ['bot-731aafea', 'bot-4fd465ec']
+2026-05-11 00:15:40,215 [tradeclaw.fleet] INFO: [bot-731aafea] Gemini client initialized (model=gemini-3.1-flash-lite)
+2026-05-11 00:15:40,215 [tradeclaw.agents.pool[bot-731aafea]] INFO: Sub-agent loop starting
+2026-05-11 00:15:40,215 [tradeclaw.agents.pool[bot-731aafea]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-11 00:15:40,216 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] SubAgentPool wired (6 agents)
+2026-05-11 00:15:40,216 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: SentimentAgent running for ETHUSD
+2026-05-11 00:15:40,216 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain loop running
+2026-05-11 00:15:40,216 [tradeclaw.bot_ai_brain[bot-731aafea]] INFO: AI Brain started
+2026-05-11 00:15:40,216 [tradeclaw.agents.macro[bot-731aafea]] INFO: MacroAgent running for ETHUSD
+2026-05-11 00:15:40,216 [tradeclaw.agents.earnings[bot-731aafea]] INFO: EarningsAgent running for ETHUSD
+2026-05-11 00:15:40,217 [tradeclaw.agents.technical[bot-731aafea]] INFO: TechnicalAgent running for ETHUSD
+2026-05-11 00:15:40,217 [tradeclaw.agents.sentiment[bot-731aafea]] INFO: No buffered headlines for ETHUSD. Using web search.
+2026-05-11 00:15:40,506 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 404 Not Found"
+2026-05-11 00:15:40,507 [tradeclaw.agents.technical[bot-731aafea]] WARNING: Ollama model 'ollama/gemma4:31b-cloud' generate unavailable (Not Found) — disabling Ollama for this session.
+2026-05-11 00:15:40,514 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 404 Not Found"
+2026-05-11 00:15:40,514 [tradeclaw.agents.earnings[bot-731aafea]] WARNING: Ollama model 'ollama/gemma4:31b-cloud' generate unavailable (Not Found) — disabling Ollama for this session.
+2026-05-11 00:15:40,518 [httpx] INFO: HTTP Request: POST http://localhost:11434/api/generate "HTTP/1.1 404 Not Found"
+2026-05-11 00:15:40,518 [tradeclaw.agents.macro[bot-731aafea]] WARNING: Ollama model 'ollama/gemma4:31b-cloud' generate unavailable (Not Found) — disabling Ollama for this session.
+2026-05-11 00:15:40,977 [tradeclaw.fleet] INFO: [bot-731aafea] Restored equity state: eq=100.00, pnl=0.00
+2026-05-11 00:15:40,977 [tradeclaw.fleet] INFO: [bot-731aafea] Auto-starting engine per config
+2026-05-11 00:15:40,977 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine started (restart). Symbol=ETHUSD
+2026-05-11 00:15:40,977 [tradeclaw.fleet] INFO: [bot-731aafea] Restored: ETHUSD | combined
+2026-05-11 00:15:40,985 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: No account_id set — using default MT5 account
+2026-05-11 00:15:40,985 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine RUNNING on MT5
+2026-05-11 00:15:40,985 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: PostgreSQL has 0 bars for ETHUSD (need 200+) — fetching from MT5
+2026-05-11 00:15:41,891 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-11 00:15:41,895 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 1/10 this hour
+2026-05-11 00:15:42,059 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-11 00:15:42,070 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 2/10 this hour
+2026-05-11 00:15:42,070 [tradeclaw.agents.pool[bot-731aafea]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-11 00:15:42,184 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-11 00:15:42,185 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 3/10 this hour
+2026-05-11 00:15:42,185 [tradeclaw.agents.pool[bot-731aafea]] INFO: [macro] sentiment=+0.25 confidence=0.75
+2026-05-11 00:15:42,519 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-11 00:15:42,520 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 4/10 this hour
+2026-05-11 00:15:42,520 [tradeclaw.agents.pool[bot-731aafea]] INFO: [earnings] sentiment=+0.00 confidence=1.00
+2026-05-11 00:15:42,520 [tradeclaw.agents.pool[bot-731aafea]] INFO: [technical] sentiment=+0.00 confidence=0.10
+2026-05-11 00:15:42,520 [tradeclaw.agents.pool[bot-731aafea]] INFO: [watchman] sentiment=+1.00 confidence=1.00
+2026-05-11 00:15:42,520 [tradeclaw.agents.pool[bot-731aafea]] INFO: [risk_manager] sentiment=+0.00 confidence=0.00
+2026-05-11 00:15:42,839 [tradeclaw.fleet] INFO: [bot-4fd465ec] Gemini client initialized (model=gemini-3.1-flash-lite)
+2026-05-11 00:15:42,839 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: Sub-agent loop starting
+2026-05-11 00:15:42,840 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-11 00:15:42,840 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: [bot-4fd465ec] SubAgentPool wired (6 agents)
+2026-05-11 00:15:42,840 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain loop running
+2026-05-11 00:15:42,840 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain started
+2026-05-11 00:15:42,840 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: SentimentAgent running for BTCUSD
+2026-05-11 00:15:42,841 [tradeclaw.agents.macro[bot-4fd465ec]] INFO: MacroAgent running for BTCUSD
+2026-05-11 00:15:42,841 [tradeclaw.agents.earnings[bot-4fd465ec]] INFO: EarningsAgent running for BTCUSD
+2026-05-11 00:15:42,841 [tradeclaw.agents.technical[bot-4fd465ec]] INFO: TechnicalAgent running for BTCUSD
+2026-05-11 00:15:42,841 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: No buffered headlines for BTCUSD. Using web search.
+2026-05-11 00:15:43,355 [tradeclaw.fleet] INFO: [bot-4fd465ec] Restored equity state: eq=20.00, pnl=0.00
+2026-05-11 00:15:43,355 [tradeclaw.fleet] INFO: [bot-4fd465ec] Auto-starting engine per config
+2026-05-11 00:15:43,356 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine started (restart). Symbol=BTCUSD
+2026-05-11 00:15:43,356 [tradeclaw.fleet] INFO: [bot-4fd465ec] Restored: BTCUSD | mean_reversion
+2026-05-11 00:15:43,356 [tradeclaw.fleet] INFO: Bot restoration complete: 2/2 restored
+2026-05-11 00:15:43,356 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-11 00:15:43,358 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-11 00:15:43,358 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-11 00:15:43,358 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-11 00:15:43,358 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-11 00:15:43,358 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-11 00:15:43,358 [tradeclaw] INFO: TradeClaw ready — full trading mode
+2026-05-11 00:15:43,360 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: No account_id set — using default MT5 account
+2026-05-11 00:15:43,360 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine RUNNING on MT5
+2026-05-11 00:15:43,360 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: PostgreSQL has 0 bars for BTCUSD (need 200+) — fetching from MT5
+2026-05-11 00:15:44,048 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-11 00:15:44,050 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 5/10 this hour
+2026-05-11 00:15:44,344 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-11 00:15:44,345 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 6/10 this hour
+2026-05-11 00:15:44,346 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-11 00:15:44,496 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-11 00:15:44,497 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 7/10 this hour
+2026-05-11 00:15:44,497 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [macro] sentiment=+0.25 confidence=0.75
+2026-05-11 00:15:44,625 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 1
+2026-05-11 00:15:45,184 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-11 00:15:45,185 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 8/10 this hour
+2026-05-11 00:15:45,185 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [earnings] sentiment=+0.00 confidence=1.00
+2026-05-11 00:15:45,185 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [technical] sentiment=+0.00 confidence=0.00
+2026-05-11 00:15:45,186 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [watchman] sentiment=+1.00 confidence=1.00
+2026-05-11 00:15:45,186 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [risk_manager] sentiment=+0.00 confidence=0.00
+2026-05-11 00:15:45,365 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-11 00:15:45,651 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-11 00:15:45,939 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-11 00:15:46,165 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Warmup: 200 bars loaded from MT5 for ETHUSD — back-filling Postgres
+2026-05-11 00:15:46,231 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-11 00:15:46,518 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-11 00:15:46,795 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-11 00:15:47,083 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-11 00:15:47,370 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-11 00:15:40,977 [tradeclaw.fleet] INFO: [bot-731aafea] Restored equity state: eq=100.00, pnl=0.00
+2026-05-11 00:15:40,977 [tradeclaw.fleet] INFO: [bot-731aafea] Auto-starting engine per config
+2026-05-11 00:15:40,977 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine started (restart). Symbol=ETHUSD
+2026-05-11 00:15:40,977 [tradeclaw.fleet] INFO: [bot-731aafea] Restored: ETHUSD | combined
+2026-05-11 00:15:40,985 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: No account_id set — using default MT5 account
+2026-05-11 00:15:40,985 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine RUNNING on MT5
+2026-05-11 00:15:40,985 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: PostgreSQL has 0 bars for ETHUSD (need 200+) — fetching from MT5
+2026-05-11 00:15:41,895 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 1/10 this hour
+2026-05-11 00:15:42,070 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 2/10 this hour
+2026-05-11 00:15:42,070 [tradeclaw.agents.pool[bot-731aafea]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-11 00:15:42,185 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 3/10 this hour
+2026-05-11 00:15:42,185 [tradeclaw.agents.pool[bot-731aafea]] INFO: [macro] sentiment=+0.25 confidence=0.75
+2026-05-11 00:15:42,520 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 4/10 this hour
+2026-05-11 00:15:42,520 [tradeclaw.agents.pool[bot-731aafea]] INFO: [earnings] sentiment=+0.00 confidence=1.00
+2026-05-11 00:15:42,520 [tradeclaw.agents.pool[bot-731aafea]] INFO: [technical] sentiment=+0.00 confidence=0.10
+2026-05-11 00:15:42,520 [tradeclaw.agents.pool[bot-731aafea]] INFO: [watchman] sentiment=+1.00 confidence=1.00
+2026-05-11 00:15:42,520 [tradeclaw.agents.pool[bot-731aafea]] INFO: [risk_manager] sentiment=+0.00 confidence=0.00
+2026-05-11 00:15:42,839 [tradeclaw.fleet] INFO: [bot-4fd465ec] Gemini client initialized (model=gemini-3.1-flash-lite)
+2026-05-11 00:15:42,839 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: Sub-agent loop starting
+2026-05-11 00:15:42,840 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-11 00:15:42,840 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: [bot-4fd465ec] SubAgentPool wired (6 agents)
+2026-05-11 00:15:42,840 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain loop running
+2026-05-11 00:15:42,840 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain started
+2026-05-11 00:15:42,840 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: SentimentAgent running for BTCUSD
+2026-05-11 00:15:42,841 [tradeclaw.agents.macro[bot-4fd465ec]] INFO: MacroAgent running for BTCUSD
+2026-05-11 00:15:42,841 [tradeclaw.agents.earnings[bot-4fd465ec]] INFO: EarningsAgent running for BTCUSD
+2026-05-11 00:15:42,841 [tradeclaw.agents.technical[bot-4fd465ec]] INFO: TechnicalAgent running for BTCUSD
+2026-05-11 00:15:42,841 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: No buffered headlines for BTCUSD. Using web search.
+2026-05-11 00:15:43,355 [tradeclaw.fleet] INFO: [bot-4fd465ec] Restored equity state: eq=20.00, pnl=0.00
+2026-05-11 00:15:43,355 [tradeclaw.fleet] INFO: [bot-4fd465ec] Auto-starting engine per config
+2026-05-11 00:15:43,356 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine started (restart). Symbol=BTCUSD
+2026-05-11 00:15:43,356 [tradeclaw.fleet] INFO: [bot-4fd465ec] Restored: BTCUSD | mean_reversion
+2026-05-11 00:15:43,356 [tradeclaw.fleet] INFO: Bot restoration complete: 2/2 restored
+2026-05-11 00:15:43,356 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-11 00:15:43,358 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-11 00:15:43,358 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-11 00:15:43,358 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-11 00:15:43,358 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-11 00:15:43,358 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-11 00:15:43,358 [tradeclaw] INFO: TradeClaw ready — full trading mode
+2026-05-11 00:15:43,360 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: No account_id set — using default MT5 account
+2026-05-11 00:15:43,360 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine RUNNING on MT5
+2026-05-11 00:15:43,360 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: PostgreSQL has 0 bars for BTCUSD (need 200+) — fetching from MT5
+2026-05-11 00:15:44,050 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 5/10 this hour
+2026-05-11 00:15:44,345 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 6/10 this hour
+2026-05-11 00:15:44,346 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-11 00:15:44,497 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 7/10 this hour
+2026-05-11 00:15:44,497 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [macro] sentiment=+0.25 confidence=0.75
+2026-05-11 00:15:44,625 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 1
+2026-05-11 00:15:45,185 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 8/10 this hour
+2026-05-11 00:15:45,185 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [earnings] sentiment=+0.00 confidence=1.00
+2026-05-11 00:15:45,185 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [technical] sentiment=+0.00 confidence=0.00
+2026-05-11 00:15:45,186 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [watchman] sentiment=+1.00 confidence=1.00
+2026-05-11 00:15:45,186 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [risk_manager] sentiment=+0.00 confidence=0.00
+2026-05-11 00:15:45,365 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-11 00:15:45,651 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-11 00:15:45,939 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-11 00:15:46,165 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Warmup: 200 bars loaded from MT5 for ETHUSD — back-filling Postgres
+2026-05-11 00:15:46,231 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-11 00:15:46,518 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-11 00:15:46,795 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-11 00:15:47,083 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-11 00:15:47,370 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-11 00:15:47,658 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-11 00:15:47,935 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-11 00:15:48,223 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-11 00:15:48,511 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-11 00:15:49,363 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-11 00:15:49,922 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-11 00:15:50,202 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Warmup: 200 bars loaded from MT5 for BTCUSD — back-filling Postgres
+2026-05-11 00:15:50,483 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-11 00:15:47,658 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-11 00:15:47,935 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-11 00:15:48,223 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-11 00:15:48,511 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-11 00:15:49,363 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-11 00:15:49,922 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-11 00:15:50,202 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Warmup: 200 bars loaded from MT5 for BTCUSD — back-filling Postgres
+2026-05-11 00:15:50,483 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-11 00:15:40,977 [tradeclaw.fleet] INFO: [bot-731aafea] Restored equity state: eq=100.00, pnl=0.00
+2026-05-11 00:15:40,977 [tradeclaw.fleet] INFO: [bot-731aafea] Auto-starting engine per config
+2026-05-11 00:15:40,977 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine started (restart). Symbol=ETHUSD
+2026-05-11 00:15:40,977 [tradeclaw.fleet] INFO: [bot-731aafea] Restored: ETHUSD | combined
+2026-05-11 00:15:40,985 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: No account_id set — using default MT5 account
+2026-05-11 00:15:40,985 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Engine RUNNING on MT5
+2026-05-11 00:15:40,985 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: PostgreSQL has 0 bars for ETHUSD (need 200+) — fetching from MT5
+2026-05-11 00:15:41,891 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-11 00:15:41,895 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 1/10 this hour
+2026-05-11 00:15:42,059 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-11 00:15:42,070 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 2/10 this hour
+2026-05-11 00:15:42,070 [tradeclaw.agents.pool[bot-731aafea]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-11 00:15:42,184 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-11 00:15:42,185 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 3/10 this hour
+2026-05-11 00:15:42,185 [tradeclaw.agents.pool[bot-731aafea]] INFO: [macro] sentiment=+0.25 confidence=0.75
+2026-05-11 00:15:42,519 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-11 00:15:42,520 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 4/10 this hour
+2026-05-11 00:15:42,520 [tradeclaw.agents.pool[bot-731aafea]] INFO: [earnings] sentiment=+0.00 confidence=1.00
+2026-05-11 00:15:42,520 [tradeclaw.agents.pool[bot-731aafea]] INFO: [technical] sentiment=+0.00 confidence=0.10
+2026-05-11 00:15:42,520 [tradeclaw.agents.pool[bot-731aafea]] INFO: [watchman] sentiment=+1.00 confidence=1.00
+2026-05-11 00:15:42,520 [tradeclaw.agents.pool[bot-731aafea]] INFO: [risk_manager] sentiment=+0.00 confidence=0.00
+2026-05-11 00:15:42,839 [tradeclaw.fleet] INFO: [bot-4fd465ec] Gemini client initialized (model=gemini-3.1-flash-lite)
+2026-05-11 00:15:42,839 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: Sub-agent loop starting
+2026-05-11 00:15:42,840 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: SubAgentPool started. Agents: ['sentiment', 'macro', 'earnings', 'technical', 'watchman', 'risk_manager']
+2026-05-11 00:15:42,840 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: [bot-4fd465ec] SubAgentPool wired (6 agents)
+2026-05-11 00:15:42,840 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain loop running
+2026-05-11 00:15:42,840 [tradeclaw.bot_ai_brain[bot-4fd465ec]] INFO: AI Brain started
+2026-05-11 00:15:42,840 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: SentimentAgent running for BTCUSD
+2026-05-11 00:15:42,841 [tradeclaw.agents.macro[bot-4fd465ec]] INFO: MacroAgent running for BTCUSD
+2026-05-11 00:15:42,841 [tradeclaw.agents.earnings[bot-4fd465ec]] INFO: EarningsAgent running for BTCUSD
+2026-05-11 00:15:42,841 [tradeclaw.agents.technical[bot-4fd465ec]] INFO: TechnicalAgent running for BTCUSD
+2026-05-11 00:15:42,841 [tradeclaw.agents.sentiment[bot-4fd465ec]] INFO: No buffered headlines for BTCUSD. Using web search.
+2026-05-11 00:15:43,355 [tradeclaw.fleet] INFO: [bot-4fd465ec] Restored equity state: eq=20.00, pnl=0.00
+2026-05-11 00:15:43,355 [tradeclaw.fleet] INFO: [bot-4fd465ec] Auto-starting engine per config
+2026-05-11 00:15:43,356 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine started (restart). Symbol=BTCUSD
+2026-05-11 00:15:43,356 [tradeclaw.fleet] INFO: [bot-4fd465ec] Restored: BTCUSD | mean_reversion
+2026-05-11 00:15:43,356 [tradeclaw.fleet] INFO: Bot restoration complete: 2/2 restored
+2026-05-11 00:15:43,356 [tradeclaw] INFO: PostgreSQL connected (Neon), fleet config and bots restored
+2026-05-11 00:15:43,358 [tradeclaw] INFO: Partition maintenance loop started
+2026-05-11 00:15:43,358 [tradeclaw.fleet] INFO: Fleet monitor started
+2026-05-11 00:15:43,358 [tradeclaw.ai_brain] INFO: AI Brain captured main loop: True
+2026-05-11 00:15:43,358 [tradeclaw.ai_brain] INFO: AI Brain loop running
+2026-05-11 00:15:43,358 [tradeclaw.ai_brain] INFO: AI Brain scheduler started
+2026-05-11 00:15:43,358 [tradeclaw] INFO: TradeClaw ready — full trading mode
+2026-05-11 00:15:43,360 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: No account_id set — using default MT5 account
+2026-05-11 00:15:43,360 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Engine RUNNING on MT5
+2026-05-11 00:15:43,360 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: PostgreSQL has 0 bars for BTCUSD (need 200+) — fetching from MT5
+2026-05-11 00:15:44,048 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-11 00:15:44,050 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 5/10 this hour
+2026-05-11 00:15:44,344 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-11 00:15:44,345 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 6/10 this hour
+2026-05-11 00:15:44,346 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [sentiment] sentiment=+0.45 confidence=0.85
+2026-05-11 00:15:44,496 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-11 00:15:44,497 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 7/10 this hour
+2026-05-11 00:15:44,497 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [macro] sentiment=+0.25 confidence=0.75
+2026-05-11 00:15:44,625 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 1
+2026-05-11 00:15:45,184 [httpx] INFO: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/openai/chat/completions "HTTP/1.1 200 OK"
+2026-05-11 00:15:45,185 [tradeclaw.gemini_budget] INFO: [GeminiBudget] Call recorded: 8/10 this hour
+2026-05-11 00:15:45,185 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [earnings] sentiment=+0.00 confidence=1.00
+2026-05-11 00:15:45,185 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [technical] sentiment=+0.00 confidence=0.00
+2026-05-11 00:15:45,186 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [watchman] sentiment=+1.00 confidence=1.00
+2026-05-11 00:15:45,186 [tradeclaw.agents.pool[bot-4fd465ec]] INFO: [risk_manager] sentiment=+0.00 confidence=0.00
+2026-05-11 00:15:45,365 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m05 exists for table equity_history
+2026-05-11 00:15:45,651 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m05 exists for table telemetry
+2026-05-11 00:15:45,939 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m05 exists for table market_bars
+2026-05-11 00:15:46,165 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: Warmup: 200 bars loaded from MT5 for ETHUSD — back-filling Postgres
+2026-05-11 00:15:46,231 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m05 exists for table agent_signals
+2026-05-11 00:15:46,518 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m05 exists for table bot_logs
+2026-05-11 00:15:46,795 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m05 exists for table system_metrics
+2026-05-11 00:15:47,083 [tradeclaw.partition_manager] INFO: Ensuring partition equity_history_y2026m06 exists for table equity_history
+2026-05-11 00:15:47,370 [tradeclaw.partition_manager] INFO: Ensuring partition telemetry_y2026m06 exists for table telemetry
+2026-05-11 00:15:47,658 [tradeclaw.partition_manager] INFO: Ensuring partition market_bars_y2026m06 exists for table market_bars
+2026-05-11 00:15:47,935 [tradeclaw.partition_manager] INFO: Ensuring partition agent_signals_y2026m06 exists for table agent_signals
+2026-05-11 00:15:48,223 [tradeclaw.partition_manager] INFO: Ensuring partition bot_logs_y2026m06 exists for table bot_logs
+2026-05-11 00:15:48,511 [tradeclaw.partition_manager] INFO: Ensuring partition system_metrics_y2026m06 exists for table system_metrics
+2026-05-11 00:15:49,363 [tradeclaw.partition_manager] INFO: Telemetry pruning: DELETE 0
+2026-05-11 00:15:49,922 [tradeclaw.partition_manager] INFO: Bot logs pruning: DELETE 0
+2026-05-11 00:15:50,202 [tradeclaw.engine[bot-4fd465ec|Phantom Leopard BTCUSD]] INFO: Warmup: 200 bars loaded from MT5 for BTCUSD — back-filling Postgres
+2026-05-11 00:15:50,483 [tradeclaw.partition_manager] INFO: System metrics pruning: DELETE 0
+2026-05-11 00:15:50,979 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-11 00:15:50,979 [tradeclaw.darwin[bot-731aafea]] INFO: No outcomes to process for Darwinian update.
+2026-05-11 00:15:50,979 [tradeclaw.darwin[bot-4fd465ec]] INFO: No outcomes to process for Darwinian update.
+2026-05-11 00:15:50,979 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-11 00:15:50,980 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-11 00:15:50,980 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for BTCUSD from PostgreSQL
+2026-05-11 00:15:51,799 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=30.5 | ATR_z=1.47 | Trend=bullish
+2026-05-11 00:15:52,501 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:15:53,851 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for ETHUSD from PostgreSQL
+2026-05-11 00:15:54,285 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 2
+2026-05-11 00:15:55,043 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=53.1 | ATR_z=1.52 | Trend=bullish
+2026-05-11 00:15:55,051 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.1 (need ranging, can_mr=False); RSI=64.6 (need <45.0); RVOL=0.84 (need ≥1.5); BB re-entry not triggered (price=81290.44, lower_bb=80890.42, tol=81184.95)
+2026-05-11 00:15:55,186 [tradeclaw] WARNING: [MarketData] Data unavailable for ETHUSD: pickling is disabled
+2026-05-11 00:15:55,194 [tradeclaw] WARNING: [MarketData] Data unavailable for BTCUSD: pickling is disabled
+2026-05-11 00:16:01,836 [tradeclaw.postgres_store] ERROR: Failed to flush batch to market_bars: duplicate key value violates unique constraint "market_bars_y2026m05_pkey"
+DETAIL:  Key (symbol, timeframe, "timestamp")=(BTCUSD, 15m, 2026-05-10 21:45:00+00) already exists.
+2026-05-11 00:16:01,948 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-11 00:16:02,403 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:15:50,979 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-11 00:15:50,979 [tradeclaw.darwin[bot-731aafea]] INFO: No outcomes to process for Darwinian update.
+2026-05-11 00:15:50,979 [tradeclaw.darwin[bot-4fd465ec]] INFO: No outcomes to process for Darwinian update.
+2026-05-11 00:15:50,979 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-11 00:15:50,980 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-11 00:15:50,980 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for BTCUSD from PostgreSQL
+2026-05-11 00:15:51,799 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=30.5 | ATR_z=1.47 | Trend=bullish
+2026-05-11 00:15:52,501 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:15:53,851 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for ETHUSD from PostgreSQL
+2026-05-11 00:15:54,285 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 2
+2026-05-11 00:15:55,043 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=53.1 | ATR_z=1.52 | Trend=bullish
+2026-05-11 00:15:55,051 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.1 (need ranging, can_mr=False); RSI=64.6 (need <45.0); RVOL=0.84 (need ≥1.5); BB re-entry not triggered (price=81290.44, lower_bb=80890.42, tol=81184.95)
+2026-05-11 00:15:55,186 [tradeclaw] WARNING: [MarketData] Data unavailable for ETHUSD: pickling is disabled
+2026-05-11 00:15:55,194 [tradeclaw] WARNING: [MarketData] Data unavailable for BTCUSD: pickling is disabled
+2026-05-11 00:16:01,836 [tradeclaw.postgres_store] ERROR: Failed to flush batch to market_bars: duplicate key value violates unique constraint "market_bars_y2026m05_pkey"
+DETAIL:  Key (symbol, timeframe, "timestamp")=(BTCUSD, 15m, 2026-05-10 21:45:00+00) already exists.
+2026-05-11 00:16:01,948 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-11 00:16:02,403 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:15:50,979 [tradeclaw.fleet] INFO: [Fleet] Triggering daily Darwinian weight update for all bots
+2026-05-11 00:15:50,979 [tradeclaw.darwin[bot-731aafea]] INFO: No outcomes to process for Darwinian update.
+2026-05-11 00:15:50,979 [tradeclaw.darwin[bot-4fd465ec]] INFO: No outcomes to process for Darwinian update.
+2026-05-11 00:15:50,979 [tradeclaw.fleet] INFO: [Fleet] Checking prompt autoresearch cycles
+2026-05-11 00:15:50,980 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-11 00:15:50,980 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for BTCUSD from PostgreSQL
+2026-05-11 00:15:51,799 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=30.5 | ATR_z=1.47 | Trend=bullish
+2026-05-11 00:15:52,501 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:15:53,851 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for ETHUSD from PostgreSQL
+2026-05-11 00:15:54,285 [tradeclaw] INFO: [WS] Client connected to 'global'. Total in channel: 2
+2026-05-11 00:15:55,043 [tradeclaw.regime] INFO: [REGIME] 🌍 Regime shift → TRENDING | ADX=53.1 | ATR_z=1.52 | Trend=bullish
+2026-05-11 00:15:55,051 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.1 (need ranging, can_mr=False); RSI=64.6 (need <45.0); RVOL=0.84 (need ≥1.5); BB re-entry not triggered (price=81290.44, lower_bb=80890.42, tol=81184.95)
+2026-05-11 00:15:55,186 [tradeclaw] WARNING: [MarketData] Data unavailable for ETHUSD: pickling is disabled
+2026-05-11 00:15:55,194 [tradeclaw] WARNING: [MarketData] Data unavailable for BTCUSD: pickling is disabled
+2026-05-11 00:16:01,836 [tradeclaw.postgres_store] ERROR: Failed to flush batch to market_bars: duplicate key value violates unique constraint "market_bars_y2026m05_pkey"
+DETAIL:  Key (symbol, timeframe, "timestamp")=(BTCUSD, 15m, 2026-05-10 21:45:00+00) already exists.
+2026-05-11 00:16:01,948 [tradeclaw.postgres_store] INFO: Persistence cleanup complete: Pruned records older than 48h
+2026-05-11 00:16:02,403 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:16:04,354 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.0 (need ranging, can_mr=False); RSI=64.6 (need <45.0); RVOL=1.02 (need ≥1.5); BB re-entry not triggered (price=81290.89, lower_bb=80938.84, tol=81208.12)
+2026-05-11 00:16:13,054 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:16:14,252 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=52.0 (need ranging, can_mr=False); RSI=63.1 (need <45.0); RVOL=0.15 (need ≥1.5); BB re-entry not triggered (price=81275.08, lower_bb=80985.25, tol=81227.76)
+2026-05-11 00:16:23,687 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:16:24,465 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=51.6 (need ranging, can_mr=False); RSI=60.6 (need <45.0); RVOL=0.33 (need ≥1.5); BB re-entry not triggered (price=81250.82, lower_bb=81055.84, tol=81248.06)
+2026-05-11 00:16:34,304 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:16:34,689 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=51.6 (need ranging, can_mr=False); RSI=60.2 (need <45.0); RVOL=0.55 (need ≥1.5)
+2026-05-11 00:16:45,120 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=51.5 (need ranging, can_mr=False); RSI=59.7 (need <45.0); RVOL=0.75 (need ≥1.5)
+2026-05-11 00:16:45,164 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:16:55,897 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=51.4 (need ranging, can_mr=False); RSI=57.7 (need <45.0); RVOL=0.97 (need ≥1.5)
+2026-05-11 00:16:56,322 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:17:08,369 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.4 (need ranging, can_mr=False); RSI=58.1 (need <45.0); RVOL=0.02 (need ≥1.5)
+2026-05-11 00:17:09,227 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:17:20,611 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.4 (need ranging, can_mr=False); RSI=57.5 (need <45.0); RVOL=0.27 (need ≥1.5)
+2026-05-11 00:17:21,938 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:17:30,706 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.3 (need ranging, can_mr=False); RSI=57.0 (need <45.0); RVOL=0.57 (need ≥1.5)
+2026-05-11 00:17:32,593 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:17:40,465 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.3 (need ranging, can_mr=False); RSI=62.7 (need <45.0); RVOL=0.82 (need ≥1.5)
+2026-05-11 00:17:42,365 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:17:50,352 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.8 (need ranging, can_mr=False); RSI=68.3 (need <45.0); RVOL=1.07 (need ≥1.5)
+2026-05-11 00:17:54,483 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:17:55,226 [tradeclaw] WARNING: [MarketData] Data unavailable for ETHUSD: pickling is disabled
+2026-05-11 00:17:59,002 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.8 (need ranging, can_mr=False); RSI=66.1 (need <45.0); RVOL=1.32 (need ≥1.5)
+2026-05-11 00:18:03,071 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:16:04,354 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.0 (need ranging, can_mr=False); RSI=64.6 (need <45.0); RVOL=1.02 (need ≥1.5); BB re-entry not triggered (price=81290.89, lower_bb=80938.84, tol=81208.12)
+2026-05-11 00:16:13,054 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:16:14,252 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=52.0 (need ranging, can_mr=False); RSI=63.1 (need <45.0); RVOL=0.15 (need ≥1.5); BB re-entry not triggered (price=81275.08, lower_bb=80985.25, tol=81227.76)
+2026-05-11 00:16:23,687 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:16:24,465 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=51.6 (need ranging, can_mr=False); RSI=60.6 (need <45.0); RVOL=0.33 (need ≥1.5); BB re-entry not triggered (price=81250.82, lower_bb=81055.84, tol=81248.06)
+2026-05-11 00:16:34,304 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:16:34,689 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=51.6 (need ranging, can_mr=False); RSI=60.2 (need <45.0); RVOL=0.55 (need ≥1.5)
+2026-05-11 00:16:45,120 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=51.5 (need ranging, can_mr=False); RSI=59.7 (need <45.0); RVOL=0.75 (need ≥1.5)
+2026-05-11 00:16:45,164 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:16:55,897 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=51.4 (need ranging, can_mr=False); RSI=57.7 (need <45.0); RVOL=0.97 (need ≥1.5)
+2026-05-11 00:16:56,322 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:17:08,369 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.4 (need ranging, can_mr=False); RSI=58.1 (need <45.0); RVOL=0.02 (need ≥1.5)
+2026-05-11 00:17:09,227 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:17:20,611 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.4 (need ranging, can_mr=False); RSI=57.5 (need <45.0); RVOL=0.27 (need ≥1.5)
+2026-05-11 00:17:21,938 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:17:30,706 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.3 (need ranging, can_mr=False); RSI=57.0 (need <45.0); RVOL=0.57 (need ≥1.5)
+2026-05-11 00:17:32,593 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:17:40,465 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.3 (need ranging, can_mr=False); RSI=62.7 (need <45.0); RVOL=0.82 (need ≥1.5)
+2026-05-11 00:17:42,365 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:17:50,352 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.8 (need ranging, can_mr=False); RSI=68.3 (need <45.0); RVOL=1.07 (need ≥1.5)
+2026-05-11 00:17:54,483 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:17:55,226 [tradeclaw] WARNING: [MarketData] Data unavailable for ETHUSD: pickling is disabled
+2026-05-11 00:17:59,002 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.8 (need ranging, can_mr=False); RSI=66.1 (need <45.0); RVOL=1.32 (need ≥1.5)
+2026-05-11 00:18:03,071 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:16:04,354 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.0 (need ranging, can_mr=False); RSI=64.6 (need <45.0); RVOL=1.02 (need ≥1.5); BB re-entry not triggered (price=81290.89, lower_bb=80938.84, tol=81208.12)
+2026-05-11 00:16:13,054 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:16:14,252 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=52.0 (need ranging, can_mr=False); RSI=63.1 (need <45.0); RVOL=0.15 (need ≥1.5); BB re-entry not triggered (price=81275.08, lower_bb=80985.25, tol=81227.76)
+2026-05-11 00:16:23,687 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:16:24,465 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=51.6 (need ranging, can_mr=False); RSI=60.6 (need <45.0); RVOL=0.33 (need ≥1.5); BB re-entry not triggered (price=81250.82, lower_bb=81055.84, tol=81248.06)
+2026-05-11 00:16:34,304 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:16:34,689 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=51.6 (need ranging, can_mr=False); RSI=60.2 (need <45.0); RVOL=0.55 (need ≥1.5)
+2026-05-11 00:16:45,120 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=51.5 (need ranging, can_mr=False); RSI=59.7 (need <45.0); RVOL=0.75 (need ≥1.5)
+2026-05-11 00:16:45,164 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:16:55,897 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=51.4 (need ranging, can_mr=False); RSI=57.7 (need <45.0); RVOL=0.97 (need ≥1.5)
+2026-05-11 00:16:56,322 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:17:08,369 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.4 (need ranging, can_mr=False); RSI=58.1 (need <45.0); RVOL=0.02 (need ≥1.5)
+2026-05-11 00:17:09,227 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:17:20,611 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.4 (need ranging, can_mr=False); RSI=57.5 (need <45.0); RVOL=0.27 (need ≥1.5)
+2026-05-11 00:17:21,938 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:17:30,706 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.3 (need ranging, can_mr=False); RSI=57.0 (need <45.0); RVOL=0.57 (need ≥1.5)
+2026-05-11 00:17:32,593 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:17:40,465 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.3 (need ranging, can_mr=False); RSI=62.7 (need <45.0); RVOL=0.82 (need ≥1.5)
+2026-05-11 00:17:42,365 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:17:50,352 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.8 (need ranging, can_mr=False); RSI=68.3 (need <45.0); RVOL=1.07 (need ≥1.5)
+2026-05-11 00:17:54,483 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:17:55,226 [tradeclaw] WARNING: [MarketData] Data unavailable for ETHUSD: pickling is disabled
+2026-05-11 00:17:59,002 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.8 (need ranging, can_mr=False); RSI=66.1 (need <45.0); RVOL=1.32 (need ≥1.5)
+2026-05-11 00:18:03,071 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:18:07,212 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.2 (need ranging, can_mr=False); RSI=67.5 (need <45.0); RVOL=0.10 (need ≥1.5)
+2026-05-11 00:18:11,720 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:18:15,322 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.3 (need ranging, can_mr=False); RSI=68.4 (need <45.0); RVOL=0.31 (need ≥1.5); BB re-entry not triggered (price=81374.22, lower_bb=81177.27, tol=81280.92)
+2026-05-11 00:18:20,804 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:18:24,021 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.3 (need ranging, can_mr=False); RSI=65.8 (need <45.0); RVOL=0.55 (need ≥1.5); BB re-entry not triggered (price=81357.72, lower_bb=81175.12, tol=81285.40)
+2026-05-11 00:18:30,118 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:18:32,870 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.3 (need ranging, can_mr=False); RSI=64.7 (need <45.0); RVOL=0.84 (need ≥1.5); BB re-entry not triggered (price=81351.21, lower_bb=81174.49, tol=81289.43)
+2026-05-11 00:18:39,418 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:18:41,843 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.3 (need ranging, can_mr=False); RSI=64.1 (need <45.0); RVOL=1.13 (need ≥1.5); BB re-entry not triggered (price=81347.32, lower_bb=81176.21, tol=81294.24)
+2026-05-11 00:18:50,836 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:18:51,843 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.3 (need ranging, can_mr=False); RSI=59.7 (need <45.0); RVOL=1.45 (need ≥1.5); BB re-entry not triggered (price=81320.95, lower_bb=81182.54, tol=81298.92)
+2026-05-11 00:18:56,405 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-11 00:18:56,405 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for BTCUSD from PostgreSQL
+2026-05-11 00:18:57,343 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for ETHUSD from PostgreSQL
+2026-05-11 00:19:01,424 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:19:01,966 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=56.3 (need ranging, can_mr=False); RSI=60.1 (need <45.0); BB re-entry not triggered (price=81324.63, lower_bb=81190.49, tol=81304.11)
+2026-05-11 00:19:07,910 [tradeclaw.postgres_store] ERROR: Failed to flush batch to market_bars: duplicate key value violates unique constraint "market_bars_y2026m05_pkey"
+DETAIL:  Key (symbol, timeframe, "timestamp")=(BTCUSD, 1h, 2026-05-10 21:00:00+00) already exists.
+2026-05-11 00:19:12,712 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:19:12,825 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.3 (need ranging, can_mr=False); RSI=64.7 (need <45.0); RVOL=0.22 (need ≥1.5); BB re-entry not triggered (price=81367.98, lower_bb=81199.73, tol=81312.47)
+2026-05-11 00:18:07,212 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.2 (need ranging, can_mr=False); RSI=67.5 (need <45.0); RVOL=0.10 (need ≥1.5)
+2026-05-11 00:18:11,720 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:18:15,322 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.3 (need ranging, can_mr=False); RSI=68.4 (need <45.0); RVOL=0.31 (need ≥1.5); BB re-entry not triggered (price=81374.22, lower_bb=81177.27, tol=81280.92)
+2026-05-11 00:18:20,804 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:18:24,021 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.3 (need ranging, can_mr=False); RSI=65.8 (need <45.0); RVOL=0.55 (need ≥1.5); BB re-entry not triggered (price=81357.72, lower_bb=81175.12, tol=81285.40)
+2026-05-11 00:18:30,118 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:18:32,870 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.3 (need ranging, can_mr=False); RSI=64.7 (need <45.0); RVOL=0.84 (need ≥1.5); BB re-entry not triggered (price=81351.21, lower_bb=81174.49, tol=81289.43)
+2026-05-11 00:18:39,418 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:18:41,843 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.3 (need ranging, can_mr=False); RSI=64.1 (need <45.0); RVOL=1.13 (need ≥1.5); BB re-entry not triggered (price=81347.32, lower_bb=81176.21, tol=81294.24)
+2026-05-11 00:18:50,836 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:18:51,843 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.3 (need ranging, can_mr=False); RSI=59.7 (need <45.0); RVOL=1.45 (need ≥1.5); BB re-entry not triggered (price=81320.95, lower_bb=81182.54, tol=81298.92)
+2026-05-11 00:18:56,405 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-11 00:18:56,405 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for BTCUSD from PostgreSQL
+2026-05-11 00:18:57,343 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for ETHUSD from PostgreSQL
+2026-05-11 00:19:01,424 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:19:01,966 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=56.3 (need ranging, can_mr=False); RSI=60.1 (need <45.0); BB re-entry not triggered (price=81324.63, lower_bb=81190.49, tol=81304.11)
+2026-05-11 00:19:07,910 [tradeclaw.postgres_store] ERROR: Failed to flush batch to market_bars: duplicate key value violates unique constraint "market_bars_y2026m05_pkey"
+DETAIL:  Key (symbol, timeframe, "timestamp")=(BTCUSD, 1h, 2026-05-10 21:00:00+00) already exists.
+2026-05-11 00:19:12,712 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:19:12,825 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.3 (need ranging, can_mr=False); RSI=64.7 (need <45.0); RVOL=0.22 (need ≥1.5); BB re-entry not triggered (price=81367.98, lower_bb=81199.73, tol=81312.47)
+2026-05-11 00:18:07,212 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.2 (need ranging, can_mr=False); RSI=67.5 (need <45.0); RVOL=0.10 (need ≥1.5)
+2026-05-11 00:18:11,720 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:18:15,322 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.3 (need ranging, can_mr=False); RSI=68.4 (need <45.0); RVOL=0.31 (need ≥1.5); BB re-entry not triggered (price=81374.22, lower_bb=81177.27, tol=81280.92)
+2026-05-11 00:18:20,804 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:18:24,021 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.3 (need ranging, can_mr=False); RSI=65.8 (need <45.0); RVOL=0.55 (need ≥1.5); BB re-entry not triggered (price=81357.72, lower_bb=81175.12, tol=81285.40)
+2026-05-11 00:18:30,118 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:18:32,870 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.3 (need ranging, can_mr=False); RSI=64.7 (need <45.0); RVOL=0.84 (need ≥1.5); BB re-entry not triggered (price=81351.21, lower_bb=81174.49, tol=81289.43)
+2026-05-11 00:18:39,418 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:18:41,843 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.3 (need ranging, can_mr=False); RSI=64.1 (need <45.0); RVOL=1.13 (need ≥1.5); BB re-entry not triggered (price=81347.32, lower_bb=81176.21, tol=81294.24)
+2026-05-11 00:18:50,836 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:18:51,843 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.3 (need ranging, can_mr=False); RSI=59.7 (need <45.0); RVOL=1.45 (need ≥1.5); BB re-entry not triggered (price=81320.95, lower_bb=81182.54, tol=81298.92)
+2026-05-11 00:18:56,405 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-11 00:18:56,405 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for BTCUSD from PostgreSQL
+2026-05-11 00:18:57,343 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for ETHUSD from PostgreSQL
+2026-05-11 00:19:01,424 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:19:01,966 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=56.3 (need ranging, can_mr=False); RSI=60.1 (need <45.0); BB re-entry not triggered (price=81324.63, lower_bb=81190.49, tol=81304.11)
+2026-05-11 00:19:07,910 [tradeclaw.postgres_store] ERROR: Failed to flush batch to market_bars: duplicate key value violates unique constraint "market_bars_y2026m05_pkey"
+DETAIL:  Key (symbol, timeframe, "timestamp")=(BTCUSD, 1h, 2026-05-10 21:00:00+00) already exists.
+2026-05-11 00:19:12,712 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:19:12,825 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.3 (need ranging, can_mr=False); RSI=64.7 (need <45.0); RVOL=0.22 (need ≥1.5); BB re-entry not triggered (price=81367.98, lower_bb=81199.73, tol=81312.47)
+2026-05-11 00:19:23,907 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.3 (need ranging, can_mr=False); RSI=65.3 (need <45.0); RVOL=0.63 (need ≥1.5)
+2026-05-11 00:19:24,260 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:19:34,245 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=66.8 (need <45.0); RVOL=1.07 (need ≥1.5)
+2026-05-11 00:19:35,003 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:19:44,436 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=63.8 (need <45.0); RVOL=1.40 (need ≥1.5)
+2026-05-11 00:19:45,534 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:19:54,197 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=62.5 (need <45.0); BB re-entry not triggered (price=81367.32, lower_bb=81301.47, tol=81352.92)
+2026-05-11 00:19:55,676 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:20:03,819 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=61.4 (need <45.0); BB re-entry not triggered (price=81362.01, lower_bb=81322.83, tol=81358.26)
+2026-05-11 00:20:05,854 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:20:14,277 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.8 (need ranging, can_mr=False); RSI=56.0 (need <45.0); RVOL=0.27 (need ≥1.5)
+2026-05-11 00:20:16,245 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:20:23,680 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.5 (need ranging, can_mr=False); RSI=51.8 (need <45.0); RVOL=0.64 (need ≥1.5)
+2026-05-11 00:20:26,073 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:20:32,876 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=51.4 (need <45.0); RVOL=0.92 (need ≥1.5)
+2026-05-11 00:20:36,079 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:20:42,564 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=59.4 (need <45.0); RVOL=1.18 (need ≥1.5)
+2026-05-11 00:20:45,857 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:20:51,689 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=59.0 (need <45.0); RVOL=1.45 (need ≥1.5)
+2026-05-11 00:20:55,534 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:00,355 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=56.4 (need <45.0)
+2026-05-11 00:21:04,166 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:08,549 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.9 (need ranging, can_mr=False); RSI=49.4 (need <45.0); RVOL=0.16 (need ≥1.5)
+2026-05-11 00:21:12,973 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:16,913 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.6 (need ranging, can_mr=False); RSI=46.1 (need <45.0); RVOL=0.45 (need ≥1.5)
+2026-05-11 00:21:21,848 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:25,267 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.4 (need ranging, can_mr=False); RSI=45.3 (need <45.0); RVOL=0.72 (need ≥1.5)
+2026-05-11 00:21:30,942 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:33,748 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.4 (need ranging, can_mr=False); RSI=45.4 (need <45.0); RVOL=0.98 (need ≥1.5)
+2026-05-11 00:21:33,748 [tradeclaw.confluence] INFO: [ICT] Conviction=HIGH | FVG=False | Sweep=True | KillZone=True
+2026-05-11 00:21:40,958 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:42,990 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.4 (need ranging, can_mr=False); RSI=46.4 (need <45.0); RVOL=1.22 (need ≥1.5)
+2026-05-11 00:21:42,991 [tradeclaw.confluence] INFO: [ICT] Conviction=HIGH | FVG=False | Sweep=True | KillZone=True
+2026-05-11 00:21:50,955 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:52,548 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.4 (need ranging, can_mr=False); RSI=46.2 (need <45.0); RVOL=1.49 (need ≥1.5)
+2026-05-11 00:22:00,835 [tradeclaw] INFO: [WS] Client disconnected from channel 'global'.
+2026-05-11 00:22:01,162 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:22:01,651 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-11 00:22:01,651 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for BTCUSD from PostgreSQL
+2026-05-11 00:22:02,468 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=56.4 (need ranging, can_mr=False); RSI=46.4 (need <45.0)
+2026-05-11 00:22:03,166 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for ETHUSD from PostgreSQL
+2026-05-11 00:19:23,907 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.3 (need ranging, can_mr=False); RSI=65.3 (need <45.0); RVOL=0.63 (need ≥1.5)
+2026-05-11 00:19:24,260 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:19:34,245 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=66.8 (need <45.0); RVOL=1.07 (need ≥1.5)
+2026-05-11 00:19:35,003 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:19:44,436 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=63.8 (need <45.0); RVOL=1.40 (need ≥1.5)
+2026-05-11 00:19:45,534 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:19:54,197 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=62.5 (need <45.0); BB re-entry not triggered (price=81367.32, lower_bb=81301.47, tol=81352.92)
+2026-05-11 00:19:55,676 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:20:03,819 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=61.4 (need <45.0); BB re-entry not triggered (price=81362.01, lower_bb=81322.83, tol=81358.26)
+2026-05-11 00:20:05,854 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:20:14,277 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.8 (need ranging, can_mr=False); RSI=56.0 (need <45.0); RVOL=0.27 (need ≥1.5)
+2026-05-11 00:20:16,245 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:20:23,680 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.5 (need ranging, can_mr=False); RSI=51.8 (need <45.0); RVOL=0.64 (need ≥1.5)
+2026-05-11 00:20:26,073 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:20:32,876 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=51.4 (need <45.0); RVOL=0.92 (need ≥1.5)
+2026-05-11 00:20:36,079 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:20:42,564 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=59.4 (need <45.0); RVOL=1.18 (need ≥1.5)
+2026-05-11 00:20:45,857 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:20:51,689 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=59.0 (need <45.0); RVOL=1.45 (need ≥1.5)
+2026-05-11 00:20:55,534 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:00,355 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=56.4 (need <45.0)
+2026-05-11 00:21:04,166 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:08,549 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.9 (need ranging, can_mr=False); RSI=49.4 (need <45.0); RVOL=0.16 (need ≥1.5)
+2026-05-11 00:21:12,973 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:16,913 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.6 (need ranging, can_mr=False); RSI=46.1 (need <45.0); RVOL=0.45 (need ≥1.5)
+2026-05-11 00:21:21,848 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:25,267 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.4 (need ranging, can_mr=False); RSI=45.3 (need <45.0); RVOL=0.72 (need ≥1.5)
+2026-05-11 00:21:30,942 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:33,748 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.4 (need ranging, can_mr=False); RSI=45.4 (need <45.0); RVOL=0.98 (need ≥1.5)
+2026-05-11 00:21:33,748 [tradeclaw.confluence] INFO: [ICT] Conviction=HIGH | FVG=False | Sweep=True | KillZone=True
+2026-05-11 00:21:40,958 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:42,990 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.4 (need ranging, can_mr=False); RSI=46.4 (need <45.0); RVOL=1.22 (need ≥1.5)
+2026-05-11 00:21:42,991 [tradeclaw.confluence] INFO: [ICT] Conviction=HIGH | FVG=False | Sweep=True | KillZone=True
+2026-05-11 00:21:50,955 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:52,548 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.4 (need ranging, can_mr=False); RSI=46.2 (need <45.0); RVOL=1.49 (need ≥1.5)
+2026-05-11 00:22:00,835 [tradeclaw] INFO: [WS] Client disconnected from channel 'global'.
+2026-05-11 00:22:01,162 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:22:01,651 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-11 00:22:01,651 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for BTCUSD from PostgreSQL
+2026-05-11 00:22:02,468 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=56.4 (need ranging, can_mr=False); RSI=46.4 (need <45.0)
+2026-05-11 00:22:03,166 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for ETHUSD from PostgreSQL
+2026-05-11 00:19:23,907 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.3 (need ranging, can_mr=False); RSI=65.3 (need <45.0); RVOL=0.63 (need ≥1.5)
+2026-05-11 00:19:24,260 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:19:34,245 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=66.8 (need <45.0); RVOL=1.07 (need ≥1.5)
+2026-05-11 00:19:35,003 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:19:44,436 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=63.8 (need <45.0); RVOL=1.40 (need ≥1.5)
+2026-05-11 00:19:45,534 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:19:54,197 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=62.5 (need <45.0); BB re-entry not triggered (price=81367.32, lower_bb=81301.47, tol=81352.92)
+2026-05-11 00:19:55,676 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:20:03,819 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=61.4 (need <45.0); BB re-entry not triggered (price=81362.01, lower_bb=81322.83, tol=81358.26)
+2026-05-11 00:20:05,854 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:20:14,277 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.8 (need ranging, can_mr=False); RSI=56.0 (need <45.0); RVOL=0.27 (need ≥1.5)
+2026-05-11 00:20:16,245 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:20:23,680 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.5 (need ranging, can_mr=False); RSI=51.8 (need <45.0); RVOL=0.64 (need ≥1.5)
+2026-05-11 00:20:26,073 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:20:32,876 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=51.4 (need <45.0); RVOL=0.92 (need ≥1.5)
+2026-05-11 00:20:36,079 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:20:42,564 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=59.4 (need <45.0); RVOL=1.18 (need ≥1.5)
+2026-05-11 00:20:45,857 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:20:51,689 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=59.0 (need <45.0); RVOL=1.45 (need ≥1.5)
+2026-05-11 00:20:55,534 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:00,355 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=58.4 (need ranging, can_mr=False); RSI=56.4 (need <45.0)
+2026-05-11 00:21:04,166 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:08,549 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.9 (need ranging, can_mr=False); RSI=49.4 (need <45.0); RVOL=0.16 (need ≥1.5)
+2026-05-11 00:21:12,973 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:16,913 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.6 (need ranging, can_mr=False); RSI=46.1 (need <45.0); RVOL=0.45 (need ≥1.5)
+2026-05-11 00:21:21,848 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:25,267 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.4 (need ranging, can_mr=False); RSI=45.3 (need <45.0); RVOL=0.72 (need ≥1.5)
+2026-05-11 00:21:30,942 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:33,748 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.4 (need ranging, can_mr=False); RSI=45.4 (need <45.0); RVOL=0.98 (need ≥1.5)
+2026-05-11 00:21:33,748 [tradeclaw.confluence] INFO: [ICT] Conviction=HIGH | FVG=False | Sweep=True | KillZone=True
+2026-05-11 00:21:40,958 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:42,990 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.4 (need ranging, can_mr=False); RSI=46.4 (need <45.0); RVOL=1.22 (need ≥1.5)
+2026-05-11 00:21:42,991 [tradeclaw.confluence] INFO: [ICT] Conviction=HIGH | FVG=False | Sweep=True | KillZone=True
+2026-05-11 00:21:50,955 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:21:52,548 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=56.4 (need ranging, can_mr=False); RSI=46.2 (need <45.0); RVOL=1.49 (need ≥1.5)
+2026-05-11 00:22:00,835 [tradeclaw] INFO: [WS] Client disconnected from channel 'global'.
+2026-05-11 00:22:01,162 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:22:01,651 [tradeclaw.fleet] INFO: [Fleet] Running market data aggregation and trend analysis
+2026-05-11 00:22:01,651 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for BTCUSD from PostgreSQL
+2026-05-11 00:22:02,468 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=56.4 (need ranging, can_mr=False); RSI=46.4 (need <45.0)
+2026-05-11 00:22:03,166 [tradeclaw.fleet] INFO: [Fleet] Initializing bar cache for ETHUSD from PostgreSQL
+2026-05-11 00:22:11,528 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:22:12,710 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=54.0 (need ranging, can_mr=False); RSI=45.1 (need <45.0); RVOL=0.22 (need ≥1.5)
+2026-05-11 00:22:14,033 [tradeclaw.postgres_store] ERROR: Failed to flush batch to market_bars: duplicate key value violates unique constraint "market_bars_y2026m05_pkey"
+DETAIL:  Key (symbol, timeframe, "timestamp")=(BTCUSD, 1h, 2026-05-10 21:00:00+00) already exists.
+2026-05-11 00:22:22,580 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:22:23,195 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=53.5 (need ranging, can_mr=False); RVOL=0.55 (need ≥1.5)
+2026-05-11 00:22:11,528 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:22:12,710 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=54.0 (need ranging, can_mr=False); RSI=45.1 (need <45.0); RVOL=0.22 (need ≥1.5)
+2026-05-11 00:22:14,033 [tradeclaw.postgres_store] ERROR: Failed to flush batch to market_bars: duplicate key value violates unique constraint "market_bars_y2026m05_pkey"
+DETAIL:  Key (symbol, timeframe, "timestamp")=(BTCUSD, 1h, 2026-05-10 21:00:00+00) already exists.
+2026-05-11 00:22:22,580 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:22:23,195 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=53.5 (need ranging, can_mr=False); RVOL=0.55 (need ≥1.5)
+2026-05-11 00:22:11,528 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:22:12,710 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=54.0 (need ranging, can_mr=False); RSI=45.1 (need <45.0); RVOL=0.22 (need ≥1.5)
+2026-05-11 00:22:14,033 [tradeclaw.postgres_store] ERROR: Failed to flush batch to market_bars: duplicate key value violates unique constraint "market_bars_y2026m05_pkey"
+DETAIL:  Key (symbol, timeframe, "timestamp")=(BTCUSD, 1h, 2026-05-10 21:00:00+00) already exists.
+2026-05-11 00:22:22,580 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:22:23,195 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=53.5 (need ranging, can_mr=False); RVOL=0.55 (need ≥1.5)
+2026-05-11 00:22:34,108 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:22:34,393 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.5 (need ranging, can_mr=False); RSI=46.0 (need <45.0); RVOL=0.87 (need ≥1.5)
+2026-05-11 00:22:34,393 [tradeclaw.confluence] INFO: [ICT] Conviction=HIGH | FVG=False | Sweep=True | KillZone=True
+2026-05-11 00:22:45,641 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=53.5 (need ranging, can_mr=False); RVOL=1.20 (need ≥1.5)
+2026-05-11 00:22:45,641 [tradeclaw.confluence] INFO: [ICT] Conviction=HIGH | FVG=False | Sweep=True | KillZone=True
+2026-05-11 00:22:45,799 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:22:56,221 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 2/3 pillars met. Failed: Regime: ADX=53.5 (need ranging, can_mr=False)
+2026-05-11 00:22:56,863 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:23:06,490 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=50.4 (need ranging, can_mr=False); RSI=48.9 (need <45.0); RVOL=0.03 (need ≥1.5)
+2026-05-11 00:23:07,549 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:23:07,551 [tradeclaw] INFO: [WS] Client disconnected from channel 'global'.
+2026-05-11 00:23:16,409 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=50.4 (need ranging, can_mr=False); RVOL=0.37 (need ≥1.5)
+2026-05-11 00:22:34,108 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:22:34,393 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.5 (need ranging, can_mr=False); RSI=46.0 (need <45.0); RVOL=0.87 (need ≥1.5)
+2026-05-11 00:22:34,393 [tradeclaw.confluence] INFO: [ICT] Conviction=HIGH | FVG=False | Sweep=True | KillZone=True
+2026-05-11 00:22:45,641 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=53.5 (need ranging, can_mr=False); RVOL=1.20 (need ≥1.5)
+2026-05-11 00:22:45,641 [tradeclaw.confluence] INFO: [ICT] Conviction=HIGH | FVG=False | Sweep=True | KillZone=True
+2026-05-11 00:22:45,799 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:22:56,221 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 2/3 pillars met. Failed: Regime: ADX=53.5 (need ranging, can_mr=False)
+2026-05-11 00:22:56,863 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:23:06,490 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=50.4 (need ranging, can_mr=False); RSI=48.9 (need <45.0); RVOL=0.03 (need ≥1.5)
+2026-05-11 00:23:07,549 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:23:07,551 [tradeclaw] INFO: [WS] Client disconnected from channel 'global'.
+2026-05-11 00:23:16,409 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=50.4 (need ranging, can_mr=False); RVOL=0.37 (need ≥1.5)
+2026-05-11 00:22:34,108 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:22:34,393 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=53.5 (need ranging, can_mr=False); RSI=46.0 (need <45.0); RVOL=0.87 (need ≥1.5)
+2026-05-11 00:22:34,393 [tradeclaw.confluence] INFO: [ICT] Conviction=HIGH | FVG=False | Sweep=True | KillZone=True
+2026-05-11 00:22:45,641 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=53.5 (need ranging, can_mr=False); RVOL=1.20 (need ≥1.5)
+2026-05-11 00:22:45,641 [tradeclaw.confluence] INFO: [ICT] Conviction=HIGH | FVG=False | Sweep=True | KillZone=True
+2026-05-11 00:22:45,799 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:22:56,221 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 2/3 pillars met. Failed: Regime: ADX=53.5 (need ranging, can_mr=False)
+2026-05-11 00:22:56,863 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:23:06,490 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 0/3 pillars met. Failed: Regime: ADX=50.4 (need ranging, can_mr=False); RSI=48.9 (need <45.0); RVOL=0.03 (need ≥1.5)
+2026-05-11 00:23:07,549 [tradeclaw.engine[bot-731aafea|Crimson Lion ETHUSD]] INFO: [bot-731aafea] TrendStrategist: HOLD (conf=0%, ADX=0.0)
+2026-05-11 00:23:07,551 [tradeclaw] INFO: [WS] Client disconnected from channel 'global'.
+2026-05-11 00:23:16,409 [tradeclaw.confluence] INFO: [CONFLUENCE] HOLD: 1/3 pillars met. Failed: Regime: ADX=50.4 (need ranging, can_mr=False); RVOL=0.37 (need ≥1.5)

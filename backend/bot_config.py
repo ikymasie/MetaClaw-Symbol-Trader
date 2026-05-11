@@ -33,6 +33,10 @@ SUB_AGENT_WATCHMAN = "watchman"        # Market Watchman — order-flow quality
 SUB_AGENT_RISK_MANAGER = "risk_manager"  # Kelly gating agent
 SUB_AGENT_ICT = "ict"                    # ICT Smart Money structure agent
 SUB_AGENT_CRO = "cro"                    # Adversarial Risk Officer agent
+SUB_AGENT_RESEARCH = "research_framework"  # TradingAgents research framework
+SUB_AGENT_CORRELATION = "correlation"      # Inter-market correlation agent
+SUB_AGENT_ORDERFLOW = "orderflow"          # Order flow / volume profile agent
+SUB_AGENT_CALENDAR = "calendar"            # Economic calendar gate agent
 
 VALID_SUB_AGENTS = {
     SUB_AGENT_SENTIMENT,
@@ -43,6 +47,10 @@ VALID_SUB_AGENTS = {
     SUB_AGENT_RISK_MANAGER,
     SUB_AGENT_ICT,
     SUB_AGENT_CRO,
+    SUB_AGENT_RESEARCH,
+    SUB_AGENT_CORRELATION,
+    SUB_AGENT_ORDERFLOW,
+    SUB_AGENT_CALENDAR,
 }
 
 
@@ -54,11 +62,12 @@ VALID_SUB_AGENTS = {
 class BotConfig:
     """
     Full configuration for a single deployed bot.
-    Stored in Firestore at bots/{bot_id}/config.
+    Stored in PostgreSQL at bot_configs table.
     """
 
     # Identity
     bot_id: str = field(default_factory=lambda: f"bot-{uuid.uuid4().hex[:8]}")
+    account_id: str = ""  # MT5 account ID from ConfigManager
     name: str = "Unnamed Bot"
     symbol: str = "EURUSD"
     tags: list = field(default_factory=list)  # e.g. ["equity", "aggressive"]
@@ -124,6 +133,10 @@ class BotConfig:
     ai_interval_minutes: int = 60
     ai_min_trades_trigger: int = 10
     ai_loss_streak_trigger: int = 3
+    
+    # Research Bridge (TradingAgents integration)
+    research_enabled: bool = True
+    research_interval_hours: int = 4
 
     # Sub-agents
     sub_agents: list = field(
@@ -134,6 +147,7 @@ class BotConfig:
             SUB_AGENT_TECHNICAL,
             SUB_AGENT_WATCHMAN,
             SUB_AGENT_RISK_MANAGER,
+            SUB_AGENT_RESEARCH,
         ]
     )
     sub_agent_interval_minutes: int = 15
@@ -203,6 +217,8 @@ class BotConfig:
             raise ValueError("trailing_stop_pct must be between 0.1 and 5.0")
         if not (0.5 <= self.max_daily_drawdown_pct <= 25.0):
             raise ValueError("max_daily_drawdown_pct must be between 0.5 and 25.0")
+        if not (1 <= self.research_interval_hours <= 48):
+            raise ValueError("research_interval_hours must be between 1 and 48")
         for agent in self.sub_agents:
             if agent not in VALID_SUB_AGENTS:
                 raise ValueError(f"Unknown sub-agent: {agent}")

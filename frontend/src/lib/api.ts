@@ -26,8 +26,8 @@ export const tradingApi = {
     const { data } = await api.get('/history');
     return data;
   },
-  startSingleBot: async () => {
-    const { data } = await api.post('/start', {});
+  startSingleBot: async (demoMode?: boolean) => {
+    const { data } = await api.post('/start', { demo_mode: demoMode ?? false });
     return data;
   },
   stopSingleBot: async () => {
@@ -117,7 +117,7 @@ export const tradingApi = {
     const { data } = await api.post('/fleet/wizard/generate', req);
     return data;
   },
-  getAccountInfo: async (): Promise<MT5Account> => {
+  getAccountInfo: async (): Promise<MT5AccountInfo> => {
     const { data } = await api.get('/fleet/account');
     return data;
   },
@@ -150,7 +150,7 @@ export interface AvailableSymbol {
 }
 
 // ── Types ───────────────────────────────────────────────
-export interface MT5Account {
+export interface MT5AccountInfo {
   equity: number;
   portfolio_value: number;
   buying_power: number;
@@ -159,12 +159,18 @@ export interface MT5Account {
   cash: number;
   daily_pnl: number;
   daily_pnl_pct: number;
+  unrealized_pnl: number;
+  margin_used: number;
+  margin_free: number;
   currency: string;
   status: string;
+  message?: string;
+  timestamp: string;
 }
 
 export interface BotDeployRequest {
   bot_id?: string;
+  account_id: string;
   name: string;
   description?: string;
   personality?: string;
@@ -177,13 +183,26 @@ export interface BotDeployRequest {
   qty: number;
   short_selling_enabled: boolean;
   stop_loss_pct: number;
+  max_daily_drawdown_pct: number;
   bb_period: number;
   bb_std_dev: number;
   ai_brain_enabled: boolean;
   ai_interval_minutes: number;
+  ai_min_trades_trigger?: number;
+  ai_loss_streak_trigger?: number;
   sub_agents: string[];
+  sub_agent_interval_minutes?: number;
+  agent_vote_cache_ttl_seconds?: number;
   tags: string[];
   fib_enabled: boolean;
+  fib_lookback_bars?: number;
+  fib_bounce_threshold_pct?: number;
+  fib_entry_mode?: string;
+  fib_active_levels_raw?: string;
+  smart_routing_min_qty?: number;
+  twap_interval_ms?: number;
+  max_slippage_pct?: number;
+  limit_timeout_s?: number;
   auto_start: boolean;
   leverage_mode_enabled?: boolean;
   leverage_factor?: number;
@@ -191,6 +210,7 @@ export interface BotDeployRequest {
   net_profit_target_usd?: number;
   take_profit_usd?: number;
 }
+
 
 export interface FleetConfig {
   max_bots: number;
@@ -310,3 +330,89 @@ export interface SystemResources {
   timestamp: string;
   error?: string;
 }
+
+/* ──────────────────────────────────────────────────────────
+ * Setup Wizard API
+ * ────────────────────────────────────────────────────────── */
+
+export interface SetupStatus {
+  setup_complete: boolean;
+  has_database: boolean;
+  has_accounts: boolean;
+  has_api_keys: boolean;
+  account_count: number;
+}
+
+export interface MT5Account {
+  id: string;
+  label: string;
+  mt5_login: number;
+  mt5_server: string;
+  is_default: boolean;
+  created_at: string;
+}
+
+export interface MT5Symbol {
+  name: string;
+  broker_symbol: string;
+  category: string;
+  path: string;
+  description: string;
+  digits: number;
+  spread: number;
+  trade_mode: number;
+  volume_min: number;
+  volume_max: number;
+  volume_step: number;
+}
+
+export const setupApi = {
+  getStatus: () =>
+    api.get<SetupStatus>('/setup/status').then(r => r.data),
+
+  testDatabase: (url: string) =>
+    api.post<{ connected: boolean; message: string }>('/setup/database/test', { url }).then(r => r.data),
+
+  saveDatabase: (url: string) =>
+    api.post('/setup/database', { url }).then(r => r.data),
+
+  getApiKeys: () =>
+    api.get('/setup/api-keys').then(r => r.data),
+
+  saveApiKeys: (keys: { gemini_api_key?: string; gemini_model?: string; alpaca_news_api_key?: string }) =>
+    api.post('/setup/api-keys', keys).then(r => r.data),
+
+  completeSetup: () =>
+    api.post('/setup/complete').then(r => r.data),
+
+  getConfig: () =>
+    api.get('/setup/config').then(r => r.data),
+};
+
+export const accountsApi = {
+  list: () =>
+    api.get<{ accounts: MT5Account[]; count: number }>('/accounts').then(r => r.data),
+
+  add: (account: {
+    label: string;
+    mt5_login: number;
+    mt5_password: string;
+    mt5_server: string;
+    is_default?: boolean;
+  }) => api.post('/accounts', account).then(r => r.data),
+
+  update: (id: string, data: Record<string, unknown>) =>
+    api.patch(`/accounts/${id}`, data).then(r => r.data),
+
+  remove: (id: string) =>
+    api.delete(`/accounts/${id}`).then(r => r.data),
+
+  test: (id: string) =>
+    api.post(`/accounts/${id}/test`).then(r => r.data),
+
+  testNew: (creds: { mt5_login: number; mt5_password: string; mt5_server: string }) =>
+    api.post('/accounts/test', creds).then(r => r.data),
+
+  getSymbols: (id: string) =>
+    api.get<{ account_id: string; symbols: MT5Symbol[]; count: number }>(`/accounts/${id}/symbols`).then(r => r.data),
+};

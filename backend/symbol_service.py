@@ -70,8 +70,9 @@ class SymbolService:
 
     @staticmethod
     def _get_suffix() -> str:
-        """Read broker suffix lazily so dotenv is loaded before we check it."""
-        return os.getenv("MT5_SYMBOL_SUFFIX", "")
+        """Read broker suffix lazily from config_manager."""
+        from config_manager import config_manager
+        return config_manager.get_mt5_symbol_suffix()
 
     def _get_suffix_for(self, clean_name: str) -> str:
         """
@@ -98,15 +99,16 @@ class SymbolService:
         Maps a 'clean' symbol name (e.g. EURUSD) to the broker-specific symbol (e.g. EURUSD_i).
         Category-aware: Crypto symbols skip the default suffix.
         """
-        suffix = self._get_suffix_for(clean_name)
+        base_name = self.get_clean_symbol(clean_name)
+        suffix = self._get_suffix_for(base_name)
         if not suffix:
-            return clean_name
+            return base_name
 
-        # Don't double-append if suffix is already present
-        if clean_name.endswith(suffix):
-            return clean_name
+        # Don't double-append if suffix is already present (case-insensitive)
+        if clean_name.lower().endswith(suffix.lower()):
+            return clean_name[:-len(suffix)] + suffix
 
-        return f"{clean_name}{suffix}"
+        return f"{base_name}{suffix}"
 
     def get_clean_symbol(self, broker_name: str) -> str:
         """
@@ -116,7 +118,7 @@ class SymbolService:
         if not suffix:
             return broker_name
 
-        if broker_name.endswith(suffix):
+        if broker_name.lower().endswith(suffix.lower()):
             return broker_name[:-len(suffix)]
 
         return broker_name
@@ -147,3 +149,40 @@ def to_mt5_symbol(symbol: str) -> str:
     """
     clean = symbol.strip().upper().replace("=X", "").replace("/", "")
     return symbol_service.get_broker_symbol(clean)
+
+to_execution = to_mt5_symbol
+
+def to_research(symbol: str) -> str:
+    """
+    Convert any symbol name (including MT5 broker symbols) to the YFinance research format.
+    
+    EURUSD_i -> EURUSD=X
+    BTCUSD -> BTC-USD
+    AAPL_i -> AAPL
+    """
+    clean = symbol_service.get_clean_symbol(symbol).strip().upper()
+    
+    # Try to find the category to apply correct Yahoo Finance suffix
+    category = ""
+    for sym in symbol_service._symbols:
+        if sym["name"].upper() == clean:
+            category = sym.get("category", "").lower()
+            break
+            
+    if category == "crypto":
+        # Usually Crypto on Yahoo is BASE-QUOTE (e.g. BTC-USD)
+        if clean.endswith("USD"):
+            return clean[:-3] + "-USD"
+        elif clean.endswith("EUR"):
+            return clean[:-3] + "-EUR"
+        # Fallback
+        return clean
+    elif category in ["forex majors", "forex minors", "forex exotics"]:
+        # Forex on Yahoo Finance uses =X suffix
+        return f"{clean}=X"
+    elif category == "metals":
+        # XAUUSD -> XAUUSD=X works on Yahoo for Spot Gold
+        return f"{clean}=X"
+    else:
+        # Stocks, Indices, Commodities are returned as clean
+        return clean

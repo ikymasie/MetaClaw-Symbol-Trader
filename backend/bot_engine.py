@@ -107,6 +107,18 @@ class BotEngine:
         # Strategy params — mutable by AI Brain
         self._params = self._params_from_config()
 
+        # Phase 3 §7.1 — Strategy registry. The registry call is wrapped in
+        # try/except in _live_tick(); if the strategy raises, the existing
+        # inline if/elif/else block below serves as a regression-safe fallback.
+        try:
+            from base_strategy import get_strategy
+            self._strategy = get_strategy(config.strategy)
+        except Exception as _e:
+            self._logger.warning(
+                f"Strategy registry init failed ({_e}); falling back to inline logic only."
+            )
+            self._strategy = None
+
         # DB write queue (flushed by fleet's db_flush_loop)
         # Hard-capped at 1000: if PostgreSQL falls behind, oldest entry is evicted
         # rather than growing the queue (and RAM) indefinitely.
@@ -355,11 +367,14 @@ class BotEngine:
         Main trading loop. Mirrors existing strategy.py MeanReversionEngine
         but fully isolated to this bot's symbol/params/state.
 
-        Imports the MT5 client and strategy logic from the existing
-        strategy.py module functions (they are stateless calculation functions).
+        Each tick is wrapped in mt5_hub.ensure_account_context so this bot's
+        MT5 operations execute on its assigned broker account, regardless of
+        which account other bots are using. The terminal automatically switches
+        back to the default account after each tick.
         """
         import os
         from mt5_bridge import mt5
+        from mt5_hub import mt5_hub
 
         try:
             from strategy import (
@@ -383,6 +398,16 @@ class BotEngine:
             self._status = BotEngineStatus.STOPPED
             return
 
+        # Resolve which account this bot should trade on
+        account_id = getattr(self.config, "account_id", "") or ""
+        if account_id:
+            self._logger.info(
+                f"Engine bound to account '{account_id}' — "
+                f"will switch MT5 context per tick"
+            )
+        else:
+            self._logger.info("No account_id set — using default MT5 account")
+
         self._status = BotEngineStatus.RUNNING
         self._logger.info(f"Engine RUNNING on MT5")
 
@@ -392,9 +417,16 @@ class BotEngine:
         # Main loop — 5 second tick
         while not self._stop_event.is_set():
             try:
-                self._live_tick(params)
+                # Switch MT5 to this bot's account for the duration of the tick
+                with mt5_hub.ensure_account_context(account_id) as ctx_ok:
+                    if not ctx_ok:
+                        self._logger.warning(
+                            f"Account context switch failed for '{account_id}' — skipping tick"
+                        )
+                    else:
+                        self._live_tick(params)
 
-                # Update vital signs
+                # Update vital signs (outside account context — no MT5 calls)
                 self._vital_signs.update(
                     equity=self.equity,
                     daily_pnl=self.daily_pnl,
@@ -830,7 +862,46 @@ class BotEngine:
             self._sync_account(symbol)
             return
 
-        elif regime == "TRENDING" and self.config.strategy in ("trend_following", "combined"):
+        # ── Phase 3 §7.1 — Strategy registry first (best-effort) ───────
+        # The registry instance is resolved at __init__ from BotConfig.strategy.
+        # If it returns a valid directional signal, we use it. Any exception or
+        # HOLD return falls through to the proven inline path below, ensuring
+        # zero regression risk in the trading loop.
+        _confluence_out: dict = {}
+        if self._strategy is not None:
+            try:
+                _registry_signal = self._strategy.generate_signal(
+                    prices=prices,
+                    volumes=volumes,
+                    regime_state=regime_result,
+                    config=self.config,
+                    bot_id=self.bot_id,
+                    current_price=current_price,
+                    history_snap=history_snap,
+                    kill_zone_active=self._in_kill_zone() if self.config.kill_zone_enabled else True,
+                    confluence_out=_confluence_out,
+                )
+                if _registry_signal in ("BUY", "SELL"):
+                    raw_signal = _registry_signal
+                    if _confluence_out:
+                        with self._lock:
+                            self.last_deliberation["confluence"] = _confluence_out
+                    self._logger.info(
+                        f"[{self.bot_id}] STRATEGY({self._strategy.name}) → {raw_signal}",
+                        extra={
+                            "event": "strategy_signal",
+                            "bot_id": self.bot_id,
+                            "strategy": self._strategy.name,
+                            "signal": raw_signal,
+                            "regime": regime,
+                        },
+                    )
+            except Exception as _se:
+                self._logger.warning(
+                    f"Strategy registry call failed ({_se}); using inline fallback"
+                )
+
+        if regime == "TRENDING" and self.config.strategy in ("trend_following", "combined") and raw_signal == "HOLD":
             # ── Trend Strategist ──
             try:
                 from trend_strategist import TrendStrategistAgent
@@ -873,7 +944,12 @@ class BotEngine:
             except Exception as e:
                 self._logger.error(f"TrendStrategistAgent error: {e}")
 
-        else:
+        # Inline Mean Reversion fallback. Runs only when:
+        #   (a) the registry call returned HOLD/raised, AND
+        #   (b) the regime is NOT TRENDING for trend-following / combined.
+        # This preserves the pre-Phase-3 behaviour for any path the registry
+        # cannot serve.
+        elif raw_signal == "HOLD":
             # ── Mean Reversion Strategist (3-Pillar Confluence) ──
             try:
                 from strategy import compute_bollinger_bands

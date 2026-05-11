@@ -8,6 +8,8 @@ import asyncio
 import json
 import logging
 import os
+import signal
+import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Optional
@@ -26,6 +28,7 @@ from fleet import fleet
 from mt5_hub import mt5_hub
 
 from config import config
+from config_manager import config_manager
 from postgres_store import (
     init_db,
     insert_trade,
@@ -40,6 +43,8 @@ from postgres_store import (
     _legacy_get_ai_decisions as get_ai_decisions,
     save_fleet_event,
     save_audit_log,
+    get_store,
+    is_initialized as _db_is_initialized,
 )
 from models import (
     BotStatus,
@@ -57,6 +62,10 @@ from models import (
 from ai_brain import ai_brain
 from vital_signs import vital_signs
 from symbol_service import symbol_service, to_mt5_symbol
+
+# Setup & Accounts API routes
+import setup_routes
+import account_routes
 
 # ---- Logging ----
 from buffered_logger import setup_buffered_logging
@@ -250,6 +259,7 @@ async def ws_fleet_broadcast_loop():
 
 class DeployBotRequest(BaseModel):
     bot_id: Optional[str] = None
+    account_id: str = Field(default="", description="MT5 account ID to trade on")
     name: str = "Unnamed Bot"
     symbol: str = Field(..., description="Target trading symbol")
     strategy: str = "mean_reversion"
@@ -269,7 +279,9 @@ class DeployBotRequest(BaseModel):
     ai_interval_minutes: int = 60
     ai_min_trades_trigger: int = 10
     ai_loss_streak_trigger: int = 3
-    sub_agents: list[str] = Field(default=["sentiment", "macro", "earnings", "technical"])
+    research_enabled: bool = True
+    research_interval_hours: int = 4
+    sub_agents: list[str] = Field(default=["sentiment", "macro", "earnings", "technical", "research_framework", "correlation", "orderflow", "calendar"])
     sub_agent_interval_minutes: int = 15
     agent_vote_cache_ttl_seconds: int = 1800
     tags: list[str] = []
@@ -304,74 +316,197 @@ class FleetConfigUpdate(BaseModel):
 async def lifespan(app: FastAPI):
     """Application lifecycle — init DB, start all subsystems, cleanup on exit."""
     logger.info("TradeClaw starting up...")
-    
-    # 1. Initialize DB first
-    try:
-        await init_db()
-        await save_fleet_event("SYSTEM_STARTUP", "INFO", "TradeClaw Execution Engine starting up")
-    except Exception as e:
-        logger.error(f"PostgreSQL initialization failed: {e}")
-        # Fatal if DB is down? User wants postgres.
 
-    # Start MT5 Hub (market data) — must happen BEFORE bot restoration so
-    # auto-starting bots find a live terminal_info() on their first tick.
-    mt5_hub.init(
-        login=int(os.getenv("MT5_LOGIN", "0") or "0"),
-        password=os.getenv("MT5_PASSWORD", ""),
-        server=os.getenv("MT5_SERVER", ""),
-    )
-    mt5_hub.start()
+    setup_complete = config_manager.is_setup_complete()
+    fleet_broadcast_task = None
 
-    # Init Fleet Persistence (PostgreSQL)
-    try:
-        import postgres_store
-        fleet.set_store(postgres_store)
-        await fleet.load_config_from_store()
-        await fleet.restore_bots_from_store()
-        logger.info("PostgreSQL connected (Neon), fleet config and bots restored")
-    except Exception as e:
-        logger.error(f"Fleet initialization from PostgreSQL failed: {e}")
+    if setup_complete:
+        # ── Full startup: DB, MT5, Fleet ───────────────────────────────
 
-    # Start Partition Manager
-    try:
-        from database.partition_manager import maintenance_loop
-        asyncio.create_task(maintenance_loop())
-        logger.info("Partition maintenance loop started")
-    except Exception as e:
-        logger.error(f"Failed to start partition maintenance loop: {e}")
+        # 1. Initialize DB with ConfigManager URL (fallback to env)
+        try:
+            db_url = config_manager.get_database_url()
+            await init_db(db_url if db_url else None)
+            await save_fleet_event("SYSTEM_STARTUP", "INFO", "TradeClaw Execution Engine starting up")
+        except Exception as e:
+            logger.error(f"PostgreSQL initialization failed: {e}")
 
-    # Publish the running event loop to sub_agents so background threads
-    # can schedule async PostgreSQL calls (DarwinianWeightStore, LangGraph graph).
-    try:
-        import sub_agents as _sa
-        _sa.set_main_event_loop(asyncio.get_running_loop())
-    except Exception as _e:
-        logger.warning(f"Could not set main event loop in sub_agents: {_e}")
+        # 2. Start MT5 Hub using credentials from ConfigManager (default account)
+        #    Non-fatal: if the terminal isn't running yet, bots will trigger
+        #    lazy initialization when deployed via FleetOrchestrator.
+        try:
+            default_account = config_manager.get_default_account()
+            if default_account:
+                mt5_hub.init(
+                    login=default_account.get("mt5_login", 0),
+                    password=default_account.get("mt5_password", ""),
+                    server=default_account.get("mt5_server", ""),
+                )
+            else:
+                # Fallback to env vars for backward compatibility
+                mt5_hub.init(
+                    login=int(os.getenv("MT5_LOGIN", "0") or "0"),
+                    password=os.getenv("MT5_PASSWORD", ""),
+                    server=os.getenv("MT5_SERVER", ""),
+                )
+            mt5_hub.start()
+        except Exception as e:
+            logger.warning(
+                f"MT5 terminal not available at startup: {e} — "
+                f"will initialize lazily when first bot is deployed"
+            )
 
-    # Start fleet monitor
-    fleet.start_monitor()
+        # 3. Init Fleet Persistence (PostgreSQL)
+        try:
+            import postgres_store
+            fleet.set_store(postgres_store)
+            await fleet.load_config_from_store()
+            await fleet.restore_bots_from_store()
+            logger.info("PostgreSQL connected (Neon), fleet config and bots restored")
+        except Exception as e:
+            logger.error(f"Fleet initialization from PostgreSQL failed: {e}")
 
-    # Start background tasks
-    fleet_broadcast_task = asyncio.create_task(ws_fleet_broadcast_loop())
+        # Start Partition Manager
+        try:
+            from database.partition_manager import maintenance_loop
+            asyncio.create_task(maintenance_loop())
+            logger.info("Partition maintenance loop started")
+        except Exception as e:
+            logger.error(f"Failed to start partition maintenance loop: {e}")
 
-    # Start AI Brain if enabled
-    if config.ai_snapshot()["ai_brain_enabled"]:
-        ai_brain.start()
+        # Publish the running event loop to sub_agents so background threads
+        # can schedule async PostgreSQL calls (DarwinianWeightStore, LangGraph graph).
+        try:
+            import sub_agents as _sa
+            _sa.set_main_event_loop(asyncio.get_running_loop())
+        except Exception as _e:
+            logger.warning(f"Could not set main event loop in sub_agents: {_e}")
 
-    logger.info("TradeClaw ready")
+        # Start fleet monitor
+        fleet.start_monitor()
+
+        # Start background tasks
+        fleet_broadcast_task = asyncio.create_task(ws_fleet_broadcast_loop())
+
+        # Start AI Brain if enabled
+        if config.ai_snapshot()["ai_brain_enabled"]:
+            ai_brain.start()
+
+        logger.info("TradeClaw ready — full trading mode")
+    else:
+        # ── Setup mode: only API + setup routes active ────────────────
+        logger.info(
+            "TradeClaw starting in SETUP MODE — "
+            "complete the setup wizard at http://localhost:3000/setup"
+        )
 
     yield
 
-    # Shutdown
+    # Shutdown — Phase 4 §8.4: Graceful shutdown with queue drain & position snapshot
     logger.info("TradeClaw shutting down...")
-    fleet.stop_monitor()
-    mt5_hub.stop()
-    if ai_brain.enabled:
-        ai_brain.stop()
-    fleet_broadcast_task.cancel()
-    await save_fleet_event("SYSTEM_SHUTDOWN", "INFO", "TradeClaw Execution Engine shut down gracefully")
+    if setup_complete:
+        # ── 1. Stop fleet monitor (drains bot event loops) ─────────────
+        fleet.stop_monitor()
+
+        # ── 2. Final DB queue flush — ensure all pending writes complete ─
+        try:
+            fleet._flush_db_queues()
+            logger.info("Final DB queue flush complete")
+        except Exception as e:
+            logger.error(f"Final DB queue flush failed: {e}")
+
+        # ── 3. Snapshot open MT5 positions to file ──────────────────────
+        try:
+            _snapshot_open_positions()
+        except Exception as e:
+            logger.error(f"Position snapshot failed: {e}")
+
+        # ── 4. Stop MT5 hub ────────────────────────────────────────────
+        mt5_hub.stop()
+        if ai_brain.enabled:
+            ai_brain.stop()
+        if fleet_broadcast_task:
+            fleet_broadcast_task.cancel()
+
+        # ── 5. Cancel all outstanding asyncio tasks ─────────────────────
+        pending = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+        for task in pending:
+            task.cancel()
+        if pending:
+            await asyncio.gather(*pending, return_exceptions=True)
+
+        await save_fleet_event("SYSTEM_SHUTDOWN", "INFO", "TradeClaw Execution Engine shut down gracefully")
     logger.info("TradeClaw shutdown complete")
 
+
+def _snapshot_open_positions():
+    """Phase 4 §8.4 — Write all open MT5 positions to a JSON file on shutdown."""
+    import json as _json
+    try:
+        from mt5_bridge import mt5
+        if mt5 is None or mt5.terminal_info() is None:
+            return
+        positions = mt5.positions_get()
+        if not positions:
+            logger.info("No open MT5 positions at shutdown")
+            return
+        snapshot = []
+        for p in positions:
+            p_dict = p._asdict() if hasattr(p, "_asdict") else dict(p)
+            for k in list(p_dict):
+                v = p_dict[k]
+                if hasattr(v, "isoformat"):
+                    p_dict[k] = v.isoformat()
+                elif isinstance(v, (int, float, str, bool, type(None))):
+                    pass
+                else:
+                    p_dict[k] = str(v)
+            snapshot.append(p_dict)
+
+        os.makedirs("logs", exist_ok=True)
+        path = f"logs/positions_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
+        with open(path, "w", encoding="utf-8") as f:
+            _json.dump(snapshot, f, indent=2, default=str)
+        logger.info(
+            f"Position snapshot written: {len(snapshot)} open positions → {path}",
+            extra={
+                "event": "shutdown_positions_snapshot",
+                "file": path,
+                "count": len(snapshot),
+            },
+        )
+    except Exception as e:
+        logger.warning(f"Position snapshot failed: {e}")
+
+
+# ════════════════════════════════════════════════════════
+# SIGTERM / SIGINT HANDLER (Phase 4 §8.4)
+# ════════════════════════════════════════════════════════
+# Registered BEFORE the app starts so that clean-up fires even if Uvicorn
+# doesn't reach the lifespan shutdown path (e.g. SIGKILL, pod eviction, OOM).
+_shutting_down = False
+
+
+def _handle_sigterm(signum, frame):
+    global _shutting_down
+    if _shutting_down:
+        return
+    _shutting_down = True
+    logger.warning(
+        f"Received signal {signum} — initiating graceful shutdown...",
+        extra={"event": "sigterm_received", "signal": signum},
+    )
+    try:
+        fleet.stop_monitor()
+        fleet._flush_db_queues()
+        _snapshot_open_positions()
+        mt5_hub.stop()
+    except Exception as e:
+        logger.error(f"Graceful shutdown hook failed: {e}")
+
+
+signal.signal(signal.SIGTERM, _handle_sigterm)
+signal.signal(signal.SIGINT, _handle_sigterm)
 
 # ---- App ----
 app = FastAPI(
@@ -388,6 +523,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ---- Mount Setup & Account Routers ----
+app.include_router(setup_routes.router)
+app.include_router(account_routes.router)
 
 
 # ---- Endpoints ----
@@ -685,6 +824,7 @@ async def fleet_deploy(request: DeployBotRequest):
     try:
         cfg = BotConfig(
             bot_id=bot_id,
+            account_id=request.account_id,
             name=request.name,
             symbol=request.symbol,
             strategy=request.strategy,
@@ -704,6 +844,8 @@ async def fleet_deploy(request: DeployBotRequest):
             ai_interval_minutes=request.ai_interval_minutes,
             ai_min_trades_trigger=request.ai_min_trades_trigger,
             ai_loss_streak_trigger=request.ai_loss_streak_trigger,
+            research_enabled=request.research_enabled,
+            research_interval_hours=request.research_interval_hours,
             sub_agents=request.sub_agents,
             sub_agent_interval_minutes=request.sub_agent_interval_minutes,
             agent_vote_cache_ttl_seconds=request.agent_vote_cache_ttl_seconds,
@@ -740,12 +882,38 @@ async def fleet_deploy(request: DeployBotRequest):
 
 @app.get("/fleet/account")
 async def fleet_account():
-    """Get MT5 account summary (balance, equity, margin, etc.)."""
+    """Get MT5 account summary (balance, equity, margin, etc.).
+
+    Returns a graceful DISCONNECTED response when the MT5 terminal is
+    unreachable (e.g. local macOS dev without Wine/Docker) so the
+    frontend can render a "not connected" state without error-looping.
+    """
+    _disconnected = {
+        "equity": 0,
+        "portfolio_value": 0,
+        "buying_power": 0,
+        "daytrading_buying_power": 0,
+        "regt_buying_power": 0,
+        "cash": 0,
+        "daily_pnl": 0,
+        "daily_pnl_pct": 0,
+        "unrealized_pnl": 0,
+        "margin_used": 0,
+        "margin_free": 0,
+        "currency": "USD",
+        "status": "DISCONNECTED",
+        "message": "",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
     try:
         from mt5_bridge import mt5
         acc = mt5.account_info()
         if acc is None:
-            raise RuntimeError(f"MT5 account_info() returned None: {mt5.last_error()}")
+            err = mt5.last_error()
+            logger.warning(f"MT5 account_info() returned None: {err}")
+            _disconnected["message"] = f"MT5 terminal not connected: {err}"
+            return _disconnected
 
         equity = float(acc.equity)
         balance = float(acc.balance)
@@ -761,12 +929,17 @@ async def fleet_account():
             "cash": balance,
             "daily_pnl": round(daily_pnl, 2),
             "daily_pnl_pct": round(daily_pnl_pct, 2),
+            "unrealized_pnl": float(acc.profit),
+            "margin_used": float(acc.margin),
+            "margin_free": float(acc.margin_free),
             "currency": acc.currency,
             "status": "ACTIVE",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
-        logger.error(f"Failed to fetch MT5 account: {e}")
-        raise HTTPException(status_code=500, detail="MT5 account sync failed")
+        logger.warning(f"MT5 account unavailable: {e}")
+        _disconnected["message"] = str(e)
+        return _disconnected
 
 
 
@@ -1019,6 +1192,230 @@ async def fleet_get_regime(bot_id: str):
     return {
         "bot_id": bot_id,
         "regime": regime,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+# ════════════════════════════════════════════════════════
+# PHASE 3 §5.3 — REST API GAP CLOSURES
+# ════════════════════════════════════════════════════════
+
+@app.get("/fleet/bot/{bot_id}/deliberation/history")
+async def fleet_get_deliberation_history(bot_id: str, limit: int = 20):
+    """
+    Returns the recent deliberation audit trail for a bot.
+
+    Reads from `strategy_contexts` (JSONB) — every TradeDecision produced by
+    SubAgentPool.deliberate() is persisted there via _persist_deliberation()
+    (Phase 3 §5.3). Both approved and rejected deliberations are stored.
+    """
+    instance = fleet.get_bot(bot_id)
+    if not instance:
+        raise HTTPException(status_code=404, detail=f"Bot {bot_id} not found")
+    if not _db_is_initialized():
+        raise HTTPException(status_code=503, detail="Database not initialised")
+    limit = max(1, min(200, int(limit)))
+    history = await get_store().get_ai_decisions(bot_id, limit=limit)
+    # Filter for deliberation entries (some strategy_contexts rows are AI brain
+    # decisions, which we want to exclude from the deliberation history view).
+    deliberations = [h for h in history if h.get("_kind") == "deliberation"]
+    return {
+        "bot_id": bot_id,
+        "symbol": instance.config.symbol,
+        "count": len(deliberations),
+        "history": deliberations,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@app.get("/fleet/bot/{bot_id}/agents/weights")
+async def fleet_get_agent_weights(bot_id: str):
+    """
+    Returns the current Darwinian weights for a bot's panel agents.
+
+    Excluded gate agents (watchman, ict, correlation, trend, regime,
+    risk_manager) are NOT in this map — their weights are encoded directly
+    on their AgentVote at vote time and are not Darwinian-adjusted.
+    """
+    instance = fleet.get_bot(bot_id)
+    if not instance:
+        raise HTTPException(status_code=404, detail=f"Bot {bot_id} not found")
+    if not instance.sub_agent_pool:
+        raise HTTPException(status_code=404, detail="Bot has no sub-agent pool")
+    weights = instance.sub_agent_pool._darwin.get_all_weights()
+    return {
+        "bot_id": bot_id,
+        "symbol": instance.config.symbol,
+        "weights": weights,
+        "bounds": {
+            "floor": instance.sub_agent_pool._darwin.FLOOR,
+            "ceiling": instance.sub_agent_pool._darwin.CEILING,
+        },
+        "excluded_agents": sorted(instance.sub_agent_pool._darwin.EXCLUDED),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+class AgentWeightUpdate(BaseModel):
+    agent: str = Field(..., description="Agent name (e.g. 'technical', 'macro')")
+    weight: float = Field(..., ge=0.3, le=2.5, description="Weight in [FLOOR, CEILING]")
+
+
+@app.put("/fleet/bot/{bot_id}/agents/weights")
+async def fleet_set_agent_weight(bot_id: str, update: AgentWeightUpdate):
+    """
+    Operator override for a single agent's Darwinian weight.
+
+    Clamps to [FLOOR, CEILING] and persists to Postgres. Returns 400 if the
+    agent is in the excluded set (gate agents use fixed weights, not Darwin).
+    """
+    instance = fleet.get_bot(bot_id)
+    if not instance:
+        raise HTTPException(status_code=404, detail=f"Bot {bot_id} not found")
+    if not instance.sub_agent_pool:
+        raise HTTPException(status_code=404, detail="Bot has no sub-agent pool")
+    try:
+        new_w = instance.sub_agent_pool._darwin.set_weight(update.agent, update.weight)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {
+        "bot_id": bot_id,
+        "agent": update.agent,
+        "weight": new_w,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@app.get("/fleet/bot/{bot_id}/research")
+async def fleet_get_research(bot_id: str):
+    """
+    Returns the latest TradingAgents research framework signal for a bot.
+
+    Combines the in-memory `latest_signals["research_framework"]` (used at
+    deliberation time) with the cached PostgreSQL `research_reports` row
+    (used by ResearchBridge for cross-bot sharing). Computes
+    `next_refresh_in_seconds` from the bot's `research_interval_hours`.
+    """
+    instance = fleet.get_bot(bot_id)
+    if not instance:
+        raise HTTPException(status_code=404, detail=f"Bot {bot_id} not found")
+
+    sig = None
+    if instance.sub_agent_pool:
+        sig_obj = instance.sub_agent_pool.latest_signals.get("research_framework")
+        if sig_obj:
+            sig = sig_obj.to_dict()
+
+    last_updated = None
+    next_refresh = None
+    if _db_is_initialized():
+        try:
+            cached = await get_store().get_latest_research_report(instance.config.symbol)
+            if cached:
+                _payload, last_updated_dt = cached
+                last_updated = last_updated_dt.isoformat() if last_updated_dt else None
+                interval_s = instance.config.research_interval_hours * 3600
+                elapsed = (datetime.now(last_updated_dt.tzinfo) - last_updated_dt).total_seconds()
+                next_refresh = max(0, int(interval_s - elapsed))
+        except Exception as e:
+            logger.debug(f"research cache lookup failed for {bot_id}: {e}")
+
+    return {
+        "bot_id": bot_id,
+        "symbol": instance.config.symbol,
+        "signal": sig,
+        "last_updated": last_updated,
+        "next_refresh_in_seconds": next_refresh,
+        "interval_hours": instance.config.research_interval_hours,
+        "research_enabled": instance.config.research_enabled,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@app.post("/fleet/bot/{bot_id}/research/trigger")
+async def fleet_trigger_research(bot_id: str):
+    """
+    Manually trigger a TradingAgents research cycle for a bot (Phase 3 §5.3).
+
+    Returns 202 Accepted immediately; the research graph runs asynchronously
+    in a thread (via `asyncio.to_thread` inside ResearchBridge). Result is
+    pushed to `SubAgentPool.latest_signals["research_framework"]` on completion.
+    """
+    instance = fleet.get_bot(bot_id)
+    if not instance:
+        raise HTTPException(status_code=404, detail=f"Bot {bot_id} not found")
+    if not instance.config.research_enabled:
+        raise HTTPException(
+            status_code=400,
+            detail="research_enabled=False — enable in config first."
+        )
+    # Reset the rate-limit timer so the regular monitor loop doesn't
+    # double-trigger immediately after.
+    fleet._last_symbol_research_times[instance.config.symbol] = time.time()
+    asyncio.create_task(fleet._run_research_graph_async(instance))
+    logger.info(
+        f"[{bot_id}] Research cycle manually triggered",
+        extra={
+            "event": "research_cycle_manual_trigger",
+            "bot_id": bot_id,
+            "symbol": instance.config.symbol,
+        },
+    )
+    return {
+        "status": "triggered",
+        "bot_id": bot_id,
+        "symbol": instance.config.symbol,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@app.get("/fleet/metrics/system")
+async def fleet_metrics_system():
+    """
+    Unified system metrics endpoint (Phase 3 §5.3).
+
+    Combines: Gemini budget status, event loop latency probe, PostgreSQL
+    connection pool size, active bot count, and CPU/RAM. Designed as the
+    single GET for dashboards that need a snapshot of backend health.
+    """
+    from gemini_budget import gemini_budget as _gb
+
+    # Event loop latency probe — sleep(0) yields control once; the delta
+    # measures how long the loop took to resume us.
+    _t0 = asyncio.get_event_loop().time()
+    await asyncio.sleep(0)
+    loop_latency_ms = round((asyncio.get_event_loop().time() - _t0) * 1000, 2)
+
+    # DB pool stats (best-effort; asyncpg pool exposes .get_size() / .get_idle_size())
+    db_size = 0
+    db_idle = 0
+    if _db_is_initialized():
+        try:
+            _store = get_store()
+            _pool = getattr(_store, "pool", None)
+            if _pool is not None:
+                db_size = _pool.get_size() if hasattr(_pool, "get_size") else 0
+                db_idle = _pool.get_idle_size() if hasattr(_pool, "get_idle_size") else 0
+        except Exception:
+            pass
+
+    # CPU/RAM via psutil (best-effort)
+    cpu_pct = 0.0
+    ram_pct = 0.0
+    try:
+        import psutil
+        cpu_pct = float(psutil.cpu_percent(interval=None))
+        ram_pct = float(psutil.virtual_memory().percent)
+    except Exception:
+        pass
+
+    return {
+        "gemini": _gb.get_status(),
+        "event_loop_latency_ms": loop_latency_ms,
+        "db_pool": {"size": db_size, "idle": db_idle, "busy": max(0, db_size - db_idle)},
+        "active_bots": len(fleet._bots),
+        "cpu_pct": cpu_pct,
+        "ram_pct": ram_pct,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -1293,8 +1690,71 @@ async def bot_websocket_endpoint(ws: WebSocket, bot_id: str):
 
 @app.get("/health")
 async def health():
-    """Health check."""
-    return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
+    """Comprehensive health check — reports subsystem connectivity and fleet status."""
+    import time as _time
+    _start = _time.monotonic()
+
+    result = {
+        "status": "healthy",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "mt5_connected": False,
+        "postgres_connected": False,
+        "gemini_budget_remaining_pct": 0,
+        "ollama_reachable": False,
+        "active_bots": 0,
+        "uptime_seconds": 0,
+    }
+
+    # MT5 connectivity
+    try:
+        from mt5_bridge import mt5
+        acc = mt5.account_info()
+        result["mt5_connected"] = acc is not None
+    except Exception:
+        pass
+
+    # PostgreSQL connectivity
+    try:
+        from postgres_store import is_initialized
+        result["postgres_connected"] = is_initialized()
+    except Exception:
+        pass
+
+    # Gemini budget
+    try:
+        from bot_ai_brain import gemini_budget
+        stats = gemini_budget.get_stats() if hasattr(gemini_budget, "get_stats") else {}
+        if stats:
+            remaining = stats.get("remaining_pct", 100)
+            result["gemini_budget_remaining_pct"] = remaining
+        else:
+            result["gemini_budget_remaining_pct"] = 100 if gemini_budget.can_call() else 0
+    except Exception:
+        pass
+
+    # Ollama reachability
+    try:
+        import httpx
+        from config import config as sys_config
+        base = sys_config.ollama_base_url or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        resp = httpx.get(f"{base}/api/tags", timeout=3.0)
+        result["ollama_reachable"] = resp.status_code == 200
+    except Exception:
+        pass
+
+    # Fleet status
+    try:
+        fleet_snap = fleet.get_fleet_status().get("summary", {})
+        result["active_bots"] = fleet_snap.get("total_bots", 0)
+    except Exception:
+        pass
+
+    # Determine overall status
+    critical_down = not result["postgres_connected"]
+    result["status"] = "degraded" if critical_down else "healthy"
+    result["latency_ms"] = round((_time.monotonic() - _start) * 1000, 1)
+
+    return result
 
 
 

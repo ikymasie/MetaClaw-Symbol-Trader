@@ -672,35 +672,10 @@ class MeanReversionEngine:
                         else:
                             self.unrealized_pnl = 0.0
 
-                    # ---- 6% DRAWDOWN CHECK (legacy, supplementary to VitalSigns) ----
-                    if self.starting_equity > 0:
-                        dd_pct = abs(self.daily_pnl) / self.starting_equity * 100
-                        if self.daily_pnl < 0 and dd_pct >= max_dd:
-                            # Liquidate all
-                            try:
-                                self._trading_client.close_all_positions(
-                                    cancel_orders=True
-                                )
-                            except Exception as e:
-                                logger.error(f"Error closing positions: {e}")
-                            self.force_stop(
-                                f"Daily drawdown {dd_pct:.1f}% exceeded {max_dd}% limit"
-                            )
-                            with self._lock:
-                                self._db_queue.append(
-                                    {
-                                        "type": "trade",
-                                        "timestamp": now_str,
-                                        "side": "HALT",
-                                        "symbol": symbol,
-                                        "qty": 0,
-                                        "price": price,
-                                        "pnl": 0.0,
-                                        "signal": "DRAWDOWN_HALT",
-                                        "params_snapshot": json.dumps(cfg),
-                                    }
-                                )
-                            return
+                    # Drawdown protection is handled by VitalSigns (configurable
+                    # thresholds: WOUNDED → ORGAN_FAILURE → PROTOCOL_FINAL).
+                    # The legacy inline 6% check was removed to avoid conflicting
+                    # with the bot's max_daily_drawdown_pct setting.
 
                     # Snapshot equity periodically
                     if time.time() - last_equity_snapshot > 30:

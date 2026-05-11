@@ -27,6 +27,11 @@ class MarketDataAggregator:
             "1wk": "W",
             "1mo": "ME"
         }
+        # Phase 3 §9.2 — Delta-processing cache keyed by symbol.
+        # Skips full pandas aggregation when the newest 1m bar timestamp is
+        # unchanged since the last process_symbol() call for that symbol.
+        self._last_bar_timestamps: Dict[str, str] = {}
+        self._last_results: Dict[str, dict] = {}
 
     def aggregate(self, df_1m: pd.DataFrame, timeframe: str) -> pd.DataFrame:
         """
@@ -87,17 +92,49 @@ class MarketDataAggregator:
     def process_symbol(self, symbol: str, bars_1m: list[dict]) -> dict:
         """
         Perform full multi-timeframe aggregation and trend analysis for a symbol.
+
+        Phase 3 enhancements:
+          §9.1 — Adds raw pandas DataFrames under a "dataframes" key for
+                 in-process consumers (e.g. CorrelationAgent). These are NOT
+                 serialised; callers must strip the key before persisting.
+          §9.2 — Stateful caching: if the newest 1m bar timestamp matches the
+                 previous call for this symbol, returns the cached result
+                 instead of recomputing.
+
         Returns:
             {
-                "aggregated_bars": { "15m": [...], "1h": [...], ... },
-                "trend_summaries": { "1m": {...}, "15m": {...}, ... }
+                "aggregated_bars":  { "15m": [...], "1h": [...], ... },
+                "trend_summaries":  { "1m": {...}, "15m": {...}, ... },
+                "dataframes":       { "1m": pd.DataFrame, "15m": pd.DataFrame, ... },  # in-process only
             }
         """
         if not bars_1m:
             return {}
 
+        # ── Cache fast-path (Phase 3 §9.2) ───────────────────────────────
+        # Probe the newest bar's timestamp BEFORE any pandas allocation.
+        _latest = bars_1m[-1]
+        latest_ts_raw = _latest.get("t") or _latest.get("time") or _latest.get("timestamp")
+        if latest_ts_raw is not None:
+            latest_key = str(latest_ts_raw)
+            if latest_key == self._last_bar_timestamps.get(symbol):
+                cached = self._last_results.get(symbol)
+                if cached:
+                    return cached
+
         df_1m = pd.DataFrame(bars_1m)
+
+        # Normalize timestamp field
+        if 'time' in df_1m.columns and 't' not in df_1m.columns:
+            df_1m.rename(columns={'time': 't'}, inplace=True)
+        elif 'timestamp' in df_1m.columns and 't' not in df_1m.columns:
+            df_1m.rename(columns={'timestamp': 't'}, inplace=True)
+
         # Convert timestamp strings to datetime
+        if 't' not in df_1m.columns:
+            logger.warning(f"No timestamp column found for {symbol}. Columns: {df_1m.columns}")
+            return {}
+
         df_1m['t'] = pd.to_datetime(df_1m['t'])
         df_1m.set_index('t', inplace=True)
 
@@ -120,9 +157,12 @@ class MarketDataAggregator:
         if df_1m.empty:
             return {}
 
+        # Phase 3 §9.1 — include raw DataFrames keyed by timeframe for
+        # in-process consumers (e.g. CorrelationAgent, future agents).
         result = {
             "aggregated_bars": {},
-            "trend_summaries": {}
+            "trend_summaries": {},
+            "dataframes": {"1m": df_1m},
         }
 
         # 1m Trend Summary
@@ -134,7 +174,7 @@ class MarketDataAggregator:
                 df_tf = self.aggregate(df_1m, tf)
                 if df_tf.empty:
                     continue
-                
+
                 # Convert back to list of dicts for Firestore
                 bars_tf = []
                 for ts, row in df_tf.iterrows():
@@ -146,10 +186,16 @@ class MarketDataAggregator:
                         "close": float(row["close"]),
                         "volume": float(row["volume"])
                     })
-                
+
                 result["aggregated_bars"][tf] = bars_tf
                 result["trend_summaries"][tf] = self.compute_trend_summary(df_tf, symbol, tf)
+                result["dataframes"][tf] = df_tf
             except Exception as e:
                 logger.error(f"Error processing timeframe {tf} for {symbol}: {e}")
+
+        # ── Update cache (Phase 3 §9.2) ──────────────────────────────────
+        if latest_ts_raw is not None:
+            self._last_bar_timestamps[symbol] = str(latest_ts_raw)
+            self._last_results[symbol] = result
 
         return result

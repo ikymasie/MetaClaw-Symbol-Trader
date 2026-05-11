@@ -245,6 +245,16 @@ CREATE TABLE IF NOT EXISTS prompts (
 );
 CREATE INDEX idx_prompts_agent_version ON prompts(agent_name, version DESC);
 
+-- 24. RESEARCH REPORTS (TradingAgents research framework cache)
+-- One row per symbol; payload is the translated AgentSignal + raw context.
+-- TTL governed by RESEARCH_CACHE_TTL config (default 4h) in research_bridge.py.
+CREATE TABLE IF NOT EXISTS research_reports (
+    symbol TEXT PRIMARY KEY,
+    payload JSONB NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_research_reports_updated ON research_reports(updated_at DESC);
+
 -- Initial Partitions for May/June 2026
 CREATE TABLE IF NOT EXISTS equity_history_y2026m05 PARTITION OF equity_history 
     FOR VALUES FROM ('2026-05-01') TO ('2026-06-01');
