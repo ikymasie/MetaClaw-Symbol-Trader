@@ -37,7 +37,9 @@ class SymbolService:
 
             for sheet_name in excel_file.sheet_names:
                 df = excel_file.parse(sheet_name)
-                for _, row in df.iterrows():
+                # ⚡ Bolt Optimization: Replaced df.iterrows() with df.to_dict('records')
+                # Impact: Significantly faster iteration while maintaining dictionary-like .get() behavior
+                for row in df.to_dict('records'):
                     name = str(row.get("Symbol", "")).strip()
                     if not name or name == "nan":
                         continue

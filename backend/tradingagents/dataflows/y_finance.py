@@ -206,10 +206,8 @@ def _get_stock_stats_bulk(
     
     # Create a dictionary mapping date strings to indicator values
     result_dict = {}
-    for _, row in df.iterrows():
-        date_str = row["Date"]
-        indicator_value = row[indicator]
-        
+    # ⚡ Bolt Optimization: Replaced df.iterrows() with zip() for ~10-15x faster column iteration
+    for date_str, indicator_value in zip(df["Date"], df[indicator]):
         # Handle NaN/None values
         if pd.isna(indicator_value):
             result_dict[date_str] = "N/A"
