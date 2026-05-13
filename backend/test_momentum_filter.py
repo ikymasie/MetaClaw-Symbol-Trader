@@ -60,15 +60,14 @@ def test_neutral_alignment():
     # Fast might be above mid, but mid below slow, etc.
     # Start with 60 periods of 100
     prices = [100.0] * 60
-    # Suddenly drop fast, then bounce a bit
-    prices.extend([90.0, 95.0, 92.0])
+    # Drop fast, but then immediately pump it so fast EMA reacts up while mid/slow still lag
+    prices.extend([80.0, 80.0, 110.0, 115.0])
 
     df = create_mock_df(prices)
     mf = MomentumFilter(ema_fast=8, ema_mid=21, ema_slow=55)
     state = mf.assess(df)
 
     # We expect neutral if they are not perfectly stacked
-    # ef will be around 92-95, em around 98, es around 99
     assert state.alignment == MOMENTUM_NEUTRAL
     assert not (state.ema_fast > state.ema_mid > state.ema_slow)
     assert not (state.ema_fast < state.ema_mid < state.ema_slow)

@@ -745,21 +745,19 @@ async def get_market_data(symbol: str):
         # Format for TV Chart
         price_data = []
         bollinger = []
-        for _, row in df.iterrows():
-            ts = row["time"].isoformat() if hasattr(row["time"], "isoformat") else str(row["time"])
-            price_data.append({
-                "time": ts,
-                "open": float(row["open"]),
-                "high": float(row["high"]),
-                "low": float(row["low"]),
-                "close": float(row["close"]),
-            })
-            bollinger.append({
-                "time": ts,
-                "upper": float(row["upper_bb"]),
-                "middle": float(row["sma"]),
-                "lower": float(row["lower_bb"]),
-            })
+        # Convert time column once to list of strings
+        time_strs = [ts.isoformat() if hasattr(ts, "isoformat") else str(ts) for ts in df["time"]]
+
+        # Build list of dicts using fast column zipping
+        price_data = [
+            {"time": ts, "open": float(o), "high": float(h), "low": float(l), "close": float(c)}
+            for ts, o, h, l, c in zip(time_strs, df["open"], df["high"], df["low"], df["close"])
+        ]
+
+        bollinger = [
+            {"time": ts, "upper": float(u), "middle": float(m), "lower": float(lo)}
+            for ts, u, m, lo in zip(time_strs, df["upper_bb"], df["sma"], df["lower_bb"])
+        ]
 
         return {
             "symbol": symbol.upper(),
