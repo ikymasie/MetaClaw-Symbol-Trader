@@ -37,7 +37,8 @@ class SymbolService:
 
             for sheet_name in excel_file.sheet_names:
                 df = excel_file.parse(sheet_name)
-                for _, row in df.iterrows():
+                # Use to_dict('records') for much faster iteration than iterrows()
+                for row in df.to_dict('records'):
                     name = str(row.get("Symbol", "")).strip()
                     if not name or name == "nan":
                         continue
