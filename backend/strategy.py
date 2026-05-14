@@ -13,12 +13,10 @@ Now wired to VitalSignsMonitor:
 from __future__ import annotations
 import threading
 import time
-import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-import numpy as np
 import pandas as pd
 import json
 
@@ -394,23 +392,26 @@ class MeanReversionEngine:
                         # Build price history for frontend
                         self.price_history = []
                         self.bollinger_data = []
-                        for idx, row in df.iterrows():
+                        # ⚡ Bolt: Using zip() instead of df.iterrows() to avoid Pandas Series boxing overhead.
+                        for idx, open_val, high_val, low_val, close_val, upper_bb, sma, lower_bb in zip(
+                            df.index, df["open"], df["high"], df["low"], df["close"], df["upper_bb"], df["sma"], df["lower_bb"]
+                        ):
                             ts = idx.isoformat() if hasattr(idx, "isoformat") else str(idx)
                             self.price_history.append(
                                 {
                                     "time": ts,
-                                    "open": float(row["open"]),
-                                    "high": float(row["high"]),
-                                    "low": float(row["low"]),
-                                    "close": float(row["close"]),
+                                    "open": float(open_val),
+                                    "high": float(high_val),
+                                    "low": float(low_val),
+                                    "close": float(close_val),
                                 }
                             )
                             self.bollinger_data.append(
                                 {
                                     "time": ts,
-                                    "upper": float(row["upper_bb"]),
-                                    "middle": float(row["sma"]),
-                                    "lower": float(row["lower_bb"]),
+                                    "upper": float(upper_bb),
+                                    "middle": float(sma),
+                                    "lower": float(lower_bb),
                                 }
                             )
 

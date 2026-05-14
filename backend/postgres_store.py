@@ -15,7 +15,7 @@ import json
 import logging
 import os
 from datetime import datetime, timezone, timedelta
-from typing import Optional, Any, List, Dict
+from typing import Optional, Any, List
 import asyncpg
 
 logger = logging.getLogger("tradeclaw.postgres_store")
@@ -122,7 +122,7 @@ class PostgresStore:
         if self.pool:
             return
         
-        logger.info(f"Connecting to PostgreSQL (Neon)...")
+        logger.info("Connecting to PostgreSQL (Neon)...")
         try:
             self.pool = await asyncpg.create_pool(
                 self.dsn,

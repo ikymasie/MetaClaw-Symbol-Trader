@@ -19,7 +19,7 @@ server = os.getenv("MT5_SERVER")
 print(f"DEBUG: Password read from .env: {password[0]}...{password[-1]} (length: {len(password)})")
 
 print(f"Python version: {sys.version}")
-print(f"Attempting to use bridge to connect to MT5...")
+print("Attempting to use bridge to connect to MT5...")
 
 # Use the Windows path for Wine side
 terminal_path = "C:\\Program Files\\MetaTrader 5\\terminal64.exe"

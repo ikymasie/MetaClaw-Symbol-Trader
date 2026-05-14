@@ -16,9 +16,8 @@ Each week:
 
 import subprocess
 import logging
-import json
 import os
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from typing import Optional
 from openai import OpenAI
 from prompt_loader import load_agent_prompt
@@ -235,7 +234,8 @@ class PromptAutoResearcher:
                 response_format={"type": "json_object"},
             )
             raw = resp.choices[0].message.content
-            import json, re
+            import json
+            import re
             try:
                 return json.loads(raw)
             except Exception:
@@ -248,7 +248,6 @@ class PromptAutoResearcher:
 
     def _write_modified_prompt(self, agent_name: str, modification: dict):
         """Apply the modification to the agent's prompt file."""
-        import os
         path = os.path.join(
             os.path.dirname(__file__), "prompts", f"{agent_name}_agent.md"
         )
