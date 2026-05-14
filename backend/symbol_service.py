@@ -1,7 +1,7 @@
 import pandas as pd
 import logging
 import os
-from typing import List, Dict, Optional
+from typing import List, Dict
 
 logger = logging.getLogger("tradeclaw.symbol_service")
 
@@ -37,13 +37,15 @@ class SymbolService:
 
             for sheet_name in excel_file.sheet_names:
                 df = excel_file.parse(sheet_name)
-                for _, row in df.iterrows():
-                    name = str(row.get("Symbol", "")).strip()
+                # ⚡ Bolt: Using df.itertuples(index=False) instead of df.iterrows() for much faster iteration
+                for row in df.itertuples(index=False):
+                    row_dict = row._asdict()
+                    name = str(row_dict.get("Symbol", "")).strip()
                     if not name or name == "nan":
                         continue
                     
-                    category = str(row.get("Category", sheet_name)).strip()
-                    description = str(row.get("Description", "")).strip()
+                    category = str(row_dict.get("Category", sheet_name)).strip()
+                    description = str(row_dict.get("Description", "")).strip()
                     
                     # If we haven't seen this symbol yet, or if the current entry has better data
                     if name not in seen_symbols:

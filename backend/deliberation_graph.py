@@ -26,7 +26,7 @@ import logging
 import operator
 import queue as _stdlib_queue
 import time
-from typing import Annotated, Any, Optional, TYPE_CHECKING
+from typing import Annotated, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from sub_agents import SubAgentPool
