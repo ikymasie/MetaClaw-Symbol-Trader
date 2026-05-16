@@ -1,0 +1,3 @@
+## 2025-02-28 - [Pandas iterrows Performance Anti-Pattern]
+**Learning:** `df.iterrows()` is extremely slow because it creates a new Pandas Series for every single row, causing significant boxing overhead. In paths like data aggregators, charting formatting, or external api parsing where many rows are processed, it creates a severe performance bottleneck.
+**Action:** When iterating through a DataFrame, replace `df.iterrows()` with `zip()` over the individual column arrays (e.g. `zip(df['col1'], df['col2'])`) for column-wise iteration, or use `df.to_dict('records')` when processing whole rows, as these avoid Pandas Series boxing.
