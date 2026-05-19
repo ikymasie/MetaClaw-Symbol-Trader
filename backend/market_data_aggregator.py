@@ -9,9 +9,8 @@ Uses pandas for efficient resampling and RegimeDetector for trend analysis.
 
 import logging
 import pandas as pd
-import numpy as np
-from datetime import datetime, timezone, timedelta
-from typing import Optional, Dict, List
+from datetime import datetime, timezone
+from typing import Dict
 from regime_detector import RegimeDetector
 
 logger = logging.getLogger("tradeclaw.aggregator")
@@ -176,16 +175,25 @@ class MarketDataAggregator:
                     continue
 
                 # Convert back to list of dicts for Firestore
-                bars_tf = []
-                for ts, row in df_tf.iterrows():
-                    bars_tf.append({
+                # ⚡ Bolt: Using zip() instead of df.iterrows() to avoid Pandas Series boxing overhead
+                bars_tf = [
+                    {
                         "t": ts.isoformat(),
-                        "open": float(row["open"]),
-                        "high": float(row["high"]),
-                        "low": float(row["low"]),
-                        "close": float(row["close"]),
-                        "volume": float(row["volume"])
-                    })
+                        "open": float(op),
+                        "high": float(hi),
+                        "low": float(lo),
+                        "close": float(cl),
+                        "volume": float(vol)
+                    }
+                    for ts, op, hi, lo, cl, vol in zip(
+                        df_tf.index,
+                        df_tf["open"],
+                        df_tf["high"],
+                        df_tf["low"],
+                        df_tf["close"],
+                        df_tf["volume"]
+                    )
+                ]
 
                 result["aggregated_bars"][tf] = bars_tf
                 result["trend_summaries"][tf] = self.compute_trend_summary(df_tf, symbol, tf)
