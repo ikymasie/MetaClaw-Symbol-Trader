@@ -3,8 +3,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import pandas as pd
 import yfinance as yf
-import os
-from .stockstats_utils import StockstatsUtils, _clean_dataframe, yf_retry, load_ohlcv, filter_financials_by_date
+from .stockstats_utils import StockstatsUtils, yf_retry, load_ohlcv, filter_financials_by_date
 
 def get_YFin_data_online(
     symbol: Annotated[str, "ticker symbol of the company"],
@@ -206,10 +205,8 @@ def _get_stock_stats_bulk(
     
     # Create a dictionary mapping date strings to indicator values
     result_dict = {}
-    for _, row in df.iterrows():
-        date_str = row["Date"]
-        indicator_value = row[indicator]
-        
+    # ⚡ Bolt: Using zip() instead of df.iterrows() to avoid Pandas Series boxing overhead
+    for date_str, indicator_value in zip(df["Date"], df[indicator]):
         # Handle NaN/None values
         if pd.isna(indicator_value):
             result_dict[date_str] = "N/A"

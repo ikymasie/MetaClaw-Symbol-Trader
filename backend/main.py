@@ -21,7 +21,7 @@ import pandas as pd
 from datetime import timedelta
 
 # Fleet
-from bot_config import BotConfig, FleetConfig
+from bot_config import BotConfig
 from fleet import fleet
 
 # MT5 hub (market data + news)
@@ -31,33 +31,14 @@ from config import config
 from config_manager import config_manager
 from postgres_store import (
     init_db,
-    insert_trade,
-    insert_equity_snapshot,
-    get_all_trades,
-    get_recent_trades_for_analysis,
-    _legacy_get_equity_history as get_equity_history,
-    _legacy_get_daily_pnl_sum as get_daily_pnl_sum,
     _legacy_get_trade_stats_today as get_trade_stats_today,
-    _legacy_set_bot_state as set_bot_state,
-    _legacy_get_bot_state as get_bot_state,
     _legacy_get_ai_decisions as get_ai_decisions,
     save_fleet_event,
-    save_audit_log,
     get_store,
     is_initialized as _db_is_initialized,
 )
 from models import (
-    BotStatus,
-    StatusResponse,
-    ConfigSnapshot,
-    ConfigUpdate,
     StartRequest,
-    HistoryResponse,
-    TradeRecord,
-    PricePoint,
-    MarkerPoint,
-    EquityPoint,
-    BollingerData,
 )
 from ai_brain import ai_brain
 from vital_signs import vital_signs
@@ -579,7 +560,8 @@ async def system_resources():
     can correlate memory growth with backend activity.
     """
     try:
-        import psutil, os
+        import psutil
+        import os
         process = psutil.Process(os.getpid())
 
         # CPU — measured over a 0.1s interval (non-blocking in async context)
@@ -727,7 +709,6 @@ async def get_market_data(symbol: str):
             _empty_response["message"] = f"No recent data for {mt5_symbol} — market may be closed"
             return _empty_response
 
-        import numpy as np
         df = pd.DataFrame(rates)
         df["time"] = pd.to_datetime(df["time"], unit="s", utc=True)
         df = df.rename(columns={"tick_volume": "volume"})
@@ -745,20 +726,24 @@ async def get_market_data(symbol: str):
         # Format for TV Chart
         price_data = []
         bollinger = []
-        for _, row in df.iterrows():
-            ts = row["time"].isoformat() if hasattr(row["time"], "isoformat") else str(row["time"])
+        # ⚡ Bolt: Using zip() instead of df.iterrows() to avoid Pandas Series boxing overhead
+        for t, o, h, low_price, c, upper, mid, lower in zip(
+            df["time"], df["open"], df["high"], df["low"], df["close"],
+            df["upper_bb"], df["sma"], df["lower_bb"]
+        ):
+            ts = t.isoformat() if hasattr(t, "isoformat") else str(t)
             price_data.append({
                 "time": ts,
-                "open": float(row["open"]),
-                "high": float(row["high"]),
-                "low": float(row["low"]),
-                "close": float(row["close"]),
+                "open": float(o),
+                "high": float(h),
+                "low": float(low_price),
+                "close": float(c),
             })
             bollinger.append({
                 "time": ts,
-                "upper": float(row["upper_bb"]),
-                "middle": float(row["sma"]),
-                "lower": float(row["lower_bb"]),
+                "upper": float(upper),
+                "middle": float(mid),
+                "lower": float(lower),
             })
 
         return {
