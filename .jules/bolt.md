@@ -1,0 +1,3 @@
+## 2024-05-21 - [Iterrows Replacement]
+**Learning:** Found an anti-pattern of using `df.iterrows()` across multiple files (`market_data_aggregator.py`, `strategy.py`, `main.py`, `y_finance.py`, `symbol_service.py`). `df.iterrows()` is notoriously slow in Pandas because it creates a Series object for each row, adding significant overhead (boxing).
+**Action:** Replaced `df.iterrows()` loops with `zip()`-based iteration over DataFrame columns (`zip(df['col1'], df['col2'])`). This approach completely bypasses the Series creation per row, resulting in significantly faster iterations when extracting raw values.
