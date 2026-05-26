@@ -1,0 +1,3 @@
+## 2026-05-26 - [Pandas Iteration Bottleneck]
+**Learning:** Found multiple instances of `df.iterrows()` across the backend used for serializing Pandas DataFrames into dictionaries or JSON format. In local benchmarks, `df.iterrows()` creates massive overhead due to Pandas Series boxing for every row (taking ~0.86s per 10k rows). Replacing `df.iterrows()` with `zip()` on specific columns is ~12.3x faster (taking ~0.07s), and using `df.to_dict('records')` is ~9.8x faster (taking ~0.08s).
+**Action:** Always prefer `zip(df['col1'], df['col2'])` for tight loops over specific columns, or `df.to_dict('records')` when the whole row is needed as a dictionary. Never use `df.iterrows()` in production code paths, especially for processing market data ticks.
