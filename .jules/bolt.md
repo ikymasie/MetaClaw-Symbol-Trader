@@ -1,0 +1,3 @@
+## 2024-05-18 - Pandas iterrows() performance bottleneck
+**Learning:** `df.iterrows()` is extremely slow because it creates a new Pandas Series for every single row, causing significant boxing/unboxing overhead. In data aggregation (`market_data_aggregator.py`) and UI history formatting (`main.py`, `strategy.py`), this results in up to a 7x performance penalty compared to vectorized or zipped operations.
+**Action:** Replace `df.iterrows()` with `zip()` over `df.index` and the required columns (e.g. `zip(df.index, df['open'], df['high'], ...)`), or use `df.to_dict('records')`. Always add the comment `⚡ Bolt: Using zip() instead of df.iterrows() to avoid Pandas Series boxing overhead`.
