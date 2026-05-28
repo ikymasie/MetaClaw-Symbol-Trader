@@ -1,0 +1,3 @@
+## 2024-05-24 - Pandas iterrows Bottleneck
+**Learning:** `df.iterrows()` is extremely slow for building JSON dictionaries from DataFrames in Python because it involves boxing Pandas Series for every row. Using a list comprehension with `zip()` over the individual columns is significantly faster (10x+ improvement) and works perfectly for formatting data for API responses.
+**Action:** When converting Pandas DataFrames to list of dictionaries, especially in high-frequency trading backend responses (like `backend/main.py`, `backend/strategy.py`, `backend/market_data_aggregator.py`), replace `iterrows()` with `zip()`-based list comprehensions.
