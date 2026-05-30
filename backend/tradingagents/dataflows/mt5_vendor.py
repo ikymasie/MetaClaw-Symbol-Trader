@@ -56,7 +56,6 @@ def get_mt5_bars(symbol: str, start_date: str, end_date: str, **kwargs) -> Optio
 
     try:
         import pandas as pd
-        from datetime import timezone as _tz
 
         # Parse date range — default to last 200 1h bars
         if start_date:
