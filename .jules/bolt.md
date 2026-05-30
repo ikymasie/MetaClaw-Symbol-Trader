@@ -1,0 +1,3 @@
+## 2025-02-23 - Iterating over DataFrames
+**Learning:** `df.iterrows()` iterates by boxing each row into a pandas Series, creating significant memory overhead and causing O(N) operations to be 10x-15x slower than using python loops with `zip(*columns)` or converting to list of dicts. In hot paths (like formatting data for frontend charts or sending to database/firestore), this becomes a major bottleneck for large timeframes or high-frequency data aggregators.
+**Action:** Replace `df.iterrows()` with `zip()` over required columns (`zip(df['col1'], df['col2'])`) for tight loops, or use `df.to_dict('records')` when dict compatibility (like `.get()`) needs to be maintained without allocating Series objects.

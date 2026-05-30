@@ -1,6 +1,5 @@
 import asyncio
 import websockets
-import json
 
 async def test():
     uri = "ws://localhost:8000/ws/bot/bot-83619823"

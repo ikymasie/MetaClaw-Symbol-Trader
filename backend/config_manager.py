@@ -13,11 +13,10 @@ import logging
 import os
 import tempfile
 import threading
-import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
 
 from cryptography.fernet import Fernet
 
