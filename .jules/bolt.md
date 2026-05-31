@@ -1,0 +1,3 @@
+## 2024-05-31 - [Pandas DataFrame Iteration Overhead]
+**Learning:** Found multiple usages of `df.iterrows()` inside critical loops (e.g., building dictionaries for frontend visualization, looping through timeframes, Excel sheets). `iterrows()` severely impacts performance due to Pandas Series boxing overhead on each row.
+**Action:** Replace `df.iterrows()` with `zip()` across index and columns or `df.to_dict('records')`. Measurements showed `zip()` being ~11x faster and `to_dict('records')` being ~9x faster for iteration. Applied specifically across API payload generators and market data aggregators.
