@@ -26,7 +26,7 @@ import logging
 import queue as _stdlib_queue
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor, Future, as_completed
+from concurrent.futures import ThreadPoolExecutor, Future
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
 from typing import Optional
@@ -1298,7 +1298,7 @@ class ICTAgent(BaseAgent):
             confluence_ict  : Pre-computed ICT diagnostics from ConfluenceResult
         """
         import pandas as pd
-        from datetime import datetime, timezone, time as dt_time
+        from datetime import datetime, timezone
 
         # ── Fast path: reuse pre-computed ICT diagnostics ────────────
         if confluence_ict is not None:
