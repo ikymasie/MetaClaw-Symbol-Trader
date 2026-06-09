@@ -17,7 +17,6 @@ APEX PREDATOR (Profit Tiers / Intelligence Budget):
 
 import logging
 import threading
-import asyncio
 from datetime import datetime, timezone
 from typing import Optional
 

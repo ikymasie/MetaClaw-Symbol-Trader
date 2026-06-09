@@ -372,7 +372,6 @@ class BotEngine:
         which account other bots are using. The terminal automatically switches
         back to the default account after each tick.
         """
-        import os
         from mt5_bridge import mt5
         from mt5_hub import mt5_hub
 
@@ -409,7 +408,7 @@ class BotEngine:
             self._logger.info("No account_id set — using default MT5 account")
 
         self._status = BotEngineStatus.RUNNING
-        self._logger.info(f"Engine RUNNING on MT5")
+        self._logger.info("Engine RUNNING on MT5")
 
         params = self.get_current_params()
         self._warmup_history(params)
@@ -623,11 +622,11 @@ class BotEngine:
             scanning_reasons = {
                 "watchman": f"Scanning {self.config.symbol} on 1m bars... Market quality: CLEAR.",
                 "sentiment": f"Monitoring sentiment feeds for {self.config.symbol}. No signal shift.",
-                "macro": f"Macro conditions stable. VIX normal. Yield curve unchanged.",
+                "macro": "Macro conditions stable. VIX normal. Yield curve unchanged.",
                 "earnings": f"Checking earnings calendar for {self.config.symbol}. No upcoming risk.",
-                "technical": f"BB within range. RSI neutral. No divergence detected.",
+                "technical": "BB within range. RSI neutral. No divergence detected.",
                 "risk_manager": f"Drawdown check: healthy. Portfolio heat: {round(random.uniform(0.5, 3.5), 1)}%.",
-                "ict": f"Scanning for Smart Money footprints... No FVG or liquidity sweep detected.",
+                "ict": "Scanning for Smart Money footprints... No FVG or liquidity sweep detected.",
             }
             scanning_votes.append({
                 "agent": agent,
@@ -664,7 +663,6 @@ class BotEngine:
         Step 6: Update internal state (position, equity, PnL)
         """
         import pandas as pd
-        import numpy as np
         from mt5_bridge import mt5
 
         symbol = params.get("symbol", self.config.symbol)

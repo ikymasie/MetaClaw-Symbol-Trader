@@ -1,7 +1,7 @@
 import pandas as pd
 import logging
 import os
-from typing import List, Dict, Optional
+from typing import List, Dict
 
 logger = logging.getLogger("tradeclaw.symbol_service")
 
