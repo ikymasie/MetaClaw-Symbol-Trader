@@ -4,7 +4,7 @@ Request/Response schemas for the FastAPI endpoints.
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional
 from enum import Enum
 
 
