@@ -19,10 +19,9 @@ bounce, then enters with a statistically superior risk-to-reward ratio.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
-import numpy as np
 import pandas as pd
 
 logger = logging.getLogger("tradeclaw.fib")
