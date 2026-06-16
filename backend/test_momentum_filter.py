@@ -1,16 +1,11 @@
 
-import pytest
 import pandas as pd
-import numpy as np
 from backend.momentum_filter import (
     MomentumFilter,
     MomentumState,
     MOMENTUM_BULLISH,
     MOMENTUM_BEARISH,
     MOMENTUM_NEUTRAL,
-    DEFAULT_EMA_FAST,
-    DEFAULT_EMA_MID,
-    DEFAULT_EMA_SLOW,
 )
 
 def create_mock_df(prices):

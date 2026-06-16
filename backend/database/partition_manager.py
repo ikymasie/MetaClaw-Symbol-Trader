@@ -1,10 +1,8 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Optional
 import asyncpg
 from config import config
-import os
 
 logger = logging.getLogger("tradeclaw.partition_manager")
 
