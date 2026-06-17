@@ -1,0 +1,3 @@
+## 2024-06-17 - Ruff --fix Global Anti-Pattern
+**Learning:** Running `ruff check . --fix` globally on a large, complex repository with `from module import *` or interface/facade files can silently delete required imports, breaking the application (`ImportError`). The AI cannot always deduce why an import is marked "unused" if it's meant to be exposed for other files.
+**Action:** NEVER run `ruff check --fix` globally across the whole repository unless explicitly asked. Only run linting/fixes specifically on the exact files modified during the performance optimization, or run it without `--fix` to ensure no new errors were introduced by the changes.

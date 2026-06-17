@@ -1,7 +1,7 @@
 import pandas as pd
 import logging
 import os
-from typing import List, Dict, Optional
+from typing import List, Dict
 
 logger = logging.getLogger("tradeclaw.symbol_service")
 
@@ -37,7 +37,9 @@ class SymbolService:
 
             for sheet_name in excel_file.sheet_names:
                 df = excel_file.parse(sheet_name)
-                for _, row in df.iterrows():
+
+                # ⚡ Bolt: Using to_dict('records') instead of iterrows() for fast row iteration
+                for row in df.to_dict("records"):
                     name = str(row.get("Symbol", "")).strip()
                     if not name or name == "nan":
                         continue
