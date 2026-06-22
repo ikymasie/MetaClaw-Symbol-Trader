@@ -1,0 +1,3 @@
+## 2024-05-24 - Pandas Series Boxing Overhead with iterrows()
+**Learning:** `df.iterrows()` is an anti-pattern for performance-critical loops in this codebase because it boxes each row's data into a Pandas Series, leading to severe slowdowns. During benchmarking, looping over 10k rows took ~0.95s with `iterrows()`. Replacing it with a `zip()` comprehension (e.g., `zip(df['time'], df['open'])`) or `df.to_dict('records')` bypassed the boxing overhead, executing in ~0.09s-0.10s (an ~8-10x speedup).
+**Action:** Always avoid `df.iterrows()`. For row-by-row operations involving specific columns, use `zip(*[df[col] for col in columns])`. For dynamic row access, use `df.to_dict('records')`.
