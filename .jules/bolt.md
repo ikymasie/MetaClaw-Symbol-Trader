@@ -1,0 +1,3 @@
+## 2024-06-27 - [Iterrows Boxing Overhead Bottleneck]
+**Learning:** [Using `df.iterrows()` in Pandas heavily degrades performance in large data aggregations or chart formatting because it converts every row into a Pandas Series object (boxing overhead). This was severely affecting modules formatting price history and indicators for frontend/Firestore.]
+**Action:** [Always prefer iterating via vectorized operations, or if row-wise iteration is strictly necessary, use `zip(df['col1'], df['col2'])` to bypass Series construction entirely. When pulling full rows into dictionaries, `df.to_dict('records')` is significantly more performant.]
