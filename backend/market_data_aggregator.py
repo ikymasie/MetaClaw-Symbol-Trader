@@ -176,16 +176,25 @@ class MarketDataAggregator:
                     continue
 
                 # Convert back to list of dicts for Firestore
-                bars_tf = []
-                for ts, row in df_tf.iterrows():
-                    bars_tf.append({
+                # ⚡ Bolt: Using zip() instead of df.iterrows() to avoid Pandas Series boxing overhead
+                bars_tf = [
+                    {
                         "t": ts.isoformat(),
-                        "open": float(row["open"]),
-                        "high": float(row["high"]),
-                        "low": float(row["low"]),
-                        "close": float(row["close"]),
-                        "volume": float(row["volume"])
-                    })
+                        "open": float(o),
+                        "high": float(h),
+                        "low": float(l),
+                        "close": float(c),
+                        "volume": float(v)
+                    }
+                    for ts, o, h, l, c, v in zip(
+                        df_tf.index,
+                        df_tf["open"],
+                        df_tf["high"],
+                        df_tf["low"],
+                        df_tf["close"],
+                        df_tf["volume"]
+                    )
+                ]
 
                 result["aggregated_bars"][tf] = bars_tf
                 result["trend_summaries"][tf] = self.compute_trend_summary(df_tf, symbol, tf)
