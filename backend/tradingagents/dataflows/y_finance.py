@@ -205,16 +205,11 @@ def _get_stock_stats_bulk(
     df[indicator]  # This triggers stockstats to calculate the indicator
     
     # Create a dictionary mapping date strings to indicator values
-    result_dict = {}
-    for _, row in df.iterrows():
-        date_str = row["Date"]
-        indicator_value = row[indicator]
-        
-        # Handle NaN/None values
-        if pd.isna(indicator_value):
-            result_dict[date_str] = "N/A"
-        else:
-            result_dict[date_str] = str(indicator_value)
+    # ⚡ Bolt: Using zip() instead of df.iterrows() to avoid Pandas Series boxing overhead
+    result_dict = {
+        date_str: "N/A" if pd.isna(indicator_value) else str(indicator_value)
+        for date_str, indicator_value in zip(df["Date"], df[indicator])
+    }
     
     return result_dict
 
