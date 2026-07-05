@@ -392,27 +392,18 @@ class MeanReversionEngine:
                         self.current_price = price
 
                         # Build price history for frontend
-                        self.price_history = []
-                        self.bollinger_data = []
-                        for idx, row in df.iterrows():
-                            ts = idx.isoformat() if hasattr(idx, "isoformat") else str(idx)
-                            self.price_history.append(
-                                {
-                                    "time": ts,
-                                    "open": float(row["open"]),
-                                    "high": float(row["high"]),
-                                    "low": float(row["low"]),
-                                    "close": float(row["close"]),
-                                }
-                            )
-                            self.bollinger_data.append(
-                                {
-                                    "time": ts,
-                                    "upper": float(row["upper_bb"]),
-                                    "middle": float(row["sma"]),
-                                    "lower": float(row["lower_bb"]),
-                                }
-                            )
+                        # ⚡ Bolt: Using zip() instead of df.iterrows() to avoid Pandas Series boxing overhead
+                        times = [idx.isoformat() if hasattr(idx, "isoformat") else str(idx) for idx in df.index]
+
+                        self.price_history = [
+                            {"time": t, "open": float(o), "high": float(h), "low": float(l), "close": float(c)}
+                            for t, o, h, l, c in zip(times, df["open"], df["high"], df["low"], df["close"])
+                        ]
+
+                        self.bollinger_data = [
+                            {"time": t, "upper": float(u), "middle": float(m), "lower": float(lo)}
+                            for t, u, m, lo in zip(times, df["upper_bb"], df["sma"], df["lower_bb"])
+                        ]
 
                     upper = float(latest["upper_bb"])
                     lower = float(latest["lower_bb"])
