@@ -742,23 +742,33 @@ async def get_market_data(symbol: str):
         df["lower_bb"] = df["sma"] - (std_dev * df["std"])
         df = df.dropna()
 
+        # ⚡ Bolt: Using zip() instead of df.iterrows() to avoid Pandas Series boxing overhead
         # Format for TV Chart
         price_data = []
         bollinger = []
-        for _, row in df.iterrows():
-            ts = row["time"].isoformat() if hasattr(row["time"], "isoformat") else str(row["time"])
+        for t, o, h, l, c, bb_u, bb_m, bb_l in zip(
+            df["time"],
+            df["open"],
+            df["high"],
+            df["low"],
+            df["close"],
+            df["upper_bb"],
+            df["sma"],
+            df["lower_bb"],
+        ):
+            ts = t.isoformat() if hasattr(t, "isoformat") else str(t)
             price_data.append({
                 "time": ts,
-                "open": float(row["open"]),
-                "high": float(row["high"]),
-                "low": float(row["low"]),
-                "close": float(row["close"]),
+                "open": float(o),
+                "high": float(h),
+                "low": float(l),
+                "close": float(c),
             })
             bollinger.append({
                 "time": ts,
-                "upper": float(row["upper_bb"]),
-                "middle": float(row["sma"]),
-                "lower": float(row["lower_bb"]),
+                "upper": float(bb_u),
+                "middle": float(bb_m),
+                "lower": float(bb_l),
             })
 
         return {
