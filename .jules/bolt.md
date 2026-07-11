@@ -1,0 +1,3 @@
+## 2025-02-20 - Pandas zip() iteration optimization
+**Learning:** `df.iterrows()` boxes rows into Pandas Series, which is a massive bottleneck for simple row-by-row mapping into dictionaries. Replacing it with a list comprehension and `zip(df.index, df['col1'], df['col2'])` yields a ~10x performance improvement while preserving types (unlike `.values.tolist()` which can mess up datetime indices).
+**Action:** When finding `df.iterrows()` in the codebase used to serialize data into dicts/lists, replace it with `zip()` over explicitly named columns. Avoid doing this prematurely if the DataFrame is tiny, but target high-frequency loops (like bar aggregation). Also, note that newer pandas versions deprecated `freq='T'` for `freq='min'` in date ranges.
