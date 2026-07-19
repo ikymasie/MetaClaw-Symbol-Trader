@@ -392,25 +392,36 @@ class MeanReversionEngine:
                         self.current_price = price
 
                         # Build price history for frontend
+                        # ⚡ Bolt: Using zip() instead of df.iterrows() to avoid Pandas Series boxing overhead
                         self.price_history = []
                         self.bollinger_data = []
-                        for idx, row in df.iterrows():
+
+                        _times = df.index
+                        _opens = df["open"]
+                        _highs = df["high"]
+                        _lows = df["low"]
+                        _closes = df["close"]
+                        _uppers = df["upper_bb"]
+                        _middles = df["sma"]
+                        _lowers = df["lower_bb"]
+
+                        for idx, o, h, l, c, up, mid, low in zip(_times, _opens, _highs, _lows, _closes, _uppers, _middles, _lowers):
                             ts = idx.isoformat() if hasattr(idx, "isoformat") else str(idx)
                             self.price_history.append(
                                 {
                                     "time": ts,
-                                    "open": float(row["open"]),
-                                    "high": float(row["high"]),
-                                    "low": float(row["low"]),
-                                    "close": float(row["close"]),
+                                    "open": float(o),
+                                    "high": float(h),
+                                    "low": float(l),
+                                    "close": float(c),
                                 }
                             )
                             self.bollinger_data.append(
                                 {
                                     "time": ts,
-                                    "upper": float(row["upper_bb"]),
-                                    "middle": float(row["sma"]),
-                                    "lower": float(row["lower_bb"]),
+                                    "upper": float(up),
+                                    "middle": float(mid),
+                                    "lower": float(low),
                                 }
                             )
 
