@@ -97,28 +97,35 @@ export function TradingChart({ priceData, bollingerData, markers }: TradingChart
       close: d.close,
     })).sort((a, b) => a.time - b.time);
 
-    // Filter duplicates
-    const uniquePriceData = formattedPriceData.filter((val, idx, self) => 
-      idx === self.findIndex((t) => t.time === val.time)
-    );
+    // ⚡ Bolt: Using Set to track seen timestamps for O(N) dedup instead of O(N²) findIndex
+    const seenPriceTimes = new Set<number>();
+    const uniquePriceData = formattedPriceData.filter((val) => {
+      if (seenPriceTimes.has(val.time)) return false;
+      seenPriceTimes.add(val.time);
+      return true;
+    });
 
     candlestickSeriesRef.current.setData(uniquePriceData as CandlestickData[]);
 
     if (bollingerData.length) {
-      const upperData = bollingerData.map(d => ({
-        time: Math.floor(new Date(d.time).getTime() / 1000),
-        value: d.upper,
-      })).filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time));
+      // ⚡ Bolt: Using a single Set and loop for O(N) deduplication of Bollinger data
+      const seenBBTimes = new Set<number>();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const upperData: { time: number; value: any }[] = [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const middleData: { time: number; value: any }[] = [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const lowerData: { time: number; value: any }[] = [];
 
-      const middleData = bollingerData.map(d => ({
-        time: Math.floor(new Date(d.time).getTime() / 1000),
-        value: d.middle,
-      })).filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time));
-
-      const lowerData = bollingerData.map(d => ({
-        time: Math.floor(new Date(d.time).getTime() / 1000),
-        value: d.lower,
-      })).filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time));
+      for (const d of bollingerData) {
+        const time = Math.floor(new Date(d.time).getTime() / 1000);
+        if (!seenBBTimes.has(time)) {
+          seenBBTimes.add(time);
+          upperData.push({ time, value: d.upper });
+          middleData.push({ time, value: d.middle });
+          lowerData.push({ time, value: d.lower });
+        }
+      }
 
       upperBBSeriesRef.current?.setData(upperData as LineData[]);
       middleBBSeriesRef.current?.setData(middleData as LineData[]);
@@ -137,7 +144,8 @@ export function TradingChart({ priceData, bollingerData, markers }: TradingChart
         color: m.color as string,
         shape:  m.shape  as 'circle' | 'square' | 'arrowUp' | 'arrowDown',
         text:   m.text   as string | undefined,
-      })).filter(m => uniquePriceData.some(p => p.time === (m.time as unknown as number)));
+      // ⚡ Bolt: O(1) Set lookup instead of O(N) some() on uniquePriceData
+      })).filter(m => seenPriceTimes.has(m.time as unknown as number));
 
       markersRef.current = createSeriesMarkers(candlestickSeriesRef.current, formattedMarkers);
     }
