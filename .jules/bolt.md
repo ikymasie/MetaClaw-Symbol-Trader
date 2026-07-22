@@ -1,0 +1,3 @@
+## 2024-05-24 - React Array Deduplication Bottleneck
+**Learning:** Found instances of $O(N^2)$ array deduplication using `.filter` and `.findIndex` in React render logic (e.g., in `frontend/src/components/dashboard/TradingChart.tsx`). Given arrays like `priceData` can contain thousands of records, this pattern severely blocks the main thread and causes UI jank during frequent re-renders (like tick updates).
+**Action:** Replace `val.filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time))` with $O(N)$ logic using a `Set` to track seen identifiers (e.g., `seenTimes.has(val.time)`). Always use `Set` for deduplication when rendering large arrays in this codebase.

@@ -98,27 +98,46 @@ export function TradingChart({ priceData, bollingerData, markers }: TradingChart
     })).sort((a, b) => a.time - b.time);
 
     // Filter duplicates
-    const uniquePriceData = formattedPriceData.filter((val, idx, self) => 
-      idx === self.findIndex((t) => t.time === val.time)
-    );
+    // ⚡ Bolt: Using Set to track seen times for O(N) deduplication instead of O(N^2) findIndex
+    const seenTimes = new Set();
+    const uniquePriceData = formattedPriceData.filter((val) => {
+      if (seenTimes.has(val.time)) return false;
+      seenTimes.add(val.time);
+      return true;
+    });
 
     candlestickSeriesRef.current.setData(uniquePriceData as CandlestickData[]);
 
     if (bollingerData.length) {
+      const seenUpper = new Set();
       const upperData = bollingerData.map(d => ({
         time: Math.floor(new Date(d.time).getTime() / 1000),
         value: d.upper,
-      })).filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time));
+      })).filter((val) => {
+        if (seenUpper.has(val.time)) return false;
+        seenUpper.add(val.time);
+        return true;
+      });
 
+      const seenMiddle = new Set();
       const middleData = bollingerData.map(d => ({
         time: Math.floor(new Date(d.time).getTime() / 1000),
         value: d.middle,
-      })).filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time));
+      })).filter((val) => {
+        if (seenMiddle.has(val.time)) return false;
+        seenMiddle.add(val.time);
+        return true;
+      });
 
+      const seenLower = new Set();
       const lowerData = bollingerData.map(d => ({
         time: Math.floor(new Date(d.time).getTime() / 1000),
         value: d.lower,
-      })).filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time));
+      })).filter((val) => {
+        if (seenLower.has(val.time)) return false;
+        seenLower.add(val.time);
+        return true;
+      });
 
       upperBBSeriesRef.current?.setData(upperData as LineData[]);
       middleBBSeriesRef.current?.setData(middleData as LineData[]);
