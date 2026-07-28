@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useFleetStatus, useFleetConfig } from '@/hooks/useFleet';
 import { BotCard } from '@/components/fleet/BotCard';
 import { BotWizard } from '@/components/fleet/BotWizard';
@@ -22,11 +22,22 @@ export default function FleetPage() {
   const bots: BotSnapshot[] = (fleet as FleetStatus | undefined)?.bots ?? [];
   const config = (fleet as FleetStatus | undefined)?.fleet_config;
 
-  const filtered: BotSnapshot[] = bots.filter((b: BotSnapshot) => {
-    if (filter === 'running') return b.status?.bot_status === 'RUNNING';
-    if (filter === 'stopped') return b.status?.bot_status !== 'RUNNING';
-    return true;
-  });
+  // ⚡ Bolt: Using useMemo with reduce() instead of multiple filter() passes to avoid O(3N) traversal
+  const { filtered, runningCount, stoppedCount } = useMemo(() => {
+    return bots.reduce(
+      (acc, b) => {
+        const isRunning = b.status?.bot_status === 'RUNNING';
+        if (isRunning) acc.runningCount++;
+        else acc.stoppedCount++;
+
+        if (filter === 'all' || (filter === 'running' && isRunning) || (filter === 'stopped' && !isRunning)) {
+          acc.filtered.push(b);
+        }
+        return acc;
+      },
+      { filtered: [] as BotSnapshot[], runningCount: 0, stoppedCount: 0 }
+    );
+  }, [bots, filter]);
 
   const totalPnl = summary?.total_daily_pnl ?? 0;
   const atCap = summary && summary.total_bots >= (config?.max_bots ?? 10);
@@ -165,8 +176,8 @@ export default function FleetPage() {
                   }`}
                 >
                   {f} {f === 'all' && bots.length > 0 && `(${bots.length})`}
-                  {f === 'running' && `(${bots.filter((b: BotSnapshot) => b.status?.bot_status === 'RUNNING').length})`}
-                  {f === 'stopped' && `(${bots.filter((b: BotSnapshot) => b.status?.bot_status !== 'RUNNING').length})`}
+                  {f === 'running' && `(${runningCount})`}
+                  {f === 'stopped' && `(${stoppedCount})`}
                 </button>
               ))}
             </div>
