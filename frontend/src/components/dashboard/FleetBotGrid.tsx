@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { BotSnapshot } from '@/lib/api';
 import { Bot, Rocket } from 'lucide-react';
 import { BotCard } from '@/components/fleet/BotCard';
@@ -16,14 +17,22 @@ interface Props {
 }
 
 export function FleetBotGrid({ bots, filter, onFilterChange, onSelectBot, onDeployClick, isLoading }: Props) {
-  const filtered = bots.filter((b) => {
-    if (filter === 'running') return b.status?.bot_status === 'RUNNING';
-    if (filter === 'stopped') return b.status?.bot_status !== 'RUNNING';
-    return true;
-  });
+  // ⚡ Bolt: Using useMemo with reduce() instead of multiple filter() passes to avoid O(3N) traversal
+  const { filtered, runningCount, stoppedCount } = useMemo(() => {
+    return bots.reduce(
+      (acc, b) => {
+        const isRunning = b.status?.bot_status === 'RUNNING';
+        if (isRunning) acc.runningCount++;
+        else acc.stoppedCount++;
 
-  const runningCount = bots.filter((b) => b.status?.bot_status === 'RUNNING').length;
-  const stoppedCount = bots.filter((b) => b.status?.bot_status !== 'RUNNING').length;
+        if (filter === 'all' || (filter === 'running' && isRunning) || (filter === 'stopped' && !isRunning)) {
+          acc.filtered.push(b);
+        }
+        return acc;
+      },
+      { filtered: [] as BotSnapshot[], runningCount: 0, stoppedCount: 0 }
+    );
+  }, [bots, filter]);
 
   if (isLoading && bots.length === 0) {
     return (
