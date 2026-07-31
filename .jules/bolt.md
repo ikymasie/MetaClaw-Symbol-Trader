@@ -1,0 +1,3 @@
+## 2024-06-19 - React Filter Chaining Anti-Pattern
+**Learning:** Found an anti-pattern in the frontend (`FleetBotGrid.tsx`) where an array was being filtered multiple times to compute counts and derived arrays, leading to O(k*N) complexity. The previous implementation fell back to `return true` incorrectly when checking filters, rendering the "stopped" filter invalid when no explicit matching was handled.
+**Action:** Consolidate chained array `.filter()`/`.map()` operations into a single O(N) `.reduce()` pass and wrap the result in `useMemo` to prevent calculation across re-renders. Always ensure fallback logic explicitly matches the conditions required by the state.
