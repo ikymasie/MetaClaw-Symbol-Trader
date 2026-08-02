@@ -79,11 +79,13 @@ def _compute_atr(df: pd.DataFrame, period: int) -> pd.Series:
     close = df["close"]
 
     prev_close = close.shift(1)
-    tr = pd.concat([
-        high - low,
-        (high - prev_close).abs(),
-        (low  - prev_close).abs(),
-    ], axis=1).max(axis=1)
+
+    # ⚡ Bolt: Replaced pd.concat().max(axis=1) with np.fmax()
+    # to avoid Pandas dataframe instantiation and boxing overhead.
+    tr1 = high - low
+    tr2 = (high - prev_close).abs()
+    tr3 = (low - prev_close).abs()
+    tr = np.fmax(tr1, np.fmax(tr2, tr3))
 
     return tr.rolling(window=period, min_periods=period).mean()
 
