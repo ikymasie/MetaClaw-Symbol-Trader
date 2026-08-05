@@ -19,10 +19,8 @@ bounce, then enters with a statistically superior risk-to-reward ratio.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 
-import numpy as np
 import pandas as pd
 
 logger = logging.getLogger("tradeclaw.fib")
@@ -73,11 +71,11 @@ class FibSignal:
     """The actionable output of the Fibonacci Retracement Analyser."""
     signal: str                       # "BUY_DIP" | "SELL_RIP" | "HOLD"
     trend: str                        # "uptrend" | "downtrend" | "ranging"
-    nearest_level_label: Optional[str]  # e.g. "61.8%"
-    nearest_level_price: Optional[float]
+    nearest_level_label: str | None  # e.g. "61.8%"
+    nearest_level_price: float | None
     bounce_confirmed: bool            # Price touched AND bounced from the level
-    suggested_stop_loss: Optional[float]
-    fib_levels: Optional[FibLevels]
+    suggested_stop_loss: float | None
+    fib_levels: FibLevels | None
     reason: str                       # Human-readable explanation for logs
 
     def to_dict(self) -> dict:
@@ -97,7 +95,7 @@ class FibSignal:
 # SWING DETECTION
 # ─────────────────────────────────────────────────────────────────
 
-def detect_swing(df: pd.DataFrame, lookback: int = 50) -> Optional[FibLevels]:
+def detect_swing(df: pd.DataFrame, lookback: int = 50) -> FibLevels | None:
     """
     Identifies the dominant swing high and low within the lookback window.
 
@@ -110,8 +108,7 @@ def detect_swing(df: pd.DataFrame, lookback: int = 50) -> Optional[FibLevels]:
 
     Returns None if market is ranging (move < 0.5% of price — not meaningful).
     """
-    if len(df) < lookback:
-        lookback = len(df)
+    lookback = min(lookback, len(df))
     if lookback < 10:
         return None
 
@@ -170,7 +167,7 @@ def detect_swing(df: pd.DataFrame, lookback: int = 50) -> Optional[FibLevels]:
 # BOUNCE CONFIRMATION
 # ─────────────────────────────────────────────────────────────────
 
-def _find_nearest_level(price: float, levels: dict[str, float], threshold_pct: float) -> tuple[Optional[str], Optional[float]]:
+def _find_nearest_level(price: float, levels: dict[str, float], threshold_pct: float) -> tuple[str | None, float | None]:
     """
     Find which Fib level the price is closest to, within threshold_pct.
     Returns (label, price) or (None, None) if no level is nearby.
@@ -263,7 +260,7 @@ class FibRetracementAnalyser:
         self,
         lookback: int = 50,
         bounce_threshold_pct: float = 0.20,
-        active_levels: Optional[list[float]] = None,
+        active_levels: list[float] | None = None,
     ):
         """
         Args:
@@ -286,7 +283,7 @@ class FibRetracementAnalyser:
             self._active_level_labels = list(FIB_RATIOS.keys())
 
         # Cache last computed levels for the frontend
-        self._last_fib_levels: Optional[FibLevels] = None
+        self._last_fib_levels: FibLevels | None = None
 
     def analyse(self, df: pd.DataFrame) -> FibSignal:
         """
@@ -370,7 +367,7 @@ class FibRetracementAnalyser:
             reason=reason,
         )
 
-    def get_last_levels(self) -> Optional[FibLevels]:
+    def get_last_levels(self) -> FibLevels | None:
         """Returns the most recently computed Fib levels (for charting)."""
         return self._last_fib_levels
 
@@ -385,7 +382,7 @@ class FibRetracementAnalyser:
         }.get(label, label)
 
     @staticmethod
-    def _hold(reason: str, fib_levels: Optional[FibLevels] = None) -> FibSignal:
+    def _hold(reason: str, fib_levels: FibLevels | None = None) -> FibSignal:
         return FibSignal(
             signal="HOLD",
             trend="ranging" if fib_levels is None else fib_levels.trend,

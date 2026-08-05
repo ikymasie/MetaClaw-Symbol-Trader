@@ -13,11 +13,9 @@ import logging
 import os
 import tempfile
 import threading
-import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
 
 from cryptography.fernet import Fernet
 
@@ -92,14 +90,14 @@ class ConfigManager:
 
     def __init__(
         self,
-        config_path: Optional[Path] = None,
-        keyfile_path: Optional[Path] = None,
+        config_path: Path | None = None,
+        keyfile_path: Path | None = None,
     ):
         self._config_path = config_path or CONFIG_PATH
         self._keyfile_path = keyfile_path or KEYFILE_PATH
         self._lock = threading.RLock()
         self._data: dict = {}
-        self._fernet: Optional[Fernet] = None
+        self._fernet: Fernet | None = None
         self._bootstrapped: bool = False
 
         # Auto-bootstrap so encryption is always available.
@@ -286,7 +284,7 @@ class ConfigManager:
             accounts = self._data.get("accounts", [])
             return [self._mask_account(a) for a in accounts]
 
-    def get_account(self, account_id: str) -> Optional[dict]:
+    def get_account(self, account_id: str) -> dict | None:
         """Return a single account by ID (with decrypted password)."""
         with self._lock:
             for acct in self._data.get("accounts", []):
@@ -296,7 +294,7 @@ class ConfigManager:
                     return result
         return None
 
-    def get_default_account(self) -> Optional[dict]:
+    def get_default_account(self) -> dict | None:
         """Return the account flagged as default, with decrypted password."""
         with self._lock:
             for acct in self._data.get("accounts", []):

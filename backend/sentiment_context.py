@@ -23,14 +23,14 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 
 if TYPE_CHECKING:
-    from regime_detector import RegimeState
     from momentum_filter import MomentumState
+    from regime_detector import RegimeState
 
 logger = logging.getLogger("tradeclaw.sentiment")
 
@@ -56,8 +56,10 @@ def _compute_vix_proxy(df: pd.DataFrame, window: int = 20) -> float:
     if len(df) < window + 1:
         return 0.0
     try:
-        log_returns = np.log(df["close"] / df["close"].shift(1)).dropna()
-        rolling_std = float(log_returns.rolling(window).std().iloc[-1])
+        # ⚡ Bolt: Slice last (window+1) prices first to avoid O(N) rolling operation over full df
+        last_prices = df["close"].iloc[-(window + 1):]
+        log_returns = np.log(last_prices / last_prices.shift(1)).dropna()
+        rolling_std = float(log_returns.std())
         # Annualize: sqrt(252 days * 390 minutes per day) for minute bars
         # For simplicity, we use sqrt(252) as a weekly proxy
         vix_proxy = rolling_std * (252 ** 0.5) * 100
@@ -74,9 +76,11 @@ def _get_vol_trend(df: pd.DataFrame, short_window: int = 10, long_window: int = 
     if len(df) < long_window + 1:
         return "unknown"
     try:
-        log_returns = np.log(df["close"] / df["close"].shift(1)).dropna()
-        vol_short = float(log_returns.rolling(short_window).std().iloc[-1])
-        vol_long  = float(log_returns.rolling(long_window).std().iloc[-1])
+        # ⚡ Bolt: Slice last (long_window+1) prices first to avoid O(N) rolling operation
+        last_prices = df["close"].iloc[-(long_window + 1):]
+        log_returns = np.log(last_prices / last_prices.shift(1)).dropna()
+        vol_short = float(log_returns.iloc[-short_window:].std())
+        vol_long  = float(log_returns.std())
 
         if vol_long == 0:
             return "unknown"
@@ -156,10 +160,10 @@ class SentimentContextBuilder:
 
     def build(
         self,
-        df: Optional[pd.DataFrame] = None,
-        regime_state: Optional["RegimeState"] = None,
-        momentum_state: Optional["MomentumState"] = None,
-        recent_trades: Optional[list[dict]] = None,
+        df: pd.DataFrame | None = None,
+        regime_state: RegimeState | None = None,
+        momentum_state: MomentumState | None = None,
+        recent_trades: list[dict] | None = None,
     ) -> str:
         """
         Build the full Field Intelligence Report as a prompt-ready string.

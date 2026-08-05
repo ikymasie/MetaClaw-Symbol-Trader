@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -157,7 +156,7 @@ class RegimeDetector:
         self.atr_volatile_zscore = atr_volatile_zscore
 
         # Cache last state
-        self._last_state: Optional[RegimeState] = None
+        self._last_state: RegimeState | None = None
 
     def detect(self, df: pd.DataFrame) -> RegimeState:
         """
@@ -304,6 +303,6 @@ class RegimeDetector:
             self._last_state = state
             return state
 
-    def get_last_state(self) -> Optional[RegimeState]:
+    def get_last_state(self) -> RegimeState | None:
         """Returns the most recently computed regime state."""
         return self._last_state

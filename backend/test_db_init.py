@@ -6,7 +6,8 @@ import sys
 # Add the current directory to sys.path to import modules correctly
 sys.path.append(os.getcwd())
 
-from backend.postgres_store import init_postgres, create_tables, is_initialized
+from backend.postgres_store import create_tables, init_postgres, is_initialized
+
 
 async def test_db():
     print("Testing PostgreSQL connection and table creation...")

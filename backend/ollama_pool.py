@@ -24,7 +24,6 @@ To customise, operators can set the env variable `OLLAMA_MODEL_<AGENT>` e.g.
 
 import logging
 import os
-from typing import Optional
 
 logger = logging.getLogger("tradeclaw.ollama_pool")
 
@@ -47,7 +46,7 @@ _OLLAMA_MODEL_POOL = {
 }
 
 
-def get_ollama_model(agent_name: str, fleet_default: Optional[str] = None) -> str:
+def get_ollama_model(agent_name: str, fleet_default: str | None = None) -> str:
     """
     Resolve the best Ollama model for an agent.
 

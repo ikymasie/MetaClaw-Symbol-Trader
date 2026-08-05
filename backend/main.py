@@ -11,64 +11,50 @@ import os
 import signal
 import time
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import datetime, timedelta, timezone
 
+import pandas as pd
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-import pandas as pd
-from datetime import timedelta
 
-# Fleet
-from bot_config import BotConfig, FleetConfig
-from fleet import fleet
-
-# MT5 hub (market data + news)
-from mt5_hub import mt5_hub
-
-from config import config
-from config_manager import config_manager
-from postgres_store import (
-    init_db,
-    insert_trade,
-    insert_equity_snapshot,
-    get_all_trades,
-    get_recent_trades_for_analysis,
-    _legacy_get_equity_history as get_equity_history,
-    _legacy_get_daily_pnl_sum as get_daily_pnl_sum,
-    _legacy_get_trade_stats_today as get_trade_stats_today,
-    _legacy_set_bot_state as set_bot_state,
-    _legacy_get_bot_state as get_bot_state,
-    _legacy_get_ai_decisions as get_ai_decisions,
-    save_fleet_event,
-    save_audit_log,
-    get_store,
-    is_initialized as _db_is_initialized,
-)
-from models import (
-    BotStatus,
-    StatusResponse,
-    ConfigSnapshot,
-    ConfigUpdate,
-    StartRequest,
-    HistoryResponse,
-    TradeRecord,
-    PricePoint,
-    MarkerPoint,
-    EquityPoint,
-    BollingerData,
-)
-from ai_brain import ai_brain
-from vital_signs import vital_signs
-from symbol_service import symbol_service, to_mt5_symbol
+import account_routes
 
 # Setup & Accounts API routes
 import setup_routes
-import account_routes
+from ai_brain import ai_brain
+
+# Fleet
+from bot_config import BotConfig
 
 # ---- Logging ----
 from buffered_logger import setup_buffered_logging
+from config import config
+from config_manager import config_manager
+from fleet import fleet
+from models import (
+    StartRequest,
+)
+
+# MT5 hub (market data + news)
+from mt5_hub import mt5_hub
+from postgres_store import (
+    _legacy_get_ai_decisions as get_ai_decisions,
+)
+from postgres_store import (
+    _legacy_get_trade_stats_today as get_trade_stats_today,
+)
+from postgres_store import (
+    get_store,
+    init_db,
+    save_fleet_event,
+)
+from postgres_store import (
+    is_initialized as _db_is_initialized,
+)
+from symbol_service import symbol_service, to_mt5_symbol
+from vital_signs import vital_signs
+
 buffered_handler = setup_buffered_logging("logs/fleet.txt", interval=10.0)
 logger = logging.getLogger("tradeclaw")
 
@@ -258,7 +244,7 @@ async def ws_fleet_broadcast_loop():
 # ---- Fleet Pydantic models ----
 
 class DeployBotRequest(BaseModel):
-    bot_id: Optional[str] = None
+    bot_id: str | None = None
     account_id: str = Field(default="", description="MT5 account ID to trade on")
     name: str = "Unnamed Bot"
     symbol: str = Field(..., description="Target trading symbol")
@@ -303,12 +289,12 @@ class DeployBotRequest(BaseModel):
 
 
 class FleetConfigUpdate(BaseModel):
-    max_bots: Optional[int] = Field(default=None, ge=1, le=50)
-    global_risk_enabled: Optional[bool] = None
-    max_fleet_drawdown_pct: Optional[float] = Field(default=None, ge=1.0, le=50.0)
-    sub_agents_enabled: Optional[bool] = None
-    auto_redeploy: Optional[bool] = None
-    log_retention_days: Optional[int] = Field(default=None, ge=1, le=365)
+    max_bots: int | None = Field(default=None, ge=1, le=50)
+    global_risk_enabled: bool | None = None
+    max_fleet_drawdown_pct: float | None = Field(default=None, ge=1.0, le=50.0)
+    sub_agents_enabled: bool | None = None
+    auto_redeploy: bool | None = None
+    log_retention_days: int | None = Field(default=None, ge=1, le=365)
 
 
 # ---- Lifespan ----
@@ -579,7 +565,9 @@ async def system_resources():
     can correlate memory growth with backend activity.
     """
     try:
-        import psutil, os
+        import os
+
+        import psutil
         process = psutil.Process(os.getpid())
 
         # CPU — measured over a 0.1s interval (non-blocking in async context)
@@ -727,7 +715,6 @@ async def get_market_data(symbol: str):
             _empty_response["message"] = f"No recent data for {mt5_symbol} — market may be closed"
             return _empty_response
 
-        import numpy as np
         df = pd.DataFrame(rates)
         df["time"] = pd.to_datetime(df["time"], unit="s", utc=True)
         df = df.rename(columns={"tick_volume": "volume"})
@@ -776,7 +763,7 @@ async def get_market_data(symbol: str):
 
 
 @app.get("/market/symbols/available")
-async def get_available_symbols(q: Optional[str] = None):
+async def get_available_symbols(q: str | None = None):
     """Fetch all available symbols from the MT5 terminal, enriched by Excel definitions."""
     try:
         # Get live terminal data for technical fields (digits, spread, etc)
@@ -1447,7 +1434,7 @@ class WizardGenerateRequest(BaseModel):
     symbol: str = Field(..., description="Trading symbol e.g. SPY")
     category: str = Field(..., description="Asset category e.g. Equities")
     personality: str = Field(..., description="One of: elephant, buffalo, rhino, leopard, lion")
-    strategy: Optional[str] = Field("combined", description="Optional strategy override")
+    strategy: str | None = Field("combined", description="Optional strategy override")
 
 
 # Fallback presets when LLM is unavailable
@@ -1534,6 +1521,7 @@ async def wizard_generate(req: WizardGenerateRequest):
 
     try:
         from openai import OpenAI as _OpenAI
+
         from config import config as _cfg
 
         openclaw_url = _cfg.OPENCLAW_BASE_URL if hasattr(_cfg, "OPENCLAW_BASE_URL") else os.getenv("OPENCLAW_BASE_URL", "")
@@ -1583,8 +1571,7 @@ Rules:
             # Strip markdown code fences if model adds them
             if raw.startswith("```"):
                 raw = raw.split("```")[1]
-                if raw.startswith("json"):
-                    raw = raw[4:]
+                raw = raw.removeprefix("json")
             parsed = json.loads(raw)
             llm_name = parsed.get("name")
             llm_description = parsed.get("description")
@@ -1735,6 +1722,7 @@ async def health():
     # Ollama reachability
     try:
         import httpx
+
         from config import config as sys_config
         base = sys_config.ollama_base_url or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
         resp = httpx.get(f"{base}/api/tags", timeout=3.0)

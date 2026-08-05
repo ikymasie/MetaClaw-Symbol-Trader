@@ -2,8 +2,10 @@
 import logging
 import os
 import sys
-from mt5_bridge import mt5
+
 from dotenv import load_dotenv
+
+from mt5_bridge import mt5
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

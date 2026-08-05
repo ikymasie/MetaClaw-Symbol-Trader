@@ -11,39 +11,34 @@ Now wired to VitalSignsMonitor:
 """
 
 from __future__ import annotations
+
+import json
+import logging
 import threading
 import time
-import asyncio
-import logging
 from datetime import datetime, timedelta, timezone
-from typing import Optional
 
-import numpy as np
 import pandas as pd
-import json
 
 from config import config
-from models import BotStatus, SignalType
-from vital_signs import vital_signs
 from fib_retracement import FibRetracementAnalyser, FibSignal
-from regime_detector import RegimeDetector, RegimeState
+from models import BotStatus, SignalType
 from momentum_filter import MomentumFilter, MomentumState
 from position_sizer import PositionSizer
+from regime_detector import RegimeDetector, RegimeState
 from sentiment_context import SentimentContextBuilder
+from vital_signs import vital_signs
 from vwap_analyser import VWAPAnalyser, VWAPState
-
-
-
 
 logger = logging.getLogger("tradeclaw.strategy")
 
 
 # ── Standalone helpers (used by bot_engine.py) ──────────────────────────
 def compute_bollinger_bands(
-    prices: "pd.Series",
+    prices: pd.Series,
     period: int = 20,
     std_dev: float = 2.0,
-) -> Optional[dict]:
+) -> dict | None:
     """
     Compute Bollinger Bands from a price Series.
 
@@ -285,12 +280,12 @@ class MeanReversionEngine:
     def _run_live_loop(self):
         """Main loop for live trading via MT5."""
         try:
-            from mt5.trading.client import TradingClient
             from mt5.data.historical import StockHistoricalDataClient
             from mt5.data.requests import StockBarsRequest
             from mt5.data.timeframe import TimeFrame
-            from mt5.trading.requests import MarketOrderRequest
+            from mt5.trading.client import TradingClient
             from mt5.trading.enums import OrderSide, TimeInForce
+            from mt5.trading.requests import MarketOrderRequest
 
             self._trading_client = TradingClient(
                 config.api_key, config.secret_key, paper=False
@@ -506,8 +501,11 @@ class MeanReversionEngine:
 
                     if cfg.get("kelly_sizing_enabled", True):
                         try:
-                            from postgres_store import _legacy_get_trade_stats_today as get_trade_stats_today
                             import asyncio as _asyncio
+
+                            from postgres_store import (
+                                _legacy_get_trade_stats_today as get_trade_stats_today,
+                            )
                             # get_trade_stats_today is async — run it in a new loop from this sync thread
                             _loop = _asyncio.new_event_loop()
                             try:
@@ -541,9 +539,7 @@ class MeanReversionEngine:
                     # Check stop loss (single authoritative block)
                     if self.position_qty > 0 and self.entry_price > 0:
                         loss_pct = ((price - self.entry_price) / self.entry_price) * 100
-                        if self.position_side == "long" and loss_pct <= -stop_loss_pct:
-                            signal = SignalType.STOP_LOSS
-                        elif self.position_side == "short" and loss_pct >= stop_loss_pct:
+                        if self.position_side == "long" and loss_pct <= -stop_loss_pct or self.position_side == "short" and loss_pct >= stop_loss_pct:
                             signal = SignalType.STOP_LOSS
 
                     if signal == SignalType.HOLD:

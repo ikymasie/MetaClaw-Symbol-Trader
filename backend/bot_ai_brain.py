@@ -13,9 +13,7 @@ import asyncio
 import json
 import logging
 import threading
-import time
 from datetime import datetime, timezone
-from typing import Optional
 
 import httpx
 from openai import OpenAI
@@ -91,12 +89,12 @@ class BotAIBrainScheduler:
         engine,                          # BotEngine instance
         vital_signs: BotVitalSigns,
         sub_agent_pool=None,             # SubAgentPool instance (optional)
-        openclaw_client: Optional[OpenAI] = None,
+        openclaw_client: OpenAI | None = None,
         openclaw_model: str = "google/gemini-flash-latest",
         ollama_base_url: str = "http://localhost:11434",
         ollama_model: str = "gemma4:e4b",
         store=None,
-        main_loop: Optional[asyncio.AbstractEventLoop] = None,
+        main_loop: asyncio.AbstractEventLoop | None = None,
     ):
         self.bot_id = bot_id
         self.bot_config = bot_config
@@ -114,11 +112,11 @@ class BotAIBrainScheduler:
         # State
         self._lock = threading.Lock()
         self._stop_event = threading.Event()
-        self._thread: Optional[threading.Thread] = None
+        self._thread: threading.Thread | None = None
         self.enabled = False
-        self.last_run_at: Optional[str] = None
-        self.last_trigger: Optional[str] = None
-        self.last_decision: Optional[dict] = None
+        self.last_run_at: str | None = None
+        self.last_trigger: str | None = None
+        self.last_decision: dict | None = None
         self.total_cycles: int = 0
         self._last_trade_count: int = 0
 
@@ -216,7 +214,7 @@ class BotAIBrainScheduler:
             if total_closed >= max(5, cfg.ai_min_trades_trigger):
                 self._run_cycle("SCHEDULE:initial", trades)
 
-    def _run_cycle(self, trigger: str, trades: Optional[list] = None):
+    def _run_cycle(self, trigger: str, trades: list | None = None):
         """Execute one evolution cycle."""
         now_str = datetime.now(timezone.utc).isoformat()
 

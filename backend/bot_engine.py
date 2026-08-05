@@ -7,13 +7,12 @@ price history, markers, and DB write queue.
 """
 
 import logging
-import time
 import threading
+import time
 import zlib
 from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Optional
 
 from bot_config import BotConfig
 from bot_vital_signs import BotVitalSigns
@@ -62,7 +61,7 @@ class BotEngine:
 
         # Threading
         self._lock = threading.Lock()
-        self._thread: Optional[threading.Thread] = None
+        self._thread: threading.Thread | None = None
         self._stop_event = threading.Event()
 
         # Status
@@ -139,7 +138,7 @@ class BotEngine:
 
         # Last deliberation result (exposed via API)
         self.last_deliberation: dict = {}
-        self._entry_deliberation: Optional[dict] = None  # Saved on fill for Darwinian attribution
+        self._entry_deliberation: dict | None = None  # Saved on fill for Darwinian attribution
 
         # Regime tracking
         self.current_regime: str = "UNKNOWN"
@@ -372,7 +371,6 @@ class BotEngine:
         which account other bots are using. The terminal automatically switches
         back to the default account after each tick.
         """
-        import os
         from mt5_bridge import mt5
         from mt5_hub import mt5_hub
 
@@ -409,7 +407,7 @@ class BotEngine:
             self._logger.info("No account_id set — using default MT5 account")
 
         self._status = BotEngineStatus.RUNNING
-        self._logger.info(f"Engine RUNNING on MT5")
+        self._logger.info("Engine RUNNING on MT5")
 
         params = self.get_current_params()
         self._warmup_history(params)
@@ -585,7 +583,8 @@ class BotEngine:
         Configured via BotConfig (kill_zone_ny_start/end, kill_zone_london_start/end).
         Returns True if inside a Kill Zone or if kill_zone_enabled is False.
         """
-        from datetime import datetime, timezone, time as dt_time
+        from datetime import datetime, timezone
+        from datetime import time as dt_time
 
         if not self.config.kill_zone_enabled:
             return True
@@ -623,11 +622,11 @@ class BotEngine:
             scanning_reasons = {
                 "watchman": f"Scanning {self.config.symbol} on 1m bars... Market quality: CLEAR.",
                 "sentiment": f"Monitoring sentiment feeds for {self.config.symbol}. No signal shift.",
-                "macro": f"Macro conditions stable. VIX normal. Yield curve unchanged.",
+                "macro": "Macro conditions stable. VIX normal. Yield curve unchanged.",
                 "earnings": f"Checking earnings calendar for {self.config.symbol}. No upcoming risk.",
-                "technical": f"BB within range. RSI neutral. No divergence detected.",
+                "technical": "BB within range. RSI neutral. No divergence detected.",
                 "risk_manager": f"Drawdown check: healthy. Portfolio heat: {round(random.uniform(0.5, 3.5), 1)}%.",
-                "ict": f"Scanning for Smart Money footprints... No FVG or liquidity sweep detected.",
+                "ict": "Scanning for Smart Money footprints... No FVG or liquidity sweep detected.",
             }
             scanning_votes.append({
                 "agent": agent,
@@ -664,7 +663,7 @@ class BotEngine:
         Step 6: Update internal state (position, equity, PnL)
         """
         import pandas as pd
-        import numpy as np
+
         from mt5_bridge import mt5
 
         symbol = params.get("symbol", self.config.symbol)
@@ -1060,8 +1059,7 @@ class BotEngine:
         if self.config.trailing_stop_enabled and self.position_qty > 0:
             if self.position_side == "LONG":
                 exit_price = self.current_bid
-                if exit_price > self._trailing_high:
-                    self._trailing_high = exit_price
+                self._trailing_high = max(self._trailing_high, exit_price)
                 trail_floor = self._trailing_high * (1 - self.config.trailing_stop_pct / 100)
                 if exit_price <= trail_floor:
                     raw_signal = "SELL"
@@ -1072,8 +1070,7 @@ class BotEngine:
                     )
             elif self.position_side == "SHORT":
                 exit_price = self.current_ask
-                if exit_price < self._trailing_low:
-                    self._trailing_low = exit_price
+                self._trailing_low = min(self._trailing_low, exit_price)
                 trail_ceiling = self._trailing_low * (1 + self.config.trailing_stop_pct / 100)
                 if exit_price >= trail_ceiling:
                     raw_signal = "BUY"
@@ -1315,7 +1312,7 @@ class BotEngine:
             self._queue_trade(trade_record)
 
             # Capture deliberation ref before slot open (decision may not exist if no pool)
-            _deliberation_ref: Optional[dict] = None
+            _deliberation_ref: dict | None = None
             try:
                 if self._sub_agent_pool:
                     _deliberation_ref = decision.to_dict()

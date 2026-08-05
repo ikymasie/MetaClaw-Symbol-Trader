@@ -17,8 +17,9 @@ OHLCV bars sourced by polling mt5.copy_rates_from_pos() at BAR_POLL_INTERVAL_S.
 import asyncio
 import logging
 import time
+from collections.abc import Callable
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 from mt5_bridge import mt5
 from symbol_service import to_mt5_symbol
@@ -41,14 +42,14 @@ class MT5Hub:
         self._paused: bool = False
 
         # symbol → list of subscriber queues
-        self._subscribers: Dict[str, List[asyncio.Queue]] = {}
-        self._sub_lock: Optional[asyncio.Lock] = None   # created lazily in async context
+        self._subscribers: dict[str, list[asyncio.Queue]] = {}
+        self._sub_lock: asyncio.Lock | None = None   # created lazily in async context
 
         # Trading update callbacks
-        self._trading_callbacks: List[Callable[[Any], None]] = []
+        self._trading_callbacks: list[Callable[[Any], None]] = []
 
         # Stats (mirrors MT5TickerManager.get_stats() shape)
-        self._stats: Dict[str, int] = {
+        self._stats: dict[str, int] = {
             "messages_received": 0,
             "messages_fanned": 0,
             "messages_dropped": 0,
@@ -59,7 +60,7 @@ class MT5Hub:
         self._password: str = ""
         self._server: str = ""
 
-        self._tasks: List[asyncio.Task] = []
+        self._tasks: list[asyncio.Task] = []
 
     # ── Init / Lifecycle ──────────────────────────────────────────────────────
 
@@ -307,7 +308,7 @@ class MT5Hub:
     async def unsubscribe_market(self, symbol: str, queue: asyncio.Queue):
         await self.unsubscribe(symbol, queue)
 
-    def get_all_symbols(self) -> List[dict]:
+    def get_all_symbols(self) -> list[dict]:
         """Return all available symbols from the MT5 terminal."""
         if not self._initialized:
             return []
@@ -405,7 +406,7 @@ class MT5Hub:
 
             await asyncio.sleep(BAR_POLL_INTERVAL_S)
 
-    def get_recent_news(self, symbol: str) -> List[dict]:  # noqa: ARG002
+    def get_recent_news(self, symbol: str) -> list[dict]:
         """MT5 does not provide news; returns empty list so callers fall through to web search."""
         return []
 

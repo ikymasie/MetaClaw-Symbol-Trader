@@ -33,7 +33,6 @@ import zlib
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Optional
 
 from mt5_bridge import mt5
 from symbol_service import to_mt5_symbol
@@ -83,8 +82,8 @@ class ExecutionResult:
     total_slippage_pct: float
     latency_ms: float
     fills: list = field(default_factory=list)
-    abort_reason: Optional[str] = None
-    error: Optional[str] = None
+    abort_reason: str | None = None
+    error: str | None = None
     timestamp: str = field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
@@ -158,8 +157,8 @@ class ExecutionerAgent:
         _label = f"{bot_id}|{bot_name}" if bot_name and bot_name != "Unnamed Bot" else bot_id
         self._logger = logging.getLogger(f"tradeclaw.executioner[{_label}]")
         # Cached per-symbol info (avoids repeated RPyC round-trips)
-        self._filling_mode: Optional[int] = None
-        self._price_digits: Optional[int] = None
+        self._filling_mode: int | None = None
+        self._price_digits: int | None = None
 
     # ── Public API ─────────────────────────────────────────────────────────
 

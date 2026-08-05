@@ -18,7 +18,6 @@ Constraints enforced here:
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from threading import Lock
-from typing import Optional
 
 
 @dataclass
@@ -33,7 +32,7 @@ class PositionSlot:
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
     signal_source: str = ""
-    deliberation_ref: Optional[dict] = field(default=None, repr=False)
+    deliberation_ref: dict | None = field(default=None, repr=False)
 
     def unrealized_pnl(self, current_price: float) -> float:
         if self.side == "LONG":
@@ -120,8 +119,8 @@ class PositionSlotManager:
         qty: float,
         entry_price: float,
         signal_source: str = "",
-        deliberation_ref: Optional[dict] = None,
-    ) -> Optional[PositionSlot]:
+        deliberation_ref: dict | None = None,
+    ) -> PositionSlot | None:
         """
         Add a new position slot (scale-in entry).
         Returns the new PositionSlot, or None if at capacity / side conflict.
