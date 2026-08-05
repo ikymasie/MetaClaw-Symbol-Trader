@@ -17,9 +17,7 @@ APEX PREDATOR (Profit Tiers / Intelligence Budget):
 
 import logging
 import threading
-import asyncio
 from datetime import datetime, timezone
-from typing import Optional
 
 logger = logging.getLogger("tradeclaw.vital_signs")
 
@@ -176,8 +174,8 @@ class VitalSignsMonitor:
 
         # Event log
         self.event_log: list[dict] = []
-        self.last_event: Optional[dict] = None
-        self.last_checked: Optional[str] = None
+        self.last_event: dict | None = None
+        self.last_checked: str | None = None
 
         # Intelligence budget (dynamically scaled)
         self.intelligence_budget: dict = get_intelligence_budget(0.0)

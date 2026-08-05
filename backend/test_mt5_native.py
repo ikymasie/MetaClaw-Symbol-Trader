@@ -1,6 +1,7 @@
-import MetaTrader5 as mt5
-import sys
 import os
+import sys
+
+import MetaTrader5 as mt5
 
 print(f"Python version: {sys.version}")
 print(f"CWD: {os.getcwd()}")

@@ -18,7 +18,7 @@ Each adapter function:
 from __future__ import annotations
 
 import logging
-from typing import Optional, Any
+from typing import Any
 
 logger = logging.getLogger("tradeclaw.mt5_vendor")
 
@@ -35,7 +35,7 @@ except Exception:
 # VENDOR ADAPTER FUNCTIONS
 # ─────────────────────────────────────────────────────────────
 
-def get_mt5_bars(symbol: str, start_date: str, end_date: str, **kwargs) -> Optional[Any]:
+def get_mt5_bars(symbol: str, start_date: str, end_date: str, **kwargs) -> Any | None:
     """
     Fetch OHLCV bars from MT5 as a list-of-dicts (same shape as yfinance
     output → compatible with the pandas DataFrame consumers in TradingAgents).
@@ -55,8 +55,8 @@ def get_mt5_bars(symbol: str, start_date: str, end_date: str, **kwargs) -> Optio
         return None
 
     try:
+
         import pandas as pd
-        from datetime import timezone as _tz
 
         # Parse date range — default to last 200 1h bars
         if start_date:

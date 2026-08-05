@@ -1,4 +1,6 @@
-import urllib.request, json
+import json
+import urllib.request
+
 try:
     req = urllib.request.urlopen("http://localhost:8000/fleet/status")
     data = json.loads(req.read())

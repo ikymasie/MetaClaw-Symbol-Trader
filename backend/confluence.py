@@ -33,10 +33,8 @@ CRITICAL RULE:
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass
 
-import numpy as np
 import pandas as pd
 
 logger = logging.getLogger("tradeclaw.confluence")
@@ -44,7 +42,7 @@ logger = logging.getLogger("tradeclaw.confluence")
 
 # ── RSI Computation (Wilder's Smoothed) ─────────────────────────────────
 
-def compute_rsi(prices: pd.Series, period: int = 14) -> Optional[float]:
+def compute_rsi(prices: pd.Series, period: int = 14) -> float | None:
     """
     Compute Wilder's RSI (Relative Strength Index).
 
@@ -88,7 +86,7 @@ def compute_rsi(prices: pd.Series, period: int = 14) -> Optional[float]:
 
 # ── Relative Volume (RVOL) ──────────────────────────────────────────────
 
-def compute_rvol(volumes: pd.Series, lookback: int = 20) -> Optional[float]:
+def compute_rvol(volumes: pd.Series, lookback: int = 20) -> float | None:
     """
     Compute Relative Volume (RVOL).
 
@@ -119,7 +117,7 @@ def detect_fvg(
     lows: pd.Series,
     closes: pd.Series,
     lookback: int = 5,
-) -> Optional[dict]:
+) -> dict | None:
     """
     Detect the most recent Bullish Fair Value Gap (FVG).
 
@@ -175,7 +173,7 @@ def detect_liquidity_sweep(
     closes: pd.Series,
     swing_lookback: int = 20,
     reclaim_bars: int = 3,
-) -> Optional[dict]:
+) -> dict | None:
     """
     Detect a sell-side liquidity sweep (bullish reversal setup).
 
@@ -261,17 +259,17 @@ class ConfluenceResult:
     bb_reentry: bool            # Price crossed back inside lower BB
 
     # Diagnostic values
-    rsi: Optional[float]
+    rsi: float | None
     adx: float
-    rvol: Optional[float]
+    rvol: float | None
     pillars_met: int            # 0-3
 
     # Human-readable explanation
     reason: str
 
     # ICT Smart Money diagnostics (conviction boosters, not entry gates)
-    fvg_detected: Optional[dict] = None        # FVG details if found
-    liquidity_sweep: Optional[dict] = None      # Sweep details if found
+    fvg_detected: dict | None = None        # FVG details if found
+    liquidity_sweep: dict | None = None      # Sweep details if found
     kill_zone_active: bool = True               # Whether we're in a Kill Zone
     ict_conviction: str = "STANDARD"            # "STANDARD" | "HIGH" | "MAXIMUM"
 
@@ -307,8 +305,8 @@ def evaluate_confluence(
     rsi_oversold: float = 30.0,
     rvol_threshold: float = 1.5,
     # ICT enrichment params (optional — backwards compatible)
-    highs: Optional[pd.Series] = None,
-    lows: Optional[pd.Series] = None,
+    highs: pd.Series | None = None,
+    lows: pd.Series | None = None,
     kill_zone_active: bool = True,
     fvg_enabled: bool = True,
     sweep_enabled: bool = True,

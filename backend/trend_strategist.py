@@ -14,10 +14,9 @@ Design decisions:
 
 import logging
 from dataclasses import dataclass
-from typing import Optional
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 logger = logging.getLogger("tradeclaw.trend_strategist")
 
@@ -39,7 +38,7 @@ class TrendSignal:
     ema_slow: float = 0.0
     adx: float = 0.0
     breakout_triggered: bool = False
-    veto_reason: Optional[str] = None
+    veto_reason: str | None = None
 
 
 class TrendStrategistAgent:
@@ -93,9 +92,9 @@ class TrendStrategistAgent:
     def analyse(
         self,
         prices: pd.Series,
-        volumes: Optional[pd.Series],
+        volumes: pd.Series | None,
         regime: str,                # "RANGING" | "TRENDING" | "VOLATILE"
-        adx: Optional[float] = None,  # pre-computed ADX from RegimeDetector (OHLC-based)
+        adx: float | None = None,  # pre-computed ADX from RegimeDetector (OHLC-based)
     ) -> TrendSignal:
         """
         Analyse the price/volume series and return a TrendSignal.
@@ -152,8 +151,8 @@ class TrendStrategistAgent:
     # ── Internal computation ───────────────────────────────────────────────
 
     def _compute(
-        self, prices: pd.Series, volumes: Optional[pd.Series],
-        adx: Optional[float] = None,
+        self, prices: pd.Series, volumes: pd.Series | None,
+        adx: float | None = None,
     ) -> TrendSignal:
 
         # ── EMA crossover ──────────────────────────────────────────────────

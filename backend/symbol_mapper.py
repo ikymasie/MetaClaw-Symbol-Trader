@@ -1,4 +1,5 @@
-from symbol_service import symbol_service, to_mt5_symbol, to_research
+from symbol_service import to_mt5_symbol, to_research
+
 
 class SymbolMapper:
     """

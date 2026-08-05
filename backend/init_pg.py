@@ -1,7 +1,9 @@
 import asyncio
 import os
+
 import asyncpg
 from dotenv import load_dotenv
+
 
 async def main():
     load_dotenv()

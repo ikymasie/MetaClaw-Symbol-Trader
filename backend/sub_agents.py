@@ -26,25 +26,26 @@ import logging
 import queue as _stdlib_queue
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor, Future, as_completed
-from dataclasses import dataclass, field, asdict
+from concurrent.futures import Future, ThreadPoolExecutor
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import Optional
 
 import httpx
 from openai import OpenAI
-from mt5_hub import mt5_hub
-from gemini_budget import gemini_budget
-from prompt_loader import PromptLoader
+from pydantic import BaseModel as _PydanticBaseModel
+
 from agent_schemas import (
     AgentSignalSchema,
     AgentVoteSchema,
     CROObjectionSchema,
     to_gemini_response_format,
 )
-from pydantic import BaseModel as _PydanticBaseModel
-from llm_cache import llm_cache   # Phase 4 §6.3 — content-addressable LRU
+from gemini_budget import gemini_budget
+from llm_cache import llm_cache  # Phase 4 §6.3 — content-addressable LRU
+from mt5_hub import mt5_hub
 from ollama_pool import get_ollama_model  # Phase 4 §6.4 — per-agent model selection
+from prompt_loader import PromptLoader
 
 logger = logging.getLogger("tradeclaw.sub_agents")
 
@@ -69,7 +70,7 @@ _ollama_generate_unsupported: set[tuple[str, str]] = set()
 # Module-level reference to the main asyncio event loop.
 # Set by main.py at startup so background threads can schedule async coroutines
 # (e.g. PostgreSQL writes from DarwinianWeightStore).
-_main_event_loop: Optional[asyncio.AbstractEventLoop] = None
+_main_event_loop: asyncio.AbstractEventLoop | None = None
 
 
 def set_main_event_loop(loop: asyncio.AbstractEventLoop) -> None:
@@ -91,7 +92,7 @@ class AgentSignal:
     reasoning: str
     sources: list = field(default_factory=list)
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    raw_response: Optional[str] = None
+    raw_response: str | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -123,7 +124,7 @@ class AgentVote:
     reasoning: str
     weight: float = 1.0    # Agent-specific vote weight in quorum calculation
     darwinian_weight: float = 1.0  # performance-adjusted multiplier [0.3, 2.5]
-    veto_reason: Optional[str] = None
+    veto_reason: str | None = None
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict:
@@ -164,7 +165,7 @@ class BaseAgent:
         self,
         bot_id: str,
         symbol: str,
-        openclaw_client: Optional[OpenAI],
+        openclaw_client: OpenAI | None,
         openclaw_model: str,
         ollama_base_url: str = "http://localhost:11434",
         ollama_model: str = "gemma4:e4b",
@@ -191,11 +192,11 @@ class BaseAgent:
         self,
         system: str,
         prompt: str,
-        model: Optional[str] = None,
+        model: str | None = None,
         temperature: float = 0.3,
         include_search: bool = True,
-        schema: Optional[type] = None,
-    ) -> Optional[str]:
+        schema: type | None = None,
+    ) -> str | None:
         """
         Call Gemini via OpenAI-compatible endpoint (budget-gated).
 
@@ -325,7 +326,7 @@ class BaseAgent:
             self._logger.warning(f"Gemini call failed: {e}")
             return None
 
-    def _call_ollama(self, prompt: str, system_hint: str = "") -> Optional[str]:
+    def _call_ollama(self, prompt: str, system_hint: str = "") -> str | None:
         """Call local Ollama via /api/generate.  Phase 4 §6.3 — checks LLM cache first."""
         key = (self._ollama_base_url, self._ollama_model)
         if key in _ollama_generate_unsupported:
@@ -658,7 +659,7 @@ class CorrelationAgent(BaseAgent):
         # `self.dataframes` is injected by SubAgentPool at agent-build time
         # if FleetOrchestrator has computed multi-symbol aggregates.
         injected = getattr(self, "dataframes", None) or {}
-        target_close: Optional[pd.Series] = None
+        target_close: pd.Series | None = None
         peer_closes: dict[str, pd.Series] = {}
 
         if isinstance(injected, dict) and injected:
@@ -688,7 +689,7 @@ class CorrelationAgent(BaseAgent):
 
         # Fetch closes for each correlated symbol — fall back to MT5 per peer
         for other in others:
-            other_close: Optional[pd.Series] = None
+            other_close: pd.Series | None = None
             broker_other = symbol_service.get_broker_symbol(other)
             if _mt5 is not None:
                 o_rates = _mt5.copy_rates_from_pos(broker_other, _mt5.TIMEFRAME_H1, 0, 50)
@@ -876,7 +877,7 @@ class WatchmanAgent(BaseAgent):
             weight=1.25,
         )
 
-    def _assess_quality(self, mt5_client, price_history) -> tuple[float, Optional[str]]:
+    def _assess_quality(self, mt5_client, price_history) -> tuple[float, str | None]:
         """Compute market quality score (0.0–1.0) from available inputs."""
         import numpy as np
 
@@ -1144,7 +1145,7 @@ _IMPORTANT_CALENDAR_DAYS = frozenset({
 })
 
 
-def _is_high_impact_window(now_utc: "datetime") -> tuple[bool, Optional[str], Optional[int]]:
+def _is_high_impact_window(now_utc: "datetime") -> tuple[bool, str | None, int | None]:
     """
     Quick heuristic: returns (is_veto, event_name, minutes_remaining_in_veto).
 
@@ -1297,8 +1298,9 @@ class ICTAgent(BaseAgent):
             price_history   : list of dicts with {price, high, low, close, volume, time}
             confluence_ict  : Pre-computed ICT diagnostics from ConfluenceResult
         """
+        from datetime import datetime, timezone
+
         import pandas as pd
-        from datetime import datetime, timezone, time as dt_time
 
         # ── Fast path: reuse pre-computed ICT diagnostics ────────────
         if confluence_ict is not None:
@@ -1912,12 +1914,12 @@ def build_agent(
     agent_name: str,
     bot_id: str,
     symbol: str,
-    openclaw_client: Optional[OpenAI],
+    openclaw_client: OpenAI | None,
     openclaw_model: str,
     ollama_base_url: str,
     ollama_model: str,
     market_trends: dict = None,
-) -> Optional[BaseAgent]:
+) -> BaseAgent | None:
     cls = AGENT_CLASSES.get(agent_name)
     if cls is None:
         logger.warning(f"Unknown agent: {agent_name}")
@@ -2189,7 +2191,7 @@ class SubAgentPool:
         bot_id: str,
         symbol: str,
         enabled_agents: list[str],
-        openclaw_client: Optional[OpenAI],
+        openclaw_client: OpenAI | None,
         openclaw_model: str,
         ollama_base_url: str = "http://localhost:11434",
         ollama_model: str = "gemma4:e4b",
@@ -2207,7 +2209,7 @@ class SubAgentPool:
 
         self._lock = threading.Lock()
         self._stop_event = threading.Event()
-        self._thread: Optional[threading.Thread] = None
+        self._thread: threading.Thread | None = None
         self._executor = ThreadPoolExecutor(
             max_workers=len(enabled_agents) or 1,
             thread_name_prefix=f"agent-{bot_id}",
@@ -2215,11 +2217,11 @@ class SubAgentPool:
 
         # Latest signals — keyed by agent name (for AI Brain backward compat)
         self.latest_signals: dict[str, AgentSignal] = {}
-        self.last_run_at: Optional[str] = None
+        self.last_run_at: str | None = None
         self.total_runs: int = 0
 
         # Latest deliberation result — persisted for the API endpoint
-        self.last_deliberation: Optional[TradeDecision] = None
+        self.last_deliberation: TradeDecision | None = None
 
         # Timestamp per agent's last vote (for cache staleness checks)
         self._vote_timestamps: dict[str, float] = {}
@@ -2244,7 +2246,7 @@ class SubAgentPool:
         # Phase 4 §7.3 — Per-bot event loop (injected by fleet after bot loop starts).
         # If set, _persist_deliberation and Darwinian weight persistence will use
         # this loop instead of contending on the fleet-level _main_event_loop.
-        self._bot_loop: Optional[Any] = None
+        self._bot_loop: Any | None = None
 
     def set_bot_loop(self, loop):
         """Inject the bot's dedicated event loop (Phase 4 §7.3)."""
@@ -2297,7 +2299,7 @@ class SubAgentPool:
         """Lazily initialise and return the LangGraph deliberation graph (or None)."""
         if self._deliberation_graph is None:
             try:
-                from deliberation_graph import DeliberationGraph  # noqa: PLC0415
+                from deliberation_graph import DeliberationGraph
                 self._deliberation_graph = DeliberationGraph(pool=self)
                 self._logger.info("LangGraph deliberation graph initialised")
             except Exception as _e:
@@ -3058,7 +3060,7 @@ class SubAgentPool:
         self._persist_deliberation(decision)
         return decision
 
-    def get_last_deliberation(self) -> Optional[dict]:
+    def get_last_deliberation(self) -> dict | None:
         """Return the last deliberation result as a dict (for API endpoints)."""
         with self._lock:
             return self.last_deliberation.to_dict() if self.last_deliberation else None

@@ -8,10 +8,10 @@ Uses pandas for efficient resampling and RegimeDetector for trend analysis.
 """
 
 import logging
+from datetime import datetime, timezone
+
 import pandas as pd
-import numpy as np
-from datetime import datetime, timezone, timedelta
-from typing import Optional, Dict, List
+
 from regime_detector import RegimeDetector
 
 logger = logging.getLogger("tradeclaw.aggregator")
@@ -30,8 +30,8 @@ class MarketDataAggregator:
         # Phase 3 §9.2 — Delta-processing cache keyed by symbol.
         # Skips full pandas aggregation when the newest 1m bar timestamp is
         # unchanged since the last process_symbol() call for that symbol.
-        self._last_bar_timestamps: Dict[str, str] = {}
-        self._last_results: Dict[str, dict] = {}
+        self._last_bar_timestamps: dict[str, str] = {}
+        self._last_results: dict[str, dict] = {}
 
     def aggregate(self, df_1m: pd.DataFrame, timeframe: str) -> pd.DataFrame:
         """
@@ -63,15 +63,24 @@ class MarketDataAggregator:
         
         # Additional metrics: RSI, Moving Averages
         close = df['close']
-        ma_20 = float(close.rolling(20).mean().iloc[-1]) if len(close) >= 20 else None
-        ma_50 = float(close.rolling(50).mean().iloc[-1]) if len(close) >= 50 else None
+        # ⚡ Bolt: Using sliced window mean instead of whole-column rolling().mean() avoids O(N) overhead
+        ma_20 = float(close.iloc[-20:].mean()) if len(close) >= 20 else None
+        ma_50 = float(close.iloc[-50:].mean()) if len(close) >= 50 else None
         
         # Simple RSI calculation
-        delta = close.diff()
-        gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
-        loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
-        rs = gain / loss
-        rsi = float(100 - (100 / (1 + rs)).iloc[-1]) if len(close) >= 15 else None
+        # ⚡ Bolt: Using slice for RSI gain/loss avoids O(N) overhead
+        if len(close) >= 15:
+            delta = close.diff()
+            last_delta = delta.iloc[-14:]
+            gain = last_delta[last_delta > 0].sum() / 14.0
+            loss = -last_delta[last_delta < 0].sum() / 14.0
+            if loss == 0:
+                rsi = 100.0
+            else:
+                rs = gain / loss
+                rsi = float(100 - (100 / (1 + rs)))
+        else:
+            rsi = None
 
         return {
             "symbol": symbol,

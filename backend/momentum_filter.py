@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Optional
 
 import pandas as pd
 
@@ -96,14 +95,14 @@ class MomentumFilter:
         self.ema_mid  = ema_mid
         self.ema_slow = ema_slow
 
-        self._last_state: Optional[MomentumState] = None
+        self._last_state: MomentumState | None = None
 
     def assess(
         self,
         df: pd.DataFrame,
-        ema_fast_override: Optional[int] = None,
-        ema_mid_override: Optional[int] = None,
-        ema_slow_override: Optional[int] = None,
+        ema_fast_override: int | None = None,
+        ema_mid_override: int | None = None,
+        ema_slow_override: int | None = None,
     ) -> MomentumState:
         """
         Assess the macro directional bias from OHLC data.
@@ -237,6 +236,6 @@ class MomentumFilter:
             self._last_state = state
             return state
 
-    def get_last_state(self) -> Optional[MomentumState]:
+    def get_last_state(self) -> MomentumState | None:
         """Returns the most recently computed momentum state."""
         return self._last_state

@@ -14,21 +14,22 @@ Now powered by the Apex Predator Behavioral System:
 """
 
 from __future__ import annotations
+
 import asyncio
 import json
 import logging
 import threading
-import time
 from datetime import datetime, timezone
-from typing import Optional
 
 import httpx
 from openai import OpenAI
 
 from config import config
 from postgres_store import (
-    get_recent_trades_for_analysis,
     _legacy_get_equity_history as get_equity_history,
+)
+from postgres_store import (
+    get_recent_trades_for_analysis,
     save_ai_decision,
 )
 from vital_signs import vital_signs
@@ -390,7 +391,7 @@ class StrategyEvolver:
     """Calls OpenClaw (Gemini Flash) or Ollama to get new strategy parameters."""
 
     def __init__(self):
-        self._openclaw_client: Optional[OpenAI] = None
+        self._openclaw_client: OpenAI | None = None
         self._init_clients()
         # Field Intelligence Reporter — injected into every evolution prompt
         from sentiment_context import SentimentContextBuilder
@@ -523,9 +524,9 @@ class StrategyEvolver:
     def _call_openclaw(
         self, prompt: str, cfg: dict,
         system_prompt: str = "",
-        model_override: Optional[str] = None,
+        model_override: str | None = None,
         temperature: float = 0.3,
-    ) -> tuple[Optional[str], str]:
+    ) -> tuple[str | None, str]:
         """Call OpenClaw with the resolved model (apex-tier aware)."""
         if not self._openclaw_client:
             return None, ""
@@ -552,8 +553,8 @@ class StrategyEvolver:
     def _call_ollama_via_openclaw(
         self, prompt: str, cfg: dict,
         system_prompt: str = "",
-        model_override: Optional[str] = None,
-    ) -> tuple[Optional[str], str]:
+        model_override: str | None = None,
+    ) -> tuple[str | None, str]:
         """Call Ollama model via OpenClaw's proxy (apex-tier aware model)."""
         if not system_prompt:
             system_prompt = get_system_prompt()
@@ -578,7 +579,7 @@ class StrategyEvolver:
 
     def _call_ollama_direct(
         self, prompt: str, cfg: dict, system_prompt: str = ""
-    ) -> tuple[Optional[str], str]:
+    ) -> tuple[str | None, str]:
         """Direct Ollama REST API call as last resort."""
         if not system_prompt:
             system_prompt = get_system_prompt()
@@ -635,18 +636,18 @@ class AIBrainScheduler:
     """
 
     def __init__(self):
-        self._thread: Optional[threading.Thread] = None
+        self._thread: threading.Thread | None = None
         self._stop_event = threading.Event()
         self._evolver = StrategyEvolver()
         self._lock = threading.Lock()
 
         # State
         self.enabled: bool = False
-        self.last_run_at: Optional[str] = None
-        self.last_trigger: Optional[str] = None
-        self.last_decision: Optional[dict] = None
-        self.next_run_at: Optional[str] = None
-        self.model_used: Optional[str] = None
+        self.last_run_at: str | None = None
+        self.last_trigger: str | None = None
+        self.last_decision: dict | None = None
+        self.next_run_at: str | None = None
+        self.model_used: str | None = None
         self.total_cycles: int = 0
         self._trades_processed: int = 0
         self._last_trade_count: int = 0
@@ -785,8 +786,8 @@ class AIBrainScheduler:
     def _run_cycle(
         self,
         trigger: str,
-        trades: Optional[list] = None,
-        equity: Optional[list] = None,
+        trades: list | None = None,
+        equity: list | None = None,
     ):
         """Execute one evolution cycle synchronously."""
 

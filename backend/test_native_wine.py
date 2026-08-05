@@ -1,6 +1,7 @@
 
-import MetaTrader5 as mt5
 import sys
+
+import MetaTrader5 as mt5
 
 print(f"MT5 Python version: {sys.version}")
 terminal_path = "C:\\Program Files\\MetaTrader 5\\terminal64.exe"

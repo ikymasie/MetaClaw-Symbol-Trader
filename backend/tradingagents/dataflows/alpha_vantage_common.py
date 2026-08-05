@@ -1,9 +1,10 @@
-import os
-import requests
-import pandas as pd
 import json
+import os
 from datetime import datetime
 from io import StringIO
+
+import pandas as pd
+import requests
 
 API_BASE_URL = "https://www.alphavantage.co/query"
 
@@ -37,7 +38,6 @@ def format_datetime_for_api(date_input) -> str:
 
 class AlphaVantageRateLimitError(Exception):
     """Exception raised when Alpha Vantage API rate limit is exceeded."""
-    pass
 
 def _make_api_request(function_name: str, params: dict) -> dict | str:
     """Helper function to make API requests and handle responses.

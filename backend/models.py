@@ -3,9 +3,9 @@ TradeClaw Pydantic Models
 Request/Response schemas for the FastAPI endpoints.
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional, List
 from enum import Enum
+
+from pydantic import BaseModel, Field
 
 
 class MT5Credentials(BaseModel):
@@ -47,8 +47,8 @@ class StartRequest(BaseModel):
 
 
 class ConfigUpdate(BaseModel):
-    qty: Optional[float] = None
-    capital_allocation: Optional[float] = None
+    qty: float | None = None
+    capital_allocation: float | None = None
 
 
 # ---- Response Models ----
@@ -63,8 +63,8 @@ class ConfigSnapshot(BaseModel):
     max_daily_drawdown_pct: float
 
     # Capital / Identity
-    account_id: Optional[str] = None
-    capital_allocation: Optional[float] = 0.0
+    account_id: str | None = None
+    capital_allocation: float | None = 0.0
     description: str = ""
     personality: str = ""
     animal: str = ""
@@ -102,7 +102,7 @@ class StatusResponse(BaseModel):
     bot_status: BotStatus
     current_price: float = 0.0
     position_qty: float = 0.0
-    position_side: Optional[str] = None
+    position_side: str | None = None
     entry_price: float = 0.0
     equity: float = 0.0
     daily_pnl: float = 0.0
@@ -110,7 +110,7 @@ class StatusResponse(BaseModel):
     daily_drawdown_pct: float = 0.0
     unrealized_pnl: float = 0.0
     starting_equity: float = 0.0
-    last_signal: Optional[str] = None
+    last_signal: str | None = None
     total_trades_today: int = 0
     win_rate: float = 0.0
     config: ConfigSnapshot
