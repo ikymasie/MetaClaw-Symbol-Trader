@@ -57,7 +57,8 @@ def _compute_vix_proxy(df: pd.DataFrame, window: int = 20) -> float:
         return 0.0
     try:
         log_returns = np.log(df["close"] / df["close"].shift(1)).dropna()
-        rolling_std = float(log_returns.rolling(window).std().iloc[-1])
+        # ⚡ Bolt: Using .iloc[-window:].std() avoids full dataframe rolling calc for single value extraction
+        rolling_std = float(log_returns.iloc[-window:].std())
         # Annualize: sqrt(252 days * 390 minutes per day) for minute bars
         # For simplicity, we use sqrt(252) as a weekly proxy
         vix_proxy = rolling_std * (252 ** 0.5) * 100
@@ -75,8 +76,9 @@ def _get_vol_trend(df: pd.DataFrame, short_window: int = 10, long_window: int = 
         return "unknown"
     try:
         log_returns = np.log(df["close"] / df["close"].shift(1)).dropna()
-        vol_short = float(log_returns.rolling(short_window).std().iloc[-1])
-        vol_long  = float(log_returns.rolling(long_window).std().iloc[-1])
+        # ⚡ Bolt: Using .iloc[-window:].std() avoids full dataframe rolling calc
+        vol_short = float(log_returns.iloc[-short_window:].std())
+        vol_long  = float(log_returns.iloc[-long_window:].std())
 
         if vol_long == 0:
             return "unknown"
