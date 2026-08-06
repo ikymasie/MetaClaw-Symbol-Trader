@@ -63,15 +63,23 @@ class MarketDataAggregator:
         
         # Additional metrics: RSI, Moving Averages
         close = df['close']
-        ma_20 = float(close.rolling(20).mean().iloc[-1]) if len(close) >= 20 else None
-        ma_50 = float(close.rolling(50).mean().iloc[-1]) if len(close) >= 50 else None
+        # ⚡ Bolt: Using .iloc[-window:].mean() instead of .rolling(window).mean().iloc[-1] to avoid O(N) overhead
+        ma_20 = float(close.iloc[-20:].mean()) if len(close) >= 20 else None
+        ma_50 = float(close.iloc[-50:].mean()) if len(close) >= 50 else None
         
         # Simple RSI calculation
+        # ⚡ Bolt: Slicing recent deltas before computing mean avoids whole-series rolling computation
         delta = close.diff()
-        gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
-        loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
-        rs = gain / loss
-        rsi = float(100 - (100 / (1 + rs)).iloc[-1]) if len(close) >= 15 else None
+        rsi = None
+        if len(close) >= 15:
+            recent_delta = delta.iloc[-14:]
+            gain_val = float((recent_delta.where(recent_delta > 0, 0)).mean())
+            loss_val = float((-recent_delta.where(recent_delta < 0, 0)).mean())
+            if loss_val == 0:
+                rsi = 100.0 if gain_val > 0 else None
+            else:
+                rs_val = gain_val / loss_val
+                rsi = float(100 - (100 / (1 + rs_val)))
 
         return {
             "symbol": symbol,
