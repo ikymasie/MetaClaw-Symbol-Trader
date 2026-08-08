@@ -52,14 +52,18 @@ def compute_bollinger_bands(
     """
     if len(prices) < period:
         return None
-    sma = prices.rolling(window=period).mean()
-    std = prices.rolling(window=period).std()
-    upper = sma + std_dev * std
-    lower = sma - std_dev * std
+
+    # ⚡ Bolt: Using .iloc[-period:] to avoid O(N) Pandas rolling overhead for single-value extraction
+    window_prices = prices.iloc[-period:]
+    sma_val = window_prices.mean(skipna=False)
+    std_val = window_prices.std(skipna=False)
+    upper_val = sma_val + std_dev * std_val
+    lower_val = sma_val - std_dev * std_val
+
     return {
-        "upper": float(upper.iloc[-1]),
-        "middle": float(sma.iloc[-1]),
-        "lower": float(lower.iloc[-1]),
+        "upper": float(upper_val),
+        "middle": float(sma_val),
+        "lower": float(lower_val),
     }
 
 
