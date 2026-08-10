@@ -61,27 +61,27 @@ def compute_rsi(prices: pd.Series, period: int = 14) -> Optional[float]:
     gains = deltas.clip(lower=0)
     losses = (-deltas).clip(lower=0)
 
+    # ⚡ Bolt: Using numpy arrays and iterative scalar updates instead of full rolling().mean()
+    # to avoid Pandas Series boxing overhead and unnecessary array allocations.
+    gains_vals = gains.values
+    losses_vals = losses.values
+
     # Wilder's smoothing: first value is SMA, then EMA with alpha=1/period
-    avg_gain = gains.rolling(window=period, min_periods=period).mean()
-    avg_loss = losses.rolling(window=period, min_periods=period).mean()
+    # Calculate initial SMA for the first 'period' values (indices 1 to period)
+    curr_gain = np.mean(gains_vals[1:period+1])
+    curr_loss = np.mean(losses_vals[1:period+1])
 
-    # Apply Wilder's exponential smoothing after the initial SMA seed
-    avg_gain_vals = avg_gain.values.copy()
-    avg_loss_vals = avg_loss.values.copy()
-
+    # Apply Wilder's exponential smoothing iteratively for the rest of the array
     for i in range(period + 1, len(prices)):
-        avg_gain_vals[i] = (avg_gain_vals[i - 1] * (period - 1) + gains.iloc[i]) / period
-        avg_loss_vals[i] = (avg_loss_vals[i - 1] * (period - 1) + losses.iloc[i]) / period
+        curr_gain = (curr_gain * (period - 1) + gains_vals[i]) / period
+        curr_loss = (curr_loss * (period - 1) + losses_vals[i]) / period
 
-    latest_gain = avg_gain_vals[-1]
-    latest_loss = avg_loss_vals[-1]
-
-    if latest_loss == 0:
+    if curr_loss == 0:
         return 100.0  # All gains, no losses
-    if latest_gain == 0:
+    if curr_gain == 0:
         return 0.0    # All losses, no gains
 
-    rs = latest_gain / latest_loss
+    rs = curr_gain / curr_loss
     rsi = 100.0 - (100.0 / (1.0 + rs))
     return round(rsi, 2)
 
