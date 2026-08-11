@@ -16,19 +16,20 @@ import logging
 import os
 import threading
 import time
-import psutil
 from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Optional
 
-from bot_config import BotConfig, FleetConfig, DEFAULT_FLEET_CONFIG
+import psutil
+
+from bot_config import DEFAULT_FLEET_CONFIG, BotConfig, FleetConfig
 from mt5_hub import mt5_hub
 
 logger = logging.getLogger("tradeclaw.fleet")
 
 # Configure buffered file logging
 from buffered_logger import BufferedFileHandler
+
 os.makedirs("logs", exist_ok=True)
 fh = BufferedFileHandler("logs/fleet.txt", interval=10.0)
 fh.setFormatter(logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s"))
@@ -205,7 +206,7 @@ class FleetOrchestrator:
         self._bots: dict[str, BotInstance] = {}
         self._lock = threading.Lock()
         self._stop_event = threading.Event()
-        self._monitor_thread: Optional[threading.Thread] = None
+        self._monitor_thread: threading.Thread | None = None
 
         # Fleet config — loaded from PostgreSQL on startup
         self._fleet_config: FleetConfig = deepcopy(DEFAULT_FLEET_CONFIG)
@@ -216,7 +217,7 @@ class FleetOrchestrator:
 
         # Firebase store reference (set after Firebase init)
         self._store = None
-        self._main_loop: Optional[asyncio.AbstractEventLoop] = None
+        self._main_loop: asyncio.AbstractEventLoop | None = None
         self._last_darwinian_update = 0.0
         self._last_autoresearch_check = 0.0
         self._last_research_bridge_check = 0.0
@@ -393,8 +394,9 @@ class FleetOrchestrator:
         # If the terminal wasn't available at app startup, init it now
         # using the bot's assigned account or the default account.
         if not mt5_hub._initialized:
-            from config_manager import config_manager
             import os
+
+            from config_manager import config_manager
 
             acct = None
             if config.account_id:
@@ -496,7 +498,7 @@ class FleetOrchestrator:
 
         logger.info(f"Bot killed and removed from PostgreSQL: {bot_id}")
 
-    def get_bot(self, bot_id: str) -> Optional[BotInstance]:
+    def get_bot(self, bot_id: str) -> BotInstance | None:
         with self._lock:
             return self._bots.get(bot_id)
 
@@ -1086,13 +1088,14 @@ class FleetOrchestrator:
         Instantiate all components for a bot.
         Deferred imports prevent circular dependencies at module level.
         """
-        from bot_engine import BotEngine
-        from bot_ai_brain import BotAIBrainScheduler
-        from bot_vital_signs import BotVitalSigns
-        from sub_agents import SubAgentPool
-        from prompt_autoresearcher import PromptAutoResearcher
         from openai import OpenAI
+
+        from bot_ai_brain import BotAIBrainScheduler
+        from bot_engine import BotEngine
+        from bot_vital_signs import BotVitalSigns
         from config import config as sys_config
+        from prompt_autoresearcher import PromptAutoResearcher
+        from sub_agents import SubAgentPool
         
         # Build Gemini client using config
         gemini_api_key = sys_config.openclaw_token or os.getenv("GEMINI_API_KEY", "")

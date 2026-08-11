@@ -14,8 +14,9 @@ import asyncio
 import json
 import logging
 import os
-from datetime import datetime, timezone, timedelta
-from typing import Optional, Any, List, Dict
+from datetime import datetime, timedelta, timezone
+from typing import Any
+
 import asyncpg
 
 logger = logging.getLogger("tradeclaw.postgres_store")
@@ -34,7 +35,7 @@ BATCH_SIZE_LIMIT = 50       # entries per batch
 
 class AsyncBatcher:
     """Buffers high-frequency writes and flushes them in batches."""
-    def __init__(self, pool: asyncpg.Pool, table_name: str, columns: List[str], file_path: Optional[str] = None):
+    def __init__(self, pool: asyncpg.Pool, table_name: str, columns: list[str], file_path: str | None = None):
         self.pool = pool
         self.table_name = table_name
         self.columns = columns
@@ -108,21 +109,21 @@ class AsyncBatcher:
 class PostgresStore:
     def __init__(self, dsn: str):
         self.dsn = dsn
-        self.pool: Optional[asyncpg.Pool] = None
+        self.pool: asyncpg.Pool | None = None
         self._user_id = os.getenv("METACLAW_USER_ID", "default_user")
         
         # Batchers
-        self.telemetry_batcher: Optional[AsyncBatcher] = None
-        self.bars_batcher: Optional[AsyncBatcher] = None
-        self.equity_batcher: Optional[AsyncBatcher] = None
-        self.logs_batcher: Optional[AsyncBatcher] = None
-        self.metrics_batcher: Optional[AsyncBatcher] = None
+        self.telemetry_batcher: AsyncBatcher | None = None
+        self.bars_batcher: AsyncBatcher | None = None
+        self.equity_batcher: AsyncBatcher | None = None
+        self.logs_batcher: AsyncBatcher | None = None
+        self.metrics_batcher: AsyncBatcher | None = None
 
     async def connect(self):
         if self.pool:
             return
         
-        logger.info(f"Connecting to PostgreSQL (Neon)...")
+        logger.info("Connecting to PostgreSQL (Neon)...")
         try:
             self.pool = await asyncpg.create_pool(
                 self.dsn,
@@ -207,7 +208,7 @@ class PostgresStore:
                 self._user_id, action, resource, resource_id, json.dumps(metadata) if metadata else None
             )
 
-    async def load_fleet_config(self) -> Optional[dict]:
+    async def load_fleet_config(self) -> dict | None:
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow("SELECT config FROM fleet_configs WHERE uid = $1", self._user_id)
             return json.loads(row['config']) if row else None
@@ -228,12 +229,12 @@ class PostgresStore:
                     bot_id, json.dumps(config_dict)
                 )
 
-    async def load_bot_config(self, bot_id: str) -> Optional[dict]:
+    async def load_bot_config(self, bot_id: str) -> dict | None:
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow("SELECT config FROM bot_configs WHERE bot_id = $1", bot_id)
             return json.loads(row['config']) if row else None
 
-    async def list_bot_ids(self) -> List[str]:
+    async def list_bot_ids(self) -> list[str]:
         async with self.pool.acquire() as conn:
             rows = await conn.fetch("SELECT bot_id FROM bots WHERE uid = $1", self._user_id)
             return [r['bot_id'] for r in rows]
@@ -248,7 +249,7 @@ class PostgresStore:
         """Legacy alias for delete_bot_config."""
         await self.delete_bot_config(bot_id)
 
-    async def discover_orphaned_bot_ids(self, known_ids: set) -> List[str]:
+    async def discover_orphaned_bot_ids(self, known_ids: set) -> list[str]:
         # Compatibility shim for fleet.py migration helper
         return []
 
@@ -276,7 +277,7 @@ class PostgresStore:
                 json.dumps(state)
             )
 
-    async def get_live_telemetry(self, id: str) -> Optional[dict]:
+    async def get_live_telemetry(self, id: str) -> dict | None:
         """Retrieve the latest snapshot for a bot or the fleet."""
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow("SELECT state FROM live_telemetry WHERE id = $1", id)
@@ -295,7 +296,7 @@ class PostgresStore:
                 symbol, timeframe, json.dumps(data)
             )
 
-    async def get_trend_summary(self, symbol: str, timeframe: str) -> Optional[dict]:
+    async def get_trend_summary(self, symbol: str, timeframe: str) -> dict | None:
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(
                 "SELECT trend_data FROM market_trends WHERE symbol = $1 AND timeframe = $2",
@@ -349,7 +350,7 @@ class PostgresStore:
                 self._parse_ts(trade.get('exit_time'))
             )
 
-    async def get_trades(self, bot_id: str, limit: int = 100) -> List[dict]:
+    async def get_trades(self, bot_id: str, limit: int = 100) -> list[dict]:
         async with self.pool.acquire() as conn:
             rows = await conn.fetch(
                 "SELECT * FROM trades WHERE bot_id = $1 ORDER BY entry_time DESC LIMIT $2",
@@ -357,7 +358,7 @@ class PostgresStore:
             )
             return [dict(r) for r in rows]
 
-    async def get_all_trades(self, limit: int = 1000) -> List[dict]:
+    async def get_all_trades(self, limit: int = 1000) -> list[dict]:
         async with self.pool.acquire() as conn:
             rows = await conn.fetch(
                 "SELECT t.*, b.name as bot_name FROM trades t JOIN bots b ON t.bot_id = b.bot_id WHERE b.uid = $1 ORDER BY t.entry_time DESC LIMIT $2",
@@ -476,11 +477,11 @@ class PostgresStore:
         """Alias for save_ai_decision (ignores extra kwargs like embedding_text)."""
         await self.save_ai_decision(bot_id, context)
 
-    async def retrieve_recent_strategy_contexts(self, bot_id: str, limit: int = 50) -> List[dict]:
+    async def retrieve_recent_strategy_contexts(self, bot_id: str, limit: int = 50) -> list[dict]:
         """Alias for get_ai_decisions."""
         return await self.get_ai_decisions(bot_id, limit)
 
-    async def get_ai_decisions(self, bot_id: str, limit: int = 50) -> List[dict]:
+    async def get_ai_decisions(self, bot_id: str, limit: int = 50) -> list[dict]:
         """Retrieve recent AI decisions for a bot."""
         async with self.pool.acquire() as conn:
             rows = await conn.fetch(
@@ -507,7 +508,7 @@ class PostgresStore:
                 bot_id, key, value
             )
 
-    async def get_bot_state(self, bot_id: str, key: str) -> Optional[str]:
+    async def get_bot_state(self, bot_id: str, key: str) -> str | None:
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow("SELECT value FROM bot_state_kv WHERE bot_id = $1 AND key = $2", bot_id, key)
             return row['value'] if row else None
@@ -547,7 +548,7 @@ class PostgresStore:
                 key, value
             )
 
-    async def get_system_setting(self, key: str) -> Optional[str]:
+    async def get_system_setting(self, key: str) -> str | None:
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow("SELECT value FROM system_settings WHERE key = $1", key)
             return row['value'] if row else None
@@ -565,7 +566,7 @@ class PostgresStore:
                 agent_name, text, version
             )
 
-    async def get_active_prompt(self, agent_name: str) -> Optional[str]:
+    async def get_active_prompt(self, agent_name: str) -> str | None:
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow("SELECT prompt_text FROM prompts WHERE agent_name = $1 AND is_active = TRUE", agent_name)
             return row['prompt_text'] if row else None
@@ -600,7 +601,7 @@ class PostgresStore:
 
     async def get_latest_research_report(
         self, symbol: str
-    ) -> Optional[tuple]:
+    ) -> tuple | None:
         """
         Return (payload: dict, updated_at: datetime) for the latest cached
         research report for `symbol`, or None if no row exists.
@@ -636,7 +637,7 @@ class PostgresStore:
     # HELPERS
     # ─────────────────────────────────────────────
 
-    def _parse_ts(self, ts: Any) -> Optional[datetime]:
+    def _parse_ts(self, ts: Any) -> datetime | None:
         if not ts: return None
         if isinstance(ts, datetime): return ts
         try:
@@ -645,9 +646,9 @@ class PostgresStore:
             return None
 
 # Global Instance
-_store: Optional[PostgresStore] = None
+_store: PostgresStore | None = None
 
-async def init_db(dsn: Optional[str] = None):
+async def init_db(dsn: str | None = None):
     global _store
     if not dsn: dsn = DATABASE_URL
     if not dsn: raise ValueError("DATABASE_URL not set")
@@ -661,7 +662,7 @@ def get_store() -> PostgresStore:
 async def save_darwinian_weights(bot_id: str, weights: dict):
     await get_store().set_bot_state(bot_id, "darwinian_weights", json.dumps(weights))
 
-async def load_darwinian_weights(bot_id: str) -> Optional[dict]:
+async def load_darwinian_weights(bot_id: str) -> dict | None:
     val = await get_store().get_bot_state(bot_id, "darwinian_weights")
     if val:
         try:
@@ -677,7 +678,7 @@ def is_initialized() -> bool:
 # BARS & TRENDS
 # ─────────────────────────────────────────────
 
-async def load_bars(symbol: str, timeframe: str = "1m", limit: int = 1000) -> List[dict]:
+async def load_bars(symbol: str, timeframe: str = "1m", limit: int = 1000) -> list[dict]:
     """Retrieve recent bars from PostgreSQL."""
     async with get_store().pool.acquire() as conn:
         rows = await conn.fetch(
@@ -704,7 +705,7 @@ async def prune_bars(symbol: str, timeframe: str = "1m", keep: int = 1200):
                 symbol, timeframe, cutoff
             )
 
-async def append_bars_batch(symbol: str, bars: List[dict], timeframe: str = "1m"):
+async def append_bars_batch(symbol: str, bars: list[dict], timeframe: str = "1m"):
     """Persist a batch of bars using the batcher."""
     store = get_store()
     for bar in bars:
@@ -719,7 +720,7 @@ async def append_bars_batch(symbol: str, bars: List[dict], timeframe: str = "1m"
                 int(bar.get('v') or bar.get('volume', 0))
             )
 
-async def get_trend_summary(symbol: str, timeframe: str) -> Optional[dict]:
+async def get_trend_summary(symbol: str, timeframe: str) -> dict | None:
     return await get_store().get_trend_summary(symbol, timeframe)
 
 async def save_trend_summary(symbol: str, timeframe: str, summary: dict):
@@ -728,7 +729,7 @@ async def save_trend_summary(symbol: str, timeframe: str, summary: dict):
 async def push_fleet_telemetry(state: dict):
     await get_store().push_fleet_telemetry(state)
 
-async def get_live_telemetry(id: str) -> Optional[dict]:
+async def get_live_telemetry(id: str) -> dict | None:
     return await get_store().get_live_telemetry(id)
 
 async def push_live_telemetry(bot_id: str, state: dict):
@@ -740,7 +741,7 @@ async def push_telemetry_history(bot_id: str, state: dict):
 async def save_fleet_config(config: dict):
     await get_store().save_fleet_config(config)
 
-async def load_bot_config(bot_id: str) -> Optional[dict]:
+async def load_bot_config(bot_id: str) -> dict | None:
     return await get_store().load_bot_config(bot_id)
 
 async def delete_bot_config(bot_id: str):
@@ -758,7 +759,7 @@ async def prune_old_telemetry(hours: int = 48):
 async def push_system_metric(metric_name: str, value: float):
     await get_store().push_system_metric(metric_name, value)
 
-async def retrieve_recent_strategy_contexts(bot_id: str, limit: int = 50) -> List[dict]:
+async def retrieve_recent_strategy_contexts(bot_id: str, limit: int = 50) -> list[dict]:
     return await get_store().retrieve_recent_strategy_contexts(bot_id, limit)
 
 async def update_bot_config(bot_id: str, config_dict: dict):
@@ -772,13 +773,13 @@ async def save_strategy_context(bot_id: str, context: dict, **kwargs):
 # COMPATIBILITY ALIASES (For main.py)
 # ─────────────────────────────────────────────
 
-async def insert_trade(bot_id: str, trade: Optional[dict] = None, **kwargs):
+async def insert_trade(bot_id: str, trade: dict | None = None, **kwargs):
     """Compatibility shim for main.py."""
     if trade is None:
         trade = kwargs
     await get_store().save_trade(bot_id, trade)
 
-async def insert_equity_snapshot(bot_id: str, snapshot: Optional[dict] = None, **kwargs):
+async def insert_equity_snapshot(bot_id: str, snapshot: dict | None = None, **kwargs):
     """Compatibility shim for main.py."""
     if snapshot is None:
         snapshot = kwargs
@@ -787,13 +788,13 @@ async def insert_equity_snapshot(bot_id: str, snapshot: Optional[dict] = None, *
         snapshot["balance"] = snapshot.get("equity", 0.0) - snapshot["daily_pnl"]
     await get_store().save_equity_snapshot(bot_id, snapshot)
 
-async def get_all_trades(limit: int = 1000) -> List[dict]:
+async def get_all_trades(limit: int = 1000) -> list[dict]:
     return await get_store().get_all_trades(limit)
 
-async def get_recent_trades_for_analysis(bot_id: str, limit: int = 20) -> List[dict]:
+async def get_recent_trades_for_analysis(bot_id: str, limit: int = 20) -> list[dict]:
     return await get_store().get_trades(bot_id, limit)
 
-async def _legacy_get_equity_history(bot_id: str, limit: int = 200) -> List[dict]:
+async def _legacy_get_equity_history(bot_id: str, limit: int = 200) -> list[dict]:
     async with get_store().pool.acquire() as conn:
         rows = await conn.fetch(
             "SELECT * FROM equity_history WHERE bot_id = $1 ORDER BY timestamp ASC LIMIT $2",
@@ -801,7 +802,7 @@ async def _legacy_get_equity_history(bot_id: str, limit: int = 200) -> List[dict
         )
         return [dict(r) for r in rows]
 
-async def _legacy_get_daily_pnl_sum(bot_id: Optional[str] = None) -> float:
+async def _legacy_get_daily_pnl_sum(bot_id: str | None = None) -> float:
     async with get_store().pool.acquire() as conn:
         if bot_id:
             row = await conn.fetchrow(
@@ -814,7 +815,7 @@ async def _legacy_get_daily_pnl_sum(bot_id: Optional[str] = None) -> float:
             )
         return row['total'] or 0.0
 
-async def _legacy_get_trade_stats_today(bot_id: Optional[str] = None) -> dict:
+async def _legacy_get_trade_stats_today(bot_id: str | None = None) -> dict:
     async with get_store().pool.acquire() as conn:
         if bot_id:
             row = await conn.fetchrow(
@@ -834,10 +835,10 @@ async def _legacy_get_trade_stats_today(bot_id: Optional[str] = None) -> dict:
 async def _legacy_set_bot_state(bot_id: str, key: str, value: str):
     await get_store().set_bot_state(bot_id, key, value)
 
-async def _legacy_get_bot_state(bot_id: str, key: str) -> Optional[str]:
+async def _legacy_get_bot_state(bot_id: str, key: str) -> str | None:
     return await get_store().get_bot_state(bot_id, key)
 
-async def _legacy_get_ai_decisions(bot_id: str, limit: int = 50) -> List[dict]:
+async def _legacy_get_ai_decisions(bot_id: str, limit: int = 50) -> list[dict]:
     async with get_store().pool.acquire() as conn:
         rows = await conn.fetch(
             "SELECT * FROM strategy_contexts WHERE bot_id = $1 ORDER BY timestamp DESC LIMIT $2",
@@ -854,7 +855,7 @@ async def update_agent_recommendation_outcome(bot_id: str, agent_name: str, time
 async def save_ai_decision(bot_id: str, decision: dict):
     await get_store().save_ai_decision(bot_id, decision)
 
-async def get_ai_decisions(bot_id: str, limit: int = 50) -> List[dict]:
+async def get_ai_decisions(bot_id: str, limit: int = 50) -> list[dict]:
     return await get_store().get_ai_decisions(bot_id, limit)
 
 async def log_bot_message(bot_id: str, level: str, message: str):
@@ -869,7 +870,7 @@ async def save_audit_log(action: str, resource: str, resource_id: str = None, me
 async def prune_old_telemetry(hours: int = 48):
     await get_store().prune_old_telemetry(hours)
 
-async def load_fleet_config() -> Optional[dict]:
+async def load_fleet_config() -> dict | None:
     return await get_store().load_fleet_config()
 
 async def save_fleet_config(config_dict: dict):
@@ -878,13 +879,13 @@ async def save_fleet_config(config_dict: dict):
 async def save_bot_config(bot_id: str, config_dict: dict):
     await get_store().save_bot_config(bot_id, config_dict)
 
-async def load_bot_config(bot_id: str) -> Optional[dict]:
+async def load_bot_config(bot_id: str) -> dict | None:
     return await get_store().load_bot_config(bot_id)
 
 async def delete_bot_config(bot_id: str):
     await get_store().delete_bot_config(bot_id)
 
-async def list_bot_ids() -> List[str]:
+async def list_bot_ids() -> list[str]:
     return await get_store().list_bot_ids()
 
 async def push_fleet_telemetry(state: dict):

@@ -8,7 +8,6 @@ Each bot has its own VitalSigns with isolated health tracking.
 import logging
 import threading
 from datetime import datetime, timezone
-from typing import Optional
 
 logger = logging.getLogger("tradeclaw.bot_vital_signs")
 
@@ -43,9 +42,9 @@ class BotVitalSigns:
         self._logger = logging.getLogger(f"tradeclaw.vitals[{bot_id}]")
 
         # State
-        self._starting_equity: Optional[float] = None
-        self._peak_equity: Optional[float] = None
-        self._current_equity: Optional[float] = None
+        self._starting_equity: float | None = None
+        self._peak_equity: float | None = None
+        self._current_equity: float | None = None
         self._daily_pnl: float = 0.0
 
         self.survival_state: str = "HEALTHY"

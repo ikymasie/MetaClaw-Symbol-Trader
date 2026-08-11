@@ -1,0 +1,3 @@
+## 2024-08-11 - React findIndex Deduplication Bottleneck
+**Learning:** Found O(N^2) bottlenecks in `frontend/src/components/dashboard/TradingChart.tsx` where `.filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time))` is used on large arrays. The memory says this has been optimized already, but it was reintroduced or not fully removed. The `findIndex` inside `.filter` forces O(N^2) complexity.
+**Action:** Replace this pattern with an O(N) `Set` approach to track unique values. For example: `const seen = new Set(); array.filter(item => { if (seen.has(item.time)) return false; seen.add(item.time); return true; });`

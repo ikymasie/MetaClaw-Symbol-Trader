@@ -10,7 +10,6 @@ First-run setup wizard endpoints:
 
 import asyncio
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -41,35 +40,35 @@ class DatabaseTestRequest(BaseModel):
 
 
 class ApiKeysConfig(BaseModel):
-    gemini_api_key: Optional[str] = None
-    gemini_model: Optional[str] = None
-    deep_think_model: Optional[str] = None
-    quick_think_model: Optional[str] = None
-    alpaca_news_api_key: Optional[str] = None
+    gemini_api_key: str | None = None
+    gemini_model: str | None = None
+    deep_think_model: str | None = None
+    quick_think_model: str | None = None
+    alpaca_news_api_key: str | None = None
 
 
 class AiConfig(BaseModel):
-    enabled: Optional[bool] = None
-    analysis_interval_minutes: Optional[int] = Field(default=None, ge=5, le=1440)
-    gemini_model: Optional[str] = None
-    deep_think_model: Optional[str] = None
-    quick_think_model: Optional[str] = None
-    ollama_base_url: Optional[str] = None
-    ollama_model: Optional[str] = None
-    ollama_model_name: Optional[str] = None
+    enabled: bool | None = None
+    analysis_interval_minutes: int | None = Field(default=None, ge=5, le=1440)
+    gemini_model: str | None = None
+    deep_think_model: str | None = None
+    quick_think_model: str | None = None
+    ollama_base_url: str | None = None
+    ollama_model: str | None = None
+    ollama_model_name: str | None = None
 
 
 class TradingDefaultsConfig(BaseModel):
-    symbol: Optional[str] = None
-    qty: Optional[float] = Field(default=None, gt=0)
-    stop_loss_pct: Optional[float] = Field(default=None, ge=0.1, le=10.0)
-    bb_period: Optional[int] = Field(default=None, ge=5, le=200)
-    bb_std_dev: Optional[float] = Field(default=None, ge=0.5, le=5.0)
-    max_daily_drawdown_pct: Optional[float] = Field(default=None, ge=0.5, le=50.0)
+    symbol: str | None = None
+    qty: float | None = Field(default=None, gt=0)
+    stop_loss_pct: float | None = Field(default=None, ge=0.1, le=10.0)
+    bb_period: int | None = Field(default=None, ge=5, le=200)
+    bb_std_dev: float | None = Field(default=None, ge=0.5, le=5.0)
+    max_daily_drawdown_pct: float | None = Field(default=None, ge=0.5, le=50.0)
 
 
 class Mt5Config(BaseModel):
-    symbol_suffix: Optional[str] = None
+    symbol_suffix: str | None = None
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────
@@ -160,7 +159,7 @@ async def complete_setup():
         logger.error(f"[Setup] Database schema init failed: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"Database initialization failed: {str(e)}",
+            detail=f"Database initialization failed: {e!s}",
         )
 
     config_manager.complete_setup()

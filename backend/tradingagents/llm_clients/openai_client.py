@@ -1,5 +1,5 @@
 import os
-from typing import Any, Optional
+from typing import Any
 
 from langchain_core.messages import AIMessage
 from langchain_openai import ChatOpenAI
@@ -132,7 +132,7 @@ class OpenAIClient(BaseLLMClient):
     def __init__(
         self,
         model: str,
-        base_url: Optional[str] = None,
+        base_url: str | None = None,
         provider: str = "openai",
         **kwargs,
     ):

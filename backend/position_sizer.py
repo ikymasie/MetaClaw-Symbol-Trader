@@ -32,8 +32,6 @@ Safety Rules:
 from __future__ import annotations
 
 import logging
-import math
-from typing import Optional
 
 logger = logging.getLogger("tradeclaw.sizer")
 
@@ -88,7 +86,7 @@ class PositionSizer:
         base_qty: float,
         survival_state: str = "HEALTHY",
         apex_state: str = "HUNTING",
-        kelly_fraction_override: Optional[float] = None,
+        kelly_fraction_override: float | None = None,
         max_qty: float = 50.0,
         hunger_multiplier: float = 1.0,
     ) -> tuple[float, dict]:

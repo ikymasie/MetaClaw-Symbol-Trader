@@ -14,13 +14,13 @@ Each week:
   7. git merge (kept) or git checkout main + branch delete (reverted).
 """
 
-import subprocess
 import logging
-import json
 import os
-from datetime import datetime, timezone, timedelta
-from typing import Optional
+import subprocess
+from datetime import datetime, timezone
+
 from openai import OpenAI
+
 from prompt_loader import load_agent_prompt
 
 logger = logging.getLogger("tradeclaw.autoresearch")
@@ -42,9 +42,9 @@ class PromptAutoResearcher:
         self._client = openclaw_client
         self._model  = openclaw_model
         self._logger = logging.getLogger(f"tradeclaw.autoresearch[{bot_id}]")
-        self._active_branch: Optional[str] = None
-        self._branch_agent:  Optional[str] = None
-        self._branch_start:  Optional[datetime] = None
+        self._active_branch: str | None = None
+        self._branch_agent:  str | None = None
+        self._branch_start:  datetime | None = None
         self._baseline_sharpe: float = 0.0
 
     def run_cycle(self):
@@ -63,8 +63,9 @@ class PromptAutoResearcher:
 
     def _start_new_branch(self):
         """Identify worst agent, generate prompt modification, create git branch."""
-        from postgres_store import get_agent_sharpe
         import asyncio
+
+        from postgres_store import get_agent_sharpe
 
         # Step 1: Find worst-performing agent
         agents = ["sentiment", "macro", "earnings", "technical", "cro"]
@@ -145,8 +146,9 @@ class PromptAutoResearcher:
 
     def _evaluate_and_decide(self):
         """Compare new Sharpe against baseline. Merge or revert."""
-        from postgres_store import get_agent_sharpe
         import asyncio
+
+        from postgres_store import get_agent_sharpe
 
         agent = self._branch_agent
         try:
@@ -199,7 +201,7 @@ class PromptAutoResearcher:
 
     def _generate_modification(
         self, agent_name: str, current_prompt: dict, all_sharpes: dict
-    ) -> Optional[dict]:
+    ) -> dict | None:
         """Ask the LLM to produce ONE targeted improvement to the agent's prompt."""
         context = "\n".join(f"  {a}: Sharpe={s:.3f}" for a, s in all_sharpes.items())
         system = (
@@ -235,7 +237,8 @@ class PromptAutoResearcher:
                 response_format={"type": "json_object"},
             )
             raw = resp.choices[0].message.content
-            import json, re
+            import json
+            import re
             try:
                 return json.loads(raw)
             except Exception:
@@ -248,7 +251,6 @@ class PromptAutoResearcher:
 
     def _write_modified_prompt(self, agent_name: str, modification: dict):
         """Apply the modification to the agent's prompt file."""
-        import os
         path = os.path.join(
             os.path.dirname(__file__), "prompts", f"{agent_name}_agent.md"
         )

@@ -16,7 +16,7 @@ interface Props {
   onClose: () => void;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 interface TradeRecord {
   bot_id: string;
   symbol: string;

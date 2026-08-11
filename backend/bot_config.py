@@ -5,9 +5,8 @@ Each deployed bot has its own BotConfig identity.
 FleetConfig is the portal-editable fleet-wide settings stored in Firestore.
 """
 
-from dataclasses import dataclass, field, asdict
 import uuid
-
+from dataclasses import asdict, dataclass, field
 
 # ─────────────────────────────────────────────
 # STRATEGY CONSTANTS

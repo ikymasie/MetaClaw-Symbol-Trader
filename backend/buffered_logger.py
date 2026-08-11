@@ -2,7 +2,6 @@ import asyncio
 import logging
 import os
 import time
-from typing import List, Optional
 
 # Phase 3 §8.1 — Structured JSON logging.
 # python-json-logger is added in requirements.txt; if unavailable (e.g. in
@@ -24,10 +23,10 @@ class BufferedFileHandler(logging.Handler):
         super().__init__()
         self.filename = filename
         self.interval = interval
-        self.buffer: List[str] = []
+        self.buffer: list[str] = []
         self._last_flush = time.time()
         self._lock = asyncio.Lock()
-        self._flush_task: Optional[asyncio.Task] = None
+        self._flush_task: asyncio.Task | None = None
         
         # Ensure directory exists
         os.makedirs(os.path.dirname(filename), exist_ok=True)
@@ -69,11 +68,10 @@ class BufferedFileHandler(logging.Handler):
             except Exception as e:
                 print(f"Failed to flush logs to {self.filename}: {e}")
 
-    def _write_to_file(self, lines: List[str]):
+    def _write_to_file(self, lines: list[str]):
         """Synchronous helper to write lines to file."""
         with open(self.filename, "a", encoding="utf-8") as f:
-            for line in lines:
-                f.write(line + "\n")
+            f.writelines(line + "\n" for line in lines)
 
     def flush(self):
         """Synchronous flush for shutdown or non-async contexts."""

@@ -1,7 +1,8 @@
 """yfinance-based news data fetching functions."""
 
-import yfinance as yf
 from datetime import datetime
+
+import yfinance as yf
 from dateutil.relativedelta import relativedelta
 
 from .stockstats_utils import yf_retry
@@ -101,7 +102,7 @@ def get_news_yfinance(
         return f"## {ticker} News, from {start_date} to {end_date}:\n\n{news_str}"
 
     except Exception as e:
-        return f"Error fetching news for {ticker}: {str(e)}"
+        return f"Error fetching news for {ticker}: {e!s}"
 
 
 def get_global_news_yfinance(
@@ -194,4 +195,4 @@ def get_global_news_yfinance(
         return f"## Global Market News, from {start_date} to {curr_date}:\n\n{news_str}"
 
     except Exception as e:
-        return f"Error fetching global news: {str(e)}"
+        return f"Error fetching global news: {e!s}"
