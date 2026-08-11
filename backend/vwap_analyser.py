@@ -25,7 +25,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -225,16 +224,16 @@ class VWAPAnalyser:
                                  Default 2.5 (institutional standard; 3.0 for stricter).
         """
         self.entry_sd_threshold = entry_sd_threshold
-        self._last_state: Optional[VWAPState] = None
+        self._last_state: VWAPState | None = None
 
     @property
-    def last_state(self) -> Optional[VWAPState]:
+    def last_state(self) -> VWAPState | None:
         return self._last_state
 
     def analyse(
         self,
         df: pd.DataFrame,
-        entry_sd_override: Optional[float] = None,
+        entry_sd_override: float | None = None,
     ) -> VWAPState:
         """
         Run the full VWAP analysis on a DataFrame of OHLCV bars.

@@ -32,7 +32,6 @@ import logging
 import threading
 import time
 from collections import OrderedDict
-from typing import Optional
 
 logger = logging.getLogger("tradeclaw.llm_cache")
 
@@ -67,11 +66,11 @@ class LLMCache:
 
     def _make_key(self, agent_name: str, system: str, prompt: str) -> str:
         digest = hashlib.sha256(
-            f"|{agent_name}|{system}|{prompt}|".encode("utf-8")
+            f"|{agent_name}|{system}|{prompt}|".encode()
         ).hexdigest()
         return digest
 
-    def get(self, agent_name: str, system: str, prompt: str) -> Optional[str]:
+    def get(self, agent_name: str, system: str, prompt: str) -> str | None:
         """Return cached LLM response or None if stale/absent."""
         key = self._make_key(agent_name, system, prompt)
         with self._lock:

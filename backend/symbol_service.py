@@ -1,7 +1,7 @@
-import pandas as pd
 import logging
 import os
-from typing import List, Dict, Optional
+
+import pandas as pd
 
 logger = logging.getLogger("tradeclaw.symbol_service")
 
@@ -11,12 +11,12 @@ EXCEL_PATH = "Weltrade_Full_MT5_Symbols.xlsx"
 
 class SymbolService:
     _instance = None
-    _symbols: List[Dict[str, str]] = []
-    _categories: List[str] = []
+    _symbols: list[dict[str, str]] = []
+    _categories: list[str] = []
 
     def __new__(cls):
         if cls._instance is None:
-            cls._instance = super(SymbolService, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
             cls._instance._load_symbols()
         return cls._instance
 
@@ -62,10 +62,10 @@ class SymbolService:
         except Exception as e:
             logger.error(f"Error loading symbols from Excel: {e}")
 
-    def get_all_symbols(self) -> List[Dict[str, str]]:
+    def get_all_symbols(self) -> list[dict[str, str]]:
         return self._symbols
 
-    def get_categories(self) -> List[str]:
+    def get_categories(self) -> list[str]:
         return self._categories
 
     @staticmethod
@@ -124,7 +124,7 @@ class SymbolService:
         return broker_name
 
 
-    def search_symbols(self, query: str) -> List[Dict[str, str]]:
+    def search_symbols(self, query: str) -> list[dict[str, str]]:
         query = query.lower()
         return [
             s for s in self._symbols

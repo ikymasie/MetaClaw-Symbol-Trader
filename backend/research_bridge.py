@@ -1,25 +1,24 @@
-import sys
-import os
-import logging
 import asyncio
+import logging
+import os
 import re
 import threading
 from datetime import datetime
-from typing import Optional, Dict, Any, Tuple
 from pathlib import Path
+from typing import Any
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # Try to import TradingAgents components
 try:
-    from tradingagents.graph.trading_graph import TradingAgentsGraph
     from tradingagents.agents.schemas import (
-        ResearchPlan,
         PortfolioDecision,
-        TraderProposal,
         PortfolioRating,
+        ResearchPlan,
         TraderAction,
+        TraderProposal,
     )
+    from tradingagents.graph.trading_graph import TradingAgentsGraph
 except ImportError as e:
     logging.error(f"Failed to import TradingAgents: {e}")
     # Define placeholder types if imports fail for linting
@@ -29,9 +28,9 @@ except ImportError as e:
     class PortfolioRating: pass
     class TraderAction: pass
 
-from symbol_mapper import symbol_mapper  # Phase 1 single source of truth
-from sub_agents import AgentSignal
 from config_manager import config_manager
+from sub_agents import AgentSignal
+from symbol_mapper import symbol_mapper  # Phase 1 single source of truth
 
 logger = logging.getLogger("tradeclaw.research_bridge")
 
@@ -41,7 +40,7 @@ class ResearchBridge:
     Translates long-form multi-agent research into structured AgentSignals.
     """
     
-    def __init__(self, config_override: Optional[Dict[str, Any]] = None):
+    def __init__(self, config_override: dict[str, Any] | None = None):
         self._config_override = config_override
         self._graph = None
         self._lock = threading.Lock()
@@ -60,7 +59,7 @@ class ResearchBridge:
                         return None
         return self._graph
 
-    def _prepare_ta_config(self, override: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def _prepare_ta_config(self, override: dict[str, Any] | None = None) -> dict[str, Any]:
         """Prepare configuration for TradingAgentsGraph using ConfigManager."""
         # Use unmasked API keys from config_manager
         gemini_key = config_manager.get_api_key("gemini_api_key")
@@ -104,7 +103,7 @@ class ResearchBridge:
     # Canonical rating → sentiment mapping (PortfolioRating enum values + TraderAction).
     # PortfolioRating: Buy/Overweight/Hold/Underweight/Sell
     # TraderAction:    Buy/Hold/Sell
-    _RATING_MAP: Dict[str, float] = {
+    _RATING_MAP: dict[str, float] = {
         "Buy": 0.8,
         "Overweight": 0.4,
         "Hold": 0.0,
@@ -113,7 +112,7 @@ class ResearchBridge:
     }
 
     @classmethod
-    def _coerce_rating(cls, value: Any) -> Optional[str]:
+    def _coerce_rating(cls, value: Any) -> str | None:
         """Extract a canonical rating string from an enum, schema, or raw string."""
         if value is None:
             return None
@@ -135,7 +134,7 @@ class ResearchBridge:
           4. Rendered markdown string (last-resort regex parse)
         """
 
-        rating: Optional[str] = None
+        rating: str | None = None
         rationale = "No research data available"
 
         # ── (2) Tuple from propagate() — try processed_signal first, then unwrap state
@@ -279,7 +278,7 @@ class ResearchBridge:
             
         except Exception as e:
             logger.error(f"Research cycle failed for {symbol}: {e}", exc_info=True)
-            return AgentSignal.neutral("research_framework", reason=f"Research failed: {str(e)}")
+            return AgentSignal.neutral("research_framework", reason=f"Research failed: {e!s}")
 
 # Singleton instance
 research_bridge = ResearchBridge()

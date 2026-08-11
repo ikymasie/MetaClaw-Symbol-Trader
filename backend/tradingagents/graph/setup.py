@@ -1,6 +1,7 @@
 # TradingAgents/graph/setup.py
 
-from typing import Any, Dict
+from typing import Any
+
 from langgraph.graph import END, START, StateGraph
 from langgraph.prebuilt import ToolNode
 
@@ -17,7 +18,7 @@ class GraphSetup:
         self,
         quick_thinking_llm: Any,
         deep_thinking_llm: Any,
-        tool_nodes: Dict[str, ToolNode],
+        tool_nodes: dict[str, ToolNode],
         conditional_logic: ConditionalLogic,
     ):
         """Initialize with required components."""

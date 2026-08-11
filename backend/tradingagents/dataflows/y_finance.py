@@ -1,10 +1,17 @@
-from typing import Annotated
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
+from typing import Annotated
+
 import pandas as pd
 import yfinance as yf
-import os
-from .stockstats_utils import StockstatsUtils, _clean_dataframe, yf_retry, load_ohlcv, filter_financials_by_date
+from dateutil.relativedelta import relativedelta
+
+from .stockstats_utils import (
+    StockstatsUtils,
+    filter_financials_by_date,
+    load_ohlcv,
+    yf_retry,
+)
+
 
 def get_YFin_data_online(
     symbol: Annotated[str, "ticker symbol of the company"],
@@ -299,7 +306,7 @@ def get_fundamentals(
         return header + "\n".join(lines)
 
     except Exception as e:
-        return f"Error retrieving fundamentals for {ticker}: {str(e)}"
+        return f"Error retrieving fundamentals for {ticker}: {e!s}"
 
 
 def get_balance_sheet(
@@ -331,7 +338,7 @@ def get_balance_sheet(
         return header + csv_string
         
     except Exception as e:
-        return f"Error retrieving balance sheet for {ticker}: {str(e)}"
+        return f"Error retrieving balance sheet for {ticker}: {e!s}"
 
 
 def get_cashflow(
@@ -363,7 +370,7 @@ def get_cashflow(
         return header + csv_string
         
     except Exception as e:
-        return f"Error retrieving cash flow for {ticker}: {str(e)}"
+        return f"Error retrieving cash flow for {ticker}: {e!s}"
 
 
 def get_income_statement(
@@ -395,7 +402,7 @@ def get_income_statement(
         return header + csv_string
         
     except Exception as e:
-        return f"Error retrieving income statement for {ticker}: {str(e)}"
+        return f"Error retrieving income statement for {ticker}: {e!s}"
 
 
 def get_insider_transactions(
@@ -419,4 +426,4 @@ def get_insider_transactions(
         return header + csv_string
         
     except Exception as e:
-        return f"Error retrieving insider transactions for {ticker}: {str(e)}"
+        return f"Error retrieving insider transactions for {ticker}: {e!s}"

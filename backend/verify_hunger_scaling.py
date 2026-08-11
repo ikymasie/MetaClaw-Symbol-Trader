@@ -1,12 +1,12 @@
-import sys
 import os
-import math
+import sys
 
 # Add current directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from vital_signs import get_hunger_multiplier, get_signal_relaxation
 from position_sizer import PositionSizer
+from vital_signs import get_hunger_multiplier, get_signal_relaxation
+
 
 def test_hunger_scaling():
     scenarios = [

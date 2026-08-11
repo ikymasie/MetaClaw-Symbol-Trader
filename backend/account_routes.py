@@ -9,7 +9,6 @@ CRUD for MT5 broker accounts:
 """
 
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -32,17 +31,17 @@ class AccountCreate(BaseModel):
 
 
 class AccountUpdate(BaseModel):
-    label: Optional[str] = Field(default=None, min_length=1, max_length=100)
-    mt5_login: Optional[int] = Field(default=None, gt=0)
-    mt5_password: Optional[str] = Field(default=None, min_length=1)
-    mt5_server: Optional[str] = Field(default=None, min_length=1)
-    is_default: Optional[bool] = None
+    label: str | None = Field(default=None, min_length=1, max_length=100)
+    mt5_login: int | None = Field(default=None, gt=0)
+    mt5_password: str | None = Field(default=None, min_length=1)
+    mt5_server: str | None = Field(default=None, min_length=1)
+    is_default: bool | None = None
 
 
 class AccountTestRequest(BaseModel):
-    mt5_login: Optional[int] = None
-    mt5_password: Optional[str] = None
-    mt5_server: Optional[str] = None
+    mt5_login: int | None = None
+    mt5_password: str | None = None
+    mt5_server: str | None = None
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────
@@ -186,7 +185,7 @@ async def get_account_symbols(account_id: str):
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to fetch symbols: {str(e)}",
+            detail=f"Failed to fetch symbols: {e!s}",
         )
 
 
@@ -273,7 +272,7 @@ async def _test_mt5_credentials(
 
     except Exception as e:
         logger.error(f"[Accounts] MT5 test failed: {e}")
-        return False, f"Connection error: {str(e)}", {}
+        return False, f"Connection error: {e!s}", {}
 
 
 async def _fetch_symbols_for_account(

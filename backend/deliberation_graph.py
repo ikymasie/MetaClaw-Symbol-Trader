@@ -26,7 +26,7 @@ import logging
 import operator
 import queue as _stdlib_queue
 import time
-from typing import Annotated, Any, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated
 
 if TYPE_CHECKING:
     from sub_agents import SubAgentPool
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger("tradeclaw.deliberation_graph")
 
 try:
-    from langgraph.graph import StateGraph, START, END
+    from langgraph.graph import END, START, StateGraph
     from typing_extensions import TypedDict
     LANGGRAPH_AVAILABLE = True
 except ImportError:
@@ -95,7 +95,7 @@ class DeliberationGraph:
     Wraps the existing agent logic in a typed StateGraph with event streaming.
     """
 
-    def __init__(self, pool: "SubAgentPool"):
+    def __init__(self, pool: SubAgentPool):
         self._pool = pool
         self.bot_id = pool.bot_id
         self._logger = logging.getLogger(f"tradeclaw.graph[{pool.bot_id}]")
@@ -108,10 +108,10 @@ class DeliberationGraph:
     async def arun(
         self,
         state: dict,
-        event_queue: Optional[_stdlib_queue.Queue] = None,
+        event_queue: _stdlib_queue.Queue | None = None,
         price_history=None,
         market_trends: dict = None,
-    ) -> Optional["TradeDecision"]:
+    ) -> TradeDecision | None:
         """
         Execute the deliberation graph and return a TradeDecision.
         Events are pushed to event_queue as each node completes.
@@ -144,7 +144,7 @@ class DeliberationGraph:
         config = {"configurable": {"thread_id": f"delib-{self.bot_id}"}}
 
         try:
-            final_decision: Optional["TradeDecision"] = None
+            final_decision: TradeDecision | None = None
 
             async for event in graph.astream_events(initial, config=config, version="v2"):
                 self._handle_stream_event(event)
@@ -222,7 +222,7 @@ class DeliberationGraph:
     # ─────────────────────────────────────────────
 
     async def _watchman_node(self, state: DeliberationState) -> dict:
-        from sub_agents import WatchmanAgent, AgentVote
+        from sub_agents import AgentVote, WatchmanAgent
         self._emit("agent_start", "watchman")
         try:
             agent = WatchmanAgent(**self._agent_kwargs())
@@ -303,7 +303,7 @@ class DeliberationGraph:
 
     async def _panel_node(self, state: DeliberationState) -> dict:
         """Run the 4 LLM panel agents concurrently via asyncio.gather."""
-        from sub_agents import AgentVote, build_agent, AgentSignal
+        from sub_agents import AgentSignal, AgentVote, build_agent
 
         panel_agents = ["sentiment", "macro", "earnings", "technical"]
         enabled = [a for a in panel_agents if a in state["enabled_agents"]]
@@ -318,7 +318,7 @@ class DeliberationGraph:
             cached = dict(pool.latest_signals)
         timestamps = dict(pool._vote_timestamps)
 
-        async def _run_one(agent_name: str) -> Optional[AgentSignal]:
+        async def _run_one(agent_name: str) -> AgentSignal | None:
             sig = cached.get(agent_name)
             age = time.time() - timestamps.get(agent_name, 0)
             if sig is None or age > state["vote_cache_ttl"]:

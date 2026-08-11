@@ -14,7 +14,7 @@ so the LLM is told what the schema looks like.
 """
 from __future__ import annotations
 
-from typing import List, Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -46,7 +46,7 @@ class AgentSignalSchema(BaseModel):
         min_length=1,
         max_length=2000,
     )
-    sources: List[str] = Field(
+    sources: list[str] = Field(
         default_factory=list,
         description="List of URLs or data sources used for the analysis.",
         max_length=20,
@@ -71,7 +71,7 @@ class AgentVoteSchema(BaseModel):
         min_length=1,
         max_length=2000,
     )
-    veto_reason: Optional[str] = Field(
+    veto_reason: str | None = Field(
         default=None,
         description="Specific reason for a VETO, if applicable.",
         max_length=500,
@@ -99,7 +99,7 @@ class CROObjectionSchema(BaseModel):
     )
 
 
-def to_gemini_response_format(model_cls: type[BaseModel], name: Optional[str] = None) -> dict:
+def to_gemini_response_format(model_cls: type[BaseModel], name: str | None = None) -> dict:
     """
     Build a Gemini OpenAI-compatible `response_format` payload binding a
     Pydantic model to the chat-completion call.

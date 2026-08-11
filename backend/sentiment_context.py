@@ -23,14 +23,14 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 
 if TYPE_CHECKING:
-    from regime_detector import RegimeState
     from momentum_filter import MomentumState
+    from regime_detector import RegimeState
 
 logger = logging.getLogger("tradeclaw.sentiment")
 
@@ -156,10 +156,10 @@ class SentimentContextBuilder:
 
     def build(
         self,
-        df: Optional[pd.DataFrame] = None,
-        regime_state: Optional["RegimeState"] = None,
-        momentum_state: Optional["MomentumState"] = None,
-        recent_trades: Optional[list[dict]] = None,
+        df: pd.DataFrame | None = None,
+        regime_state: RegimeState | None = None,
+        momentum_state: MomentumState | None = None,
+        recent_trades: list[dict] | None = None,
     ) -> str:
         """
         Build the full Field Intelligence Report as a prompt-ready string.
