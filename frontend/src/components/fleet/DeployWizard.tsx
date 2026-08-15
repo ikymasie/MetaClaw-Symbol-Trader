@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   useDeployBot,
   useFleetConfig,
@@ -72,11 +72,13 @@ export function DeployWizard({ onClose, onDeployed }: Props) {
     setInitialized(true);
   }
 
-  const filteredSymbols = symbolsData?.symbols.filter(s =>
-    s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.category.toLowerCase().includes(searchTerm.toLowerCase())
-  ).slice(0, 50) || []; // Performance limit
+  const filteredSymbols = useMemo(() => {
+    return symbolsData?.symbols.filter(s =>
+      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.category.toLowerCase().includes(searchTerm.toLowerCase())
+    ).slice(0, 50) || []; // Performance limit
+  }, [symbolsData?.symbols, searchTerm]);
 
   const selectedSymbolInfo = symbolsData?.symbols.find(s => s.name === form.symbol);
   const volMin = selectedSymbolInfo?.volume_min ?? 0.01;
