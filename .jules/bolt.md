@@ -1,0 +1,3 @@
+## 2026-08-22 - Offloaded Blocking File I/O in AsyncBatcher
+**Learning:** Found that AsyncBatcher._perform_flush in backend/postgres_store.py was executing synchronous, blocking file write operations directly inside an async function. This effectively stalled the entire asyncio event loop during disk writes, defeating the purpose of the async application architecture.
+**Action:** When identifying performance bottlenecks in async Python codebases, actively look for standard blocking I/O methods (like open, requests, or sleep) that have not been properly wrapped in asyncio.get_running_loop().run_in_executor(). If making a method async, ensure any internal file I/O operations are made non-blocking.

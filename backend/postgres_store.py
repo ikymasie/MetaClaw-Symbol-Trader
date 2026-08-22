@@ -66,6 +66,22 @@ class AsyncBatcher:
         async with self._lock:
             await self._perform_flush()
 
+    def _write_to_disk(self, data: list):
+        """Synchronous file write to be run in a thread executor."""
+        try:
+            with open(self.file_path, "a", encoding="utf-8") as f:
+                for row in data:
+                    # Format: TIMESTAMP | BOT_ID | LEVEL | MESSAGE
+                    if self.table_name == "bot_logs":
+                        # bot_logs order: ["bot_id", "level", "message", "timestamp"]
+                        ts = row[3].isoformat() if hasattr(row[3], 'isoformat') else str(row[3])
+                        f.write(f"{ts} | {row[0]} | {row[1]} | {row[2]}\n")
+                    else:
+                        f.write(" | ".join(map(str, row)) + "\n")
+                f.flush() # Force write to disk
+        except Exception as e:
+            logger.error(f"Failed to write to local log file {self.file_path}: {e}")
+
     async def _perform_flush(self):
         """Internal flush method - assumes lock is ALREADY held."""
         if not self.buffer:
@@ -74,21 +90,10 @@ class AsyncBatcher:
         data = list(self.buffer)
         self.buffer = []
         
-        # 1. Local File Write (if configured)
+        # 1. Local File Write (if configured) - offload to thread pool
         if self.file_path:
-            try:
-                with open(self.file_path, "a", encoding="utf-8") as f:
-                    for row in data:
-                        # Format: TIMESTAMP | BOT_ID | LEVEL | MESSAGE
-                        if self.table_name == "bot_logs":
-                            # bot_logs order: ["bot_id", "level", "message", "timestamp"]
-                            ts = row[3].isoformat() if hasattr(row[3], 'isoformat') else str(row[3])
-                            f.write(f"{ts} | {row[0]} | {row[1]} | {row[2]}\n")
-                        else:
-                            f.write(" | ".join(map(str, row)) + "\n")
-                    f.flush() # Force write to disk
-            except Exception as e:
-                logger.error(f"Failed to write to local log file {self.file_path}: {e}")
+            loop = asyncio.get_running_loop()
+            await loop.run_in_executor(None, self._write_to_disk, data)
 
         # 2. Database Write
         try:
