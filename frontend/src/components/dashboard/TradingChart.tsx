@@ -88,6 +88,16 @@ export function TradingChart({ priceData, bollingerData, markers }: TradingChart
   useEffect(() => {
     if (!candlestickSeriesRef.current || !priceData.length) return;
 
+    // ⚡ Bolt: Deduplicate using an O(N) Set instead of O(N^2) findIndex
+    const deduplicateByTime = <T extends { time: number }>(data: T[]): T[] => {
+      const seen = new Set<number>();
+      return data.filter(item => {
+        if (seen.has(item.time)) return false;
+        seen.add(item.time);
+        return true;
+      });
+    };
+
     // Format data for lightweight-charts
     const formattedPriceData = priceData.map(d => ({
       time: Math.floor(new Date(d.time).getTime() / 1000),
@@ -98,27 +108,25 @@ export function TradingChart({ priceData, bollingerData, markers }: TradingChart
     })).sort((a, b) => a.time - b.time);
 
     // Filter duplicates
-    const uniquePriceData = formattedPriceData.filter((val, idx, self) => 
-      idx === self.findIndex((t) => t.time === val.time)
-    );
+    const uniquePriceData = deduplicateByTime(formattedPriceData);
 
     candlestickSeriesRef.current.setData(uniquePriceData as CandlestickData[]);
 
     if (bollingerData.length) {
-      const upperData = bollingerData.map(d => ({
+      const upperData = deduplicateByTime(bollingerData.map(d => ({
         time: Math.floor(new Date(d.time).getTime() / 1000),
         value: d.upper,
-      })).filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time));
+      })));
 
-      const middleData = bollingerData.map(d => ({
+      const middleData = deduplicateByTime(bollingerData.map(d => ({
         time: Math.floor(new Date(d.time).getTime() / 1000),
         value: d.middle,
-      })).filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time));
+      })));
 
-      const lowerData = bollingerData.map(d => ({
+      const lowerData = deduplicateByTime(bollingerData.map(d => ({
         time: Math.floor(new Date(d.time).getTime() / 1000),
         value: d.lower,
-      })).filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time));
+      })));
 
       upperBBSeriesRef.current?.setData(upperData as LineData[]);
       middleBBSeriesRef.current?.setData(middleData as LineData[]);
