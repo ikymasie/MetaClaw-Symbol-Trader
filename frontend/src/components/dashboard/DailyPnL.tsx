@@ -12,13 +12,16 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import moment from "moment";
+import { useMemo } from 'react';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function DailyPnL({ trades }: { trades?: Record<string, any>[] }) {
-  const chartData = trades?.filter(t => t.side === 'SELL').map(t => ({
-    time: moment(t.timestamp).format('HH:mm'),
-    pnl: t.pnl
-  })).reverse() || [];
+  const chartData = useMemo(() => {
+    return trades?.filter(t => t.side === 'SELL').map(t => ({
+      time: moment(t.timestamp).format('HH:mm'),
+      pnl: t.pnl
+    })).reverse() || [];
+  }, [trades]);
 
   return (
     <Card className="bg-card/40 border-primary/10 h-full">
