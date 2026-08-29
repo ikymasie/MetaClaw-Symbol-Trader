@@ -131,13 +131,15 @@ export function TradingChart({ priceData, bollingerData, markers }: TradingChart
         try { markersRef.current.detach(); } catch (_) {}
         markersRef.current = null;
       }
+      // ⚡ Bolt: Using Set for O(1) time lookups instead of O(N) array.some()
+      const validTimes = new Set(uniquePriceData.map(p => p.time));
       const formattedMarkers = markers.map(m => ({
         time: Math.floor(new Date(m.time).getTime() / 1000) as unknown as import('lightweight-charts').Time,
         position: m.position as 'aboveBar' | 'belowBar' | 'inBar',
         color: m.color as string,
         shape:  m.shape  as 'circle' | 'square' | 'arrowUp' | 'arrowDown',
         text:   m.text   as string | undefined,
-      })).filter(m => uniquePriceData.some(p => p.time === (m.time as unknown as number)));
+      })).filter(m => validTimes.has(m.time as unknown as number));
 
       markersRef.current = createSeriesMarkers(candlestickSeriesRef.current, formattedMarkers);
     }
