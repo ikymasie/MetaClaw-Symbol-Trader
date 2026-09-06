@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
+import { useMemo } from 'react';
 import { AgentState, AgentId, DeliberationMeta } from '@/hooks/useAgentStream';
 import {
   ThumbsUp, ThumbsDown, Minus, Zap,
@@ -43,9 +44,19 @@ export function ExecutionerPanel({ agents, deliberation, symbol }: Props) {
   const signal = deliberation?.signal || 'HOLD';
   const cfg = SIGNAL_CONFIG[signal] || SIGNAL_CONFIG.HOLD;
 
-  // Count votes
-  const approveCount = agents.filter(a => a.id !== 'executioner' && a.status === 'approved').length;
-  const vetoCount = agents.filter(a => a.id !== 'executioner' && a.status === 'vetoed').length;
+  // Count votes in a single pass to avoid multiple O(N) array iterations
+  const { approveCount, vetoCount } = useMemo(() => {
+    return agents.reduce(
+      (acc, a) => {
+        if (a.id !== 'executioner') {
+          if (a.status === 'approved') acc.approveCount++;
+          if (a.status === 'vetoed') acc.vetoCount++;
+        }
+        return acc;
+      },
+      { approveCount: 0, vetoCount: 0 }
+    );
+  }, [agents]);
   const totalVoting = VOTING_AGENTS.length;
 
   return (
