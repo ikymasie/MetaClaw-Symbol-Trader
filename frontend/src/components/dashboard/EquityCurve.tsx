@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { 
   Area, 
   AreaChart, 
@@ -15,10 +16,13 @@ import moment from "moment";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function EquityCurve({ data }: { data?: Record<string, any>[] }) {
 
-  const chartData = data?.map(d => ({
-    time: moment(d.time).format('HH:mm:ss'),
-    equity: d.equity
-  })) || [];
+  // ⚡ Bolt: Memoize the expensive mapping and moment.js string parsing to avoid O(N) recalculations on every render
+  const chartData = useMemo(() => {
+    return data?.map(d => ({
+      time: moment(d.time).format('HH:mm:ss'),
+      equity: d.equity
+    })) || [];
+  }, [data]);
 
   return (
     <Card className="bg-card/40 border-primary/10 h-full">
