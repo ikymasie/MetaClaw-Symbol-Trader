@@ -325,6 +325,20 @@ export function BotWizard({ onClose, onDeployed }: Props) {
   const CATEGORIES = categories;
   const SYMBOLS_BY_CATEGORY = symbolsByCategory;
 
+  const filteredCategories = useMemo(() => {
+    return CATEGORIES.filter(cat =>
+      cat.label.toLowerCase().includes(categorySearch.toLowerCase()) ||
+      (SYMBOLS_BY_CATEGORY[cat.id] || []).some(s => s.ticker.toLowerCase().includes(categorySearch.toLowerCase()))
+    );
+  }, [CATEGORIES, categorySearch, SYMBOLS_BY_CATEGORY]);
+
+  const filteredSymbols = useMemo(() => {
+    return (SYMBOLS_BY_CATEGORY[category] ?? []).filter(s =>
+      s.ticker.toLowerCase().includes(symbolSearch.toLowerCase()) ||
+      s.name.toLowerCase().includes(symbolSearch.toLowerCase())
+    );
+  }, [SYMBOLS_BY_CATEGORY, category, symbolSearch]);
+
 
   // Cycle through forge messages
   useEffect(() => {
@@ -487,10 +501,6 @@ export function BotWizard({ onClose, onDeployed }: Props) {
   );
 
   const renderCategory = () => {
-    const filteredCategories = CATEGORIES.filter(cat => 
-      cat.label.toLowerCase().includes(categorySearch.toLowerCase()) ||
-      SYMBOLS_BY_CATEGORY[cat.id].some(s => s.ticker.toLowerCase().includes(categorySearch.toLowerCase()))
-    );
 
     return (
       <div className="space-y-4 animate-in fade-in duration-300">
@@ -544,7 +554,7 @@ export function BotWizard({ onClose, onDeployed }: Props) {
             ))
           ) : (
             <div className="py-8 text-center">
-              <p className="text-xs text-muted-foreground font-mono">No markets found matching "{categorySearch}"</p>
+              <p className="text-xs text-muted-foreground font-mono">No markets found matching &quot;{categorySearch}&quot;</p>
             </div>
           )}
         </div>
@@ -553,10 +563,7 @@ export function BotWizard({ onClose, onDeployed }: Props) {
   };
 
   const renderSymbol = () => {
-    const symbols = (SYMBOLS_BY_CATEGORY[category] ?? []).filter(s => 
-      s.ticker.toLowerCase().includes(symbolSearch.toLowerCase()) ||
-      s.name.toLowerCase().includes(symbolSearch.toLowerCase())
-    );
+    const symbols = filteredSymbols;
     
     return (
       <div className="space-y-4 animate-in fade-in duration-300">
