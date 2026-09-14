@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { BotSnapshot, tradingApi } from '@/lib/api';
 import { useKillBot, useStartBotEngine, useStopBotEngine, useTriggerBotAI, useBotAIStatus, useBotAIDecisions, useUpdateBotConfig, useMarketData } from '@/hooks/useFleet';
 import { TradingChart } from '@/components/dashboard/TradingChart';
@@ -130,6 +130,19 @@ export function BotDetailDrawer({ bot, onClose }: Props) {
       fetchHistory();
     }
   }, [tab, bot.bot_id]);
+
+  // Pre-calculate trade stats using a single pass .reduce() to prevent O(N) overhead during renders
+  const tradeStats = useMemo(() => {
+    if (!history?.trades) return { winning: 0, closed: 0 };
+    return history.trades.reduce(
+      (acc, t) => {
+        if (t.side === 'sell') acc.closed++;
+        if (t.pnl > 0) acc.winning++;
+        return acc;
+      },
+      { winning: 0, closed: 0 }
+    );
+  }, [history]);
 
   return (
     /* Overlay */
@@ -458,7 +471,7 @@ export function BotDetailDrawer({ bot, onClose }: Props) {
                     </div>
                     <div className="p-3 rounded-xl bg-gradient-to-br from-violet-500/10 to-violet-600/5 border border-violet-500/20">
                       <div className="text-lg font-mono font-bold text-white tabular-nums">
-                        {history.trades.filter(t => t.pnl > 0).length}/{history.trades.filter(t => t.side === 'sell').length || 0}
+                        {tradeStats.winning}/{tradeStats.closed || 0}
                       </div>
                       <div className="text-[9px] font-mono text-violet-400 mt-0.5">WIN / CLOSED</div>
                     </div>
