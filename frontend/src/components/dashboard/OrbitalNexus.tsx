@@ -31,18 +31,20 @@ export function OrbitalNexus({ agents, flow, enabledAgents, deliberation, onAgen
     return () => observer.disconnect();
   }, []);
 
+  const enabledAgentsSet = useMemo(() => new Set(enabledAgents), [enabledAgents]);
+
   const orbitingAgents = useMemo(() => {
     return agents
       .filter(a => a.id !== 'executioner')
       .sort((a, b) => {
-        if (enabledAgents.length === 0) return 0;
-        const aEnabled = enabledAgents.includes(a.id);
-        const bEnabled = enabledAgents.includes(b.id);
+        if (enabledAgentsSet.size === 0) return 0;
+        const aEnabled = enabledAgentsSet.has(a.id);
+        const bEnabled = enabledAgentsSet.has(b.id);
         if (aEnabled && !bEnabled) return -1;
         if (!aEnabled && bEnabled) return 1;
         return 0;
       });
-  }, [agents, enabledAgents]);
+  }, [agents, enabledAgentsSet]);
 
   // Responsive semi-axes for ellipse. Provide 120px padding.
   const rx = Math.max(150, (dimensions.width / 2) - 120);
@@ -94,7 +96,7 @@ export function OrbitalNexus({ agents, flow, enabledAgents, deliberation, onAgen
       <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
         <g style={{ transform: 'translate(50%, 50%)' }}>
           {layoutData.map(({ agent, angle }) => {
-            const isActive = enabledAgents.length === 0 || enabledAgents.includes(agent.id);
+            const isActive = enabledAgentsSet.size === 0 || enabledAgentsSet.has(agent.id);
             if (!isActive) return null;
 
             const x = Math.cos(angle) * rx || 0;
@@ -153,7 +155,7 @@ export function OrbitalNexus({ agents, flow, enabledAgents, deliberation, onAgen
 
       {/* Agents */}
       {layoutData.map(({ agent, angle, index }) => {
-        const isDisabled = enabledAgents.length > 0 && !enabledAgents.includes(agent.id);
+        const isDisabled = enabledAgentsSet.size > 0 && !enabledAgentsSet.has(agent.id);
         const isActive = !isDisabled && flow.activeStep === index;
         return (
           <OrbitalAgent
