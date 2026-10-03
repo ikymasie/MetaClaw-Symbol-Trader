@@ -105,20 +105,21 @@ export function TradingChart({ priceData, bollingerData, markers }: TradingChart
     candlestickSeriesRef.current.setData(uniquePriceData as CandlestickData[]);
 
     if (bollingerData.length) {
-      const upperData = bollingerData.map(d => ({
-        time: Math.floor(new Date(d.time).getTime() / 1000),
-        value: d.upper,
-      })).filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time));
+      // ⚡ Bolt: Use a single O(N) pass with Set deduplication instead of O(3*N^2)
+      const upperData: { time: number; value: any }[] = [];
+      const middleData: { time: number; value: any }[] = [];
+      const lowerData: { time: number; value: any }[] = [];
+      const seenTimes = new Set<number>();
 
-      const middleData = bollingerData.map(d => ({
-        time: Math.floor(new Date(d.time).getTime() / 1000),
-        value: d.middle,
-      })).filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time));
-
-      const lowerData = bollingerData.map(d => ({
-        time: Math.floor(new Date(d.time).getTime() / 1000),
-        value: d.lower,
-      })).filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time));
+      for (const d of bollingerData) {
+        const time = Math.floor(new Date(d.time).getTime() / 1000);
+        if (!seenTimes.has(time)) {
+          seenTimes.add(time);
+          upperData.push({ time, value: d.upper });
+          middleData.push({ time, value: d.middle });
+          lowerData.push({ time, value: d.lower });
+        }
+      }
 
       upperBBSeriesRef.current?.setData(upperData as LineData[]);
       middleBBSeriesRef.current?.setData(middleData as LineData[]);
