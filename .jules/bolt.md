@@ -1,0 +1,3 @@
+## 2024-05-18 - Optimize nested .filter(findIndex) loops in React components
+**Learning:** Multiple array deduplication via `Array.prototype.findIndex` inside `Array.prototype.filter` or `.map()` creates an O(N^2) bottleneck, compounded severely when running within a React component's re-render cycle (like `TradingChart.tsx`). Re-allocating the same arrays 3 times for Bollinger Bands also caused unnecessary object allocation.
+**Action:** Replace `findIndex()` with a single `Set` for O(1) membership checking and use a single `for...of` loop to build multiple related arrays concurrently to reduce time complexity to O(N).

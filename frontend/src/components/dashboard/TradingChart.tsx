@@ -97,32 +97,39 @@ export function TradingChart({ priceData, bollingerData, markers }: TradingChart
       close: d.close,
     })).sort((a, b) => a.time - b.time);
 
-    // Filter duplicates
-    const uniquePriceData = formattedPriceData.filter((val, idx, self) => 
-      idx === self.findIndex((t) => t.time === val.time)
-    );
+    // Filter duplicates O(N) instead of O(N^2)
+    const uniquePriceData: typeof formattedPriceData = [];
+    const seenPriceTimes = new Set<number>();
+    for (const data of formattedPriceData) {
+      if (!seenPriceTimes.has(data.time)) {
+        seenPriceTimes.add(data.time);
+        uniquePriceData.push(data);
+      }
+    }
 
     candlestickSeriesRef.current.setData(uniquePriceData as CandlestickData[]);
 
     if (bollingerData.length) {
-      const upperData = bollingerData.map(d => ({
-        time: Math.floor(new Date(d.time).getTime() / 1000),
-        value: d.upper,
-      })).filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time));
+      const upperData: LineData[] = [];
+      const middleData: LineData[] = [];
+      const lowerData: LineData[] = [];
 
-      const middleData = bollingerData.map(d => ({
-        time: Math.floor(new Date(d.time).getTime() / 1000),
-        value: d.middle,
-      })).filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time));
+      const seenBBTimes = new Set<number>();
 
-      const lowerData = bollingerData.map(d => ({
-        time: Math.floor(new Date(d.time).getTime() / 1000),
-        value: d.lower,
-      })).filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time));
+      // Collapse multiple map/filter chains into a single O(N) pass with Set deduplication
+      for (const d of bollingerData) {
+        const time = Math.floor(new Date(d.time).getTime() / 1000);
+        if (!seenBBTimes.has(time)) {
+          seenBBTimes.add(time);
+          upperData.push({ time, value: d.upper } as LineData);
+          middleData.push({ time, value: d.middle } as LineData);
+          lowerData.push({ time, value: d.lower } as LineData);
+        }
+      }
 
-      upperBBSeriesRef.current?.setData(upperData as LineData[]);
-      middleBBSeriesRef.current?.setData(middleData as LineData[]);
-      lowerBBSeriesRef.current?.setData(lowerData as LineData[]);
+      upperBBSeriesRef.current?.setData(upperData);
+      middleBBSeriesRef.current?.setData(middleData);
+      lowerBBSeriesRef.current?.setData(lowerData);
     }
 
     if (markers.length && candlestickSeriesRef.current) {
