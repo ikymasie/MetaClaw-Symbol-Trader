@@ -1,0 +1,3 @@
+## 2024-10-08 - O(N^2) Array Deduplication in React Components
+**Learning:** Found an O(N^2) performance anti-pattern where `.filter((v, i, s) => i === s.findIndex(...))` was used multiple times per render loop to deduplicate arrays inside a `useEffect` (specifically `priceData`, `bollingerData`, and `markers` in `TradingChart.tsx`). This causes massive CPU bottleneck for charts with thousands of data points because `findIndex` loops through the array for every single element.
+**Action:** When deduplicating large datasets or checking for existence across arrays in React render/effect loops, always replace `.filter` + `.findIndex`/`.some` combinations with O(N) operations using `Set` lookups inside a single `for...of` loop or `Array.map`.
