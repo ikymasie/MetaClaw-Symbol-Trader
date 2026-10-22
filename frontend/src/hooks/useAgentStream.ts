@@ -138,7 +138,25 @@ function pickScript(id: AgentId) {
   return scripts[Math.floor(Math.random() * scripts.length)];
 }
 
+// ─── Precomputed Reverse Maps for O(1) Lookups ────────────────────────
+const REVERSE_DARWIN_MAP: Record<string, string> = {
+  sentiment_analyst: 'sentiment',
+  macro_analyst: 'macro',
+  earnings_analyst: 'earnings',
+  technical_analyst: 'technical',
+};
+
+const REVERSE_AGENT_MAP: Record<string, string> = {
+  watchman: 'watchman',
+  macro_analyst: 'macro',
+  earnings_analyst: 'earnings',
+  technical_analyst: 'technical',
+  sentiment_analyst: 'sentiment',
+  risk_manager: 'risk_manager',
+};
+
 // ─── Hook ─────────────────────────────────────────────────────────────────────
+
 
 /**
  * @param botId — the bot to stream agent data for
@@ -297,14 +315,8 @@ export function useAgentStream(botId?: string, enabled: boolean = true) {
     // Apply live Darwinian weights to the weight field so the Situation Room
     // shows real performance-adjusted multipliers next to each agent card.
     if (darwinianWeights && typeof darwinianWeights === 'object') {
-      const darwinMap: Record<string, AgentId> = {
-        sentiment: 'sentiment_analyst',
-        macro: 'macro_analyst',
-        earnings: 'earnings_analyst',
-        technical: 'technical_analyst',
-      };
       setAgents(prev => prev.map(a => {
-        const backendKey = Object.keys(darwinMap).find(k => darwinMap[k] === a.id);
+        const backendKey = REVERSE_DARWIN_MAP[a.id];
         if (backendKey && darwinianWeights[backendKey] != null) {
           const effectiveWeight = (AGENT_WEIGHTS[a.id] ?? 1.0) * darwinianWeights[backendKey];
           return { ...a, weight: Math.round(effectiveWeight * 100) / 100 };
@@ -323,7 +335,7 @@ export function useAgentStream(botId?: string, enabled: boolean = true) {
     
     setAgents(prev => prev.map(a => {
       // Find the corresponding vote for this agent
-      const backendAgentKey = Object.keys(agentMap).find(k => agentMap[k] === a.id);
+      const backendAgentKey = REVERSE_AGENT_MAP[a.id];
       const vote = votes.find((v: any) => v.agent === backendAgentKey);
 
       if (vote) {
