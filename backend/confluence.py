@@ -145,10 +145,16 @@ def detect_fvg(
 
     # Scan backwards from the most recent completed 3-candle pattern
     start_idx = max(2, n - lookback)
+
+    # PERFORMANCE OPTIMIZATION: Extract raw numpy arrays (.values) before the loop
+    # to bypass massive Pandas Series .iloc boxing overhead during iteration
+    highs_vals = highs.values
+    lows_vals = lows.values
+
     for i in range(n - 1, start_idx - 1, -1):
         # Bullish FVG: candle[i-2].high < candle[i].low
-        candle1_high = float(highs.iloc[i - 2])
-        candle3_low = float(lows.iloc[i])
+        candle1_high = float(highs_vals[i - 2])
+        candle3_low = float(lows_vals[i])
 
         if candle1_high < candle3_low:
             gap_bottom = candle1_high
@@ -205,16 +211,18 @@ def detect_liquidity_sweep(
     swing_low_idx = int(lookback_window.idxmin())
 
     # Step 2: Check if any of the last `reclaim_bars` wicked below the swing low
-    recent_lows = lows.iloc[-reclaim_bars:]
-    recent_closes = closes.iloc[-reclaim_bars:]
+    # PERFORMANCE OPTIMIZATION: Extract raw numpy arrays (.values) before the loop
+    # to bypass massive Pandas Series .iloc boxing overhead during iteration
+    recent_lows = lows.iloc[-reclaim_bars:].values
+    recent_closes = closes.iloc[-reclaim_bars:].values
 
     sweep_found = False
     sweep_low = None
     reclaimed_price = None
 
     for j in range(len(recent_lows)):
-        bar_low = float(recent_lows.iloc[j])
-        bar_close = float(recent_closes.iloc[j])
+        bar_low = float(recent_lows[j])
+        bar_close = float(recent_closes[j])
 
         if bar_low < swing_low_val:
             # This bar swept below the swing low
