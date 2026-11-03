@@ -53,6 +53,16 @@ const STATUS_DOT: Record<string, string> = {
   STOPPED: 'bg-slate-600', EMERGENCY_HALTED: 'bg-red-500', CRITICAL_STOP: 'bg-red-500',
 };
 
+// Trading-psychology composure (state of mind)
+const COMPOSURE_COLORS: Record<string, { text: string; bg: string; border: string }> = {
+  CALM:          { text: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/25' },
+  FEARFUL:       { text: 'text-amber-400',   bg: 'bg-amber-500/10',   border: 'border-amber-500/30'   },
+  OVERCONFIDENT: { text: 'text-sky-400',     bg: 'bg-sky-500/10',     border: 'border-sky-500/30'     },
+  GREEDY:        { text: 'text-fuchsia-400', bg: 'bg-fuchsia-500/10', border: 'border-fuchsia-500/30' },
+  FATIGUED:      { text: 'text-orange-400',  bg: 'bg-orange-500/10',  border: 'border-orange-500/30'  },
+  TILTED:        { text: 'text-red-500',     bg: 'bg-red-500/10',     border: 'border-red-500/50'     },
+};
+
 function pnlClass(v: number) {
   return v > 0 ? 'text-emerald-400' : v < 0 ? 'text-red-400' : 'text-muted-foreground';
 }
@@ -75,6 +85,25 @@ export function BotDetailDrawer({ bot, onClose }: Props) {
   const [takeProfitUsd, setTakeProfitUsd]     = useState<number>(bot.take_profit_usd ?? 1);
   const [leverageFactor, setLeverageFactor]   = useState<number>(bot.leverage_factor ?? 10);
 
+  // Defensive systems — anti-fakeout + advanced profit retrace
+  const [fakeoutFilter, setFakeoutFilter]     = useState<boolean>(bot.fakeout_filter_enabled ?? true);
+  const [retraceEnabled, setRetraceEnabled]   = useState<boolean>(bot.profit_retrace_enabled ?? true);
+  const [retraceArm, setRetraceArm]           = useState<number>(bot.profit_retrace_arm_usd ?? 0.65);
+  // Give-back is stored as a fraction (0–1) but shown/edited as a percentage.
+  const [retraceGiveback, setRetraceGiveback] = useState<number>(Math.round((bot.profit_retrace_giveback_pct ?? 0.5) * 100));
+
+  // Boost position (trend-confirmation runner)
+  const [boostEnabled, setBoostEnabled] = useState<boolean>(bot.boost_enabled ?? true);
+  const [boostLot, setBoostLot]         = useState<number>(bot.boost_lot ?? 0.05);
+  const [boostMaxLoss, setBoostMaxLoss] = useState<number>(bot.boost_max_loss_usd ?? 30);
+
+  // Trading psychology — editable discipline rails
+  const [psychEnabled, setPsychEnabled]   = useState<boolean>(bot.psychology_enabled ?? true);
+  const [blockAvgDown, setBlockAvgDown]    = useState<boolean>(bot.block_average_down ?? true);
+  // Give-back is stored as a fraction (0–1) but shown/edited as a percentage.
+  const [psychGiveback, setPsychGiveback]  = useState<number>(Math.round((bot.rolling_giveback_pct ?? 0.30) * 100));
+  const [tiltCooldown, setTiltCooldown]    = useState<number>(bot.tilt_cooldown_secs ?? 900);
+
   // Sync from prop only when the drawer opens for a *different* bot
   useEffect(() => {
     setLocalKillZone(bot.kill_zone_enabled !== false);
@@ -83,6 +112,17 @@ export function BotDetailDrawer({ bot, onClose }: Props) {
     setNetProfitTarget(bot.net_profit_target_usd ?? 1);
     setTakeProfitUsd(bot.take_profit_usd ?? 1);
     setLeverageFactor(bot.leverage_factor ?? 10);
+    setFakeoutFilter(bot.fakeout_filter_enabled ?? true);
+    setRetraceEnabled(bot.profit_retrace_enabled ?? true);
+    setRetraceArm(bot.profit_retrace_arm_usd ?? 0.65);
+    setRetraceGiveback(Math.round((bot.profit_retrace_giveback_pct ?? 0.5) * 100));
+    setBoostEnabled(bot.boost_enabled ?? true);
+    setBoostLot(bot.boost_lot ?? 0.05);
+    setBoostMaxLoss(bot.boost_max_loss_usd ?? 30);
+    setPsychEnabled(bot.psychology_enabled ?? true);
+    setBlockAvgDown(bot.block_average_down ?? true);
+    setPsychGiveback(Math.round((bot.rolling_giveback_pct ?? 0.30) * 100));
+    setTiltCooldown(bot.tilt_cooldown_secs ?? 900);
   }, [bot.bot_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleToggleKillZone = () => {
@@ -218,6 +258,141 @@ export function BotDetailDrawer({ bot, onClose }: Props) {
                 </div>
               </section>
 
+              {/* Trading Psychology — state of mind + per-position narrative */}
+              {(() => {
+                const composure = v.composure_state ?? 'CALM';
+                const cc = COMPOSURE_COLORS[composure] ?? COMPOSURE_COLORS.CALM;
+                const psy = s.psychology;
+                const tiltLeft = v.tilt_lockout_remaining ?? 0;
+                return (
+                  <section>
+                    <SectionLabel>
+                      <span className="flex items-center gap-1.5">
+                        <BrainCircuit className="w-3 h-3 text-sky-400" />
+                        Trading Psychology
+                      </span>
+                    </SectionLabel>
+                    <div className={`space-y-3 p-3 rounded-xl ${cc.bg} border ${cc.border}`}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className={`text-[11px] font-mono font-semibold ${cc.text}`}>
+                            {composure}
+                            {psy?.entries_halted && <span className="ml-2 text-red-400">· ENTRIES HALTED</span>}
+                          </div>
+                          <p className="text-[9px] font-mono text-muted-foreground mt-0.5">
+                            Discipline {(v.discipline_score ?? 100).toFixed(0)}/100
+                            {tiltLeft > 0 && ` · tilt cool-down ${Math.round(tiltLeft)}s`}
+                          </p>
+                        </div>
+                        <Shield className={`w-4 h-4 ${cc.text}`} />
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <Metric label="Win Streak"  value={`${v.win_streak ?? 0}`} color="text-emerald-400" />
+                        <Metric label="Loss Streak" value={`${v.loss_streak ?? 0}`} color={(v.loss_streak ?? 0) > 0 ? 'text-red-400' : undefined} />
+                        <Metric label="Entries"     value={`${psy?.session_entries ?? 0}`} />
+                      </div>
+                      {psy?.positions && psy.positions.length > 0 && (
+                        <div className="space-y-2 pt-2 border-t border-white/8">
+                          {psy.positions.map((p) => (
+                            <div key={p.ticket} className="text-[10px] font-mono">
+                              <div className="flex justify-between text-muted-foreground">
+                                <span>#{p.ticket} {p.side}</span>
+                                <span className={pnlClass(p.peak_net)}>MAE ${p.mae_usd.toFixed(2)}</span>
+                              </div>
+                              {(p.rationale || p.exit_thesis) && (
+                                <p className="text-[10px] text-white/70 mt-0.5 leading-snug">
+                                  “{p.rationale || p.exit_thesis}”
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Editable discipline rails */}
+                      <div className="space-y-3 pt-2 border-t border-white/8">
+                        {/* Master switch */}
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className={`text-[11px] font-mono font-semibold ${psychEnabled ? 'text-sky-400' : 'text-muted-foreground'}`}>
+                              {psychEnabled ? 'DISCIPLINE — ON' : 'DISCIPLINE — OFF'}
+                            </div>
+                            <p className="text-[9px] font-mono text-muted-foreground mt-0.5">
+                              Composure gating, loser cuts &amp; session rails
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const newVal = !psychEnabled;
+                              setPsychEnabled(newVal);
+                              handleUpdateLeverage({ psychology_enabled: newVal });
+                            }}
+                            disabled={updateConfig.isPending}
+                            className={`w-12 h-6 rounded-full transition-all relative shrink-0 ${psychEnabled ? 'bg-sky-500 shadow-[0_0_10px_rgba(14,165,233,0.5)]' : 'bg-white/10'}`}
+                          >
+                            <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${psychEnabled ? 'left-7' : 'left-1'}`} />
+                          </button>
+                        </div>
+
+                        {psychEnabled && (
+                          <>
+                            {/* Anti-average-down */}
+                            <div className="flex items-center justify-between pt-2 border-t border-white/8">
+                              <div>
+                                <div className={`text-[11px] font-mono font-semibold ${blockAvgDown ? 'text-sky-400' : 'text-muted-foreground'}`}>
+                                  {blockAvgDown ? 'NO AVERAGING DOWN' : 'AVERAGING DOWN ALLOWED'}
+                                </div>
+                                <p className="text-[9px] font-mono text-muted-foreground mt-0.5">
+                                  Block scale-ins that add to a loser
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  const newVal = !blockAvgDown;
+                                  setBlockAvgDown(newVal);
+                                  handleUpdateLeverage({ block_average_down: newVal });
+                                }}
+                                disabled={updateConfig.isPending}
+                                className={`w-12 h-6 rounded-full transition-all relative shrink-0 ${blockAvgDown ? 'bg-sky-500 shadow-[0_0_10px_rgba(14,165,233,0.5)]' : 'bg-white/10'}`}
+                              >
+                                <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${blockAvgDown ? 'left-7' : 'left-1'}`} />
+                              </button>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 pt-1">
+                              <div className="space-y-1">
+                                <div className="flex justify-between">
+                                  <span className="text-[8px] font-mono text-muted-foreground uppercase tracking-widest">Give-back</span>
+                                  <span className="text-[10px] font-mono text-sky-300 font-bold">{psychGiveback}%</span>
+                                </div>
+                                <input
+                                  type="range"
+                                  min={5} max={90} step={5}
+                                  value={psychGiveback}
+                                  onChange={e => setPsychGiveback(parseInt(e.target.value))}
+                                  onMouseUp={() => handleUpdateLeverage({ rolling_giveback_pct: psychGiveback / 100 })}
+                                  className="w-full accent-sky-500"
+                                />
+                              </div>
+                              <div className="space-y-1">
+                                <span className="text-[8px] font-mono text-muted-foreground uppercase tracking-widest">Tilt Cooldown (s)</span>
+                                <input
+                                  type="number"
+                                  value={tiltCooldown}
+                                  onChange={e => setTiltCooldown(parseInt(e.target.value) || 0)}
+                                  onBlur={() => handleUpdateLeverage({ tilt_cooldown_secs: tiltCooldown })}
+                                  className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white font-mono focus:border-sky-500/50 outline-none"
+                                />
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </section>
+                );
+              })()}
+
               {/* Leverage Mode (Darwinian Scalper) */}
               <section>
                 <SectionLabel>
@@ -312,6 +487,165 @@ export function BotDetailDrawer({ bot, onClose }: Props) {
                           onMouseUp={() => handleUpdateLeverage({ leverage_factor: leverageFactor })}
                           className="w-full accent-violet-500"
                         />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Defensive Systems — anti-fakeout + profit retrace */}
+              <section>
+                <SectionLabel>
+                  <span className="flex items-center gap-1.5">
+                    <Shield className="w-3 h-3 text-emerald-400" />
+                    Defensive Systems
+                  </span>
+                </SectionLabel>
+                <div className="space-y-3 p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+
+                  {/* Anti-Fakeout Filter toggle */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className={`text-[11px] font-mono font-semibold ${fakeoutFilter ? 'text-emerald-400' : 'text-muted-foreground'}`}>
+                        {fakeoutFilter ? 'ANTI-FAKEOUT — ON' : 'ANTI-FAKEOUT — OFF'}
+                      </div>
+                      <p className="text-[9px] font-mono text-muted-foreground mt-0.5">
+                        Blocks stop-hunt / failed-breakout entry traps
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newVal = !fakeoutFilter;
+                        setFakeoutFilter(newVal);
+                        handleUpdateLeverage({ fakeout_filter_enabled: newVal });
+                      }}
+                      disabled={updateConfig.isPending}
+                      className={`w-12 h-6 rounded-full transition-all relative shrink-0 ${fakeoutFilter ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-white/10'}`}
+                    >
+                      <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${fakeoutFilter ? 'left-7' : 'left-1'}`} />
+                    </button>
+                  </div>
+
+                  {/* Profit Retrace toggle */}
+                  <div className="flex items-center justify-between pt-2 border-t border-emerald-500/10">
+                    <div>
+                      <div className={`text-[11px] font-mono font-semibold ${retraceEnabled ? 'text-emerald-400' : 'text-muted-foreground'}`}>
+                        {retraceEnabled ? 'PROFIT RETRACE — ON' : 'PROFIT RETRACE — OFF'}
+                      </div>
+                      <p className="text-[9px] font-mono text-muted-foreground mt-0.5">
+                        Locks a rising share of each trade&apos;s peak profit
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newVal = !retraceEnabled;
+                        setRetraceEnabled(newVal);
+                        handleUpdateLeverage({ profit_retrace_enabled: newVal });
+                      }}
+                      disabled={updateConfig.isPending}
+                      className={`w-12 h-6 rounded-full transition-all relative shrink-0 ${retraceEnabled ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-white/10'}`}
+                    >
+                      <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${retraceEnabled ? 'left-7' : 'left-1'}`} />
+                    </button>
+                  </div>
+
+                  {retraceEnabled && (
+                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-emerald-500/10 animate-in fade-in duration-200">
+                      <div className="space-y-1">
+                        <span className="text-[8px] font-mono text-muted-foreground uppercase tracking-widest">Arm at ($)</span>
+                        <input
+                          type="number"
+                          step={0.05}
+                          min={0}
+                          value={retraceArm}
+                          onChange={e => setRetraceArm(parseFloat(e.target.value) || 0)}
+                          onBlur={() => handleUpdateLeverage({ profit_retrace_arm_usd: retraceArm })}
+                          className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white font-mono focus:border-emerald-500/50 outline-none"
+                        />
+                        <p className="text-[8px] font-mono text-muted-foreground/60 italic">Peak profit before lock arms</p>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[8px] font-mono text-muted-foreground uppercase tracking-widest">Give-back (%)</span>
+                        <input
+                          type="number"
+                          step={5}
+                          min={1}
+                          max={90}
+                          value={retraceGiveback}
+                          onChange={e => setRetraceGiveback(parseInt(e.target.value) || 0)}
+                          onBlur={() => handleUpdateLeverage({ profit_retrace_giveback_pct: Math.min(0.9, Math.max(0.01, retraceGiveback / 100)) })}
+                          className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white font-mono focus:border-emerald-500/50 outline-none"
+                        />
+                        <p className="text-[8px] font-mono text-muted-foreground/60 italic">Max % of peak to surrender</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Boost Position — trend-confirmation runner */}
+              <section>
+                <SectionLabel>
+                  <span className="flex items-center gap-1.5">
+                    <Flame className="w-3 h-3 text-amber-400" />
+                    Boost Position
+                    {bot.boost_active && (
+                      <span className="ml-1 px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-amber-500/20 text-amber-300 animate-pulse">
+                        ACTIVE
+                      </span>
+                    )}
+                  </span>
+                </SectionLabel>
+                <div className="space-y-3 p-3 rounded-xl bg-amber-500/5 border border-amber-500/20">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className={`text-[11px] font-mono font-semibold ${boostEnabled ? 'text-amber-400' : 'text-muted-foreground'}`}>
+                        {boostEnabled ? 'BOOST — ON' : 'BOOST — OFF'}
+                      </div>
+                      <p className="text-[9px] font-mono text-muted-foreground mt-0.5">
+                        Auto-rides a larger position on ≥2 same-dir scalps. No TP/SL — exits on retrace.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const newVal = !boostEnabled;
+                        setBoostEnabled(newVal);
+                        handleUpdateLeverage({ boost_enabled: newVal });
+                      }}
+                      disabled={updateConfig.isPending}
+                      className={`w-12 h-6 rounded-full transition-all relative shrink-0 ${boostEnabled ? 'bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]' : 'bg-white/10'}`}
+                    >
+                      <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${boostEnabled ? 'left-7' : 'left-1'}`} />
+                    </button>
+                  </div>
+
+                  {boostEnabled && (
+                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-amber-500/10 animate-in fade-in duration-200">
+                      <div className="space-y-1">
+                        <span className="text-[8px] font-mono text-muted-foreground uppercase tracking-widest">Boost Lot</span>
+                        <input
+                          type="number"
+                          step={0.01}
+                          min={0.01}
+                          value={boostLot}
+                          onChange={e => setBoostLot(parseFloat(e.target.value) || 0)}
+                          onBlur={() => handleUpdateLeverage({ boost_lot: boostLot })}
+                          className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white font-mono focus:border-amber-500/50 outline-none"
+                        />
+                        <p className="text-[8px] font-mono text-muted-foreground/60 italic">Runner size (lots)</p>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[8px] font-mono text-muted-foreground uppercase tracking-widest">Max Loss ($)</span>
+                        <input
+                          type="number"
+                          step={5}
+                          min={1}
+                          value={boostMaxLoss}
+                          onChange={e => setBoostMaxLoss(parseFloat(e.target.value) || 0)}
+                          onBlur={() => handleUpdateLeverage({ boost_max_loss_usd: boostMaxLoss })}
+                          className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white font-mono focus:border-amber-500/50 outline-none"
+                        />
+                        <p className="text-[8px] font-mono text-muted-foreground/60 italic">Hard software cap (no broker SL)</p>
                       </div>
                     </div>
                   )}

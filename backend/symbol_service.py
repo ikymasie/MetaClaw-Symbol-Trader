@@ -124,6 +124,16 @@ class SymbolService:
         return broker_name
 
 
+    def is_known_symbol(self, clean_name: str) -> bool:
+        """
+        True if clean_name matches a symbol in the Excel master list.
+        Used to distinguish Excel "clean" names (which need broker-suffix
+        mapping) from live broker-native symbols (e.g. Weltrade synthetics
+        like "FX Vol 60") that must be passed through untouched.
+        """
+        upper = clean_name.strip().upper()
+        return any(s["name"].upper() == upper for s in self._symbols)
+
     def search_symbols(self, query: str) -> List[Dict[str, str]]:
         query = query.lower()
         return [
@@ -147,7 +157,14 @@ def to_mt5_symbol(symbol: str) -> str:
         from symbol_service import to_mt5_symbol
         mt5_name = to_mt5_symbol("EURUSD")  # → "EURUSD_i"
     """
-    clean = symbol.strip().upper().replace("=X", "").replace("/", "")
+    raw = symbol.strip()
+    clean = raw.upper().replace("=X", "").replace("/", "")
+    # Symbols absent from the Excel master list are already broker-native
+    # (e.g. live Weltrade synthetics like "FX Vol 60"). Uppercasing or appending
+    # the broker suffix would corrupt their case-sensitive name and break tick
+    # lookup, so return them verbatim.
+    if not symbol_service.is_known_symbol(clean):
+        return raw
     return symbol_service.get_broker_symbol(clean)
 
 to_execution = to_mt5_symbol

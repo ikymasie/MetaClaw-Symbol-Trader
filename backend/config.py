@@ -157,19 +157,19 @@ class TradingConfig:
 
     # ── AI Brain ──────────────────────────────────────────────────────────
     openclaw_base_url: str = field(
-        default_factory=lambda: os.getenv("OPENCLAW_BASE_URL", "http://127.0.0.1:18789")
+        default_factory=lambda: _cfg_api("llm_base_url", os.getenv("OPENCLAW_BASE_URL", "https://api.deepseek.com"))
     )
     openclaw_token: str = field(
-        default_factory=lambda: _cfg_api("gemini_api_key", os.getenv("OPENCLAW_TOKEN", ""))
+        default_factory=lambda: _cfg_api("llm_api_key", _cfg_api("gemini_api_key", os.getenv("OPENCLAW_TOKEN", "")))
     )
     openclaw_model: str = field(
-        default_factory=lambda: _cfg_api("gemini_model", os.getenv("OPENCLAW_MODEL", "google/gemini-flash-latest"))
+        default_factory=lambda: _cfg_api("llm_model", _cfg_api("gemini_model", os.getenv("OPENCLAW_MODEL", "deepseek-v4-flash")))
     )
     deep_think_model: str = field(
-        default_factory=lambda: os.getenv("DEEP_THINK_MODEL", "gemini-3.1-pro")
+        default_factory=lambda: _cfg_api("deep_think_model", os.getenv("DEEP_THINK_MODEL", "deepseek-v4-flash"))
     )
     quick_think_model: str = field(
-        default_factory=lambda: os.getenv("QUICK_THINK_MODEL", "gemini-3.1-flash-preview")
+        default_factory=lambda: _cfg_api("quick_think_model", os.getenv("QUICK_THINK_MODEL", "deepseek-v4-flash"))
     )
     ollama_base_url: str = field(
         default_factory=lambda: _get_ollama("base_url", os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"))

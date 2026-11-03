@@ -466,7 +466,7 @@ MARKET INTELLIGENCE (sub-agent aggregate):
                     market_block += (
                         f"\n  · {tf.upper()}: {s.get('regime','?')} | "
                         f"Trend: {s.get('trend_direction','?')} | "
-                        f"ADX: {s.get('adx',0):.1f} | RSI: {s.get('rsi',0):.1f}"
+                        f"ADX: {(s.get('adx') or 0):.1f} | RSI: {(s.get('rsi') or 0):.1f}"
                     )
 
         return f"""ANALYSIS TRIGGER: {trigger}{survival_directive}

@@ -416,8 +416,29 @@ class DeliberationGraph:
     async def _quorum_node(self, state: DeliberationState) -> dict:
         self._emit("quorum_calc", "quorum")
         raw_signal = state["raw_signal"]
+
+        # Synthetics (volatility / crash / boom / step / jump indices) are
+        # price-led: the fundamental agents (sentiment, macro, earnings,
+        # calendar) have no real data and sit on a permanent HOLD that only
+        # dilutes the weighted-score denominator, so they're excluded; and the
+        # price/momentum strategist that produced this raw_signal is added as a
+        # weighted vote so a genuine directional signal isn't blocked just
+        # because the data-light agents are neutral. Agents keep veto power — an
+        # opposite agent vote drives the score negative and still blocks.
+        _sym = (getattr(self._pool, "symbol", "") or "").lower()
+        _is_synthetic = any(
+            k in _sym for k in ("vol", "crash", "boom", "step", "jump", "range break", "syntx", "synthetic")
+        )
+        _excluded = {"risk_manager", "watchman", "ict"}
+        if _is_synthetic:
+            _excluded |= {"sentiment", "macro", "earnings", "calendar"}
         panel_votes = [v for v in state.get("votes", [])
-                       if v.get("agent") not in ("risk_manager", "watchman", "ict")]
+                       if v.get("agent") not in _excluded]
+        if _is_synthetic and raw_signal in ("BUY", "SELL"):
+            panel_votes.append({
+                "agent": "strategist", "vote": raw_signal,
+                "confidence": 0.7, "weight": 2.0, "darwinian_weight": 1.0,
+            })
         total_panel = len(panel_votes)
 
         if total_panel == 0:
@@ -433,7 +454,8 @@ class DeliberationGraph:
             for v in panel_votes
         ) / total_w
 
-        quorum_met = weighted_score >= 0.25
+        _threshold = 0.10 if _is_synthetic else 0.25
+        quorum_met = weighted_score >= _threshold
         self._emit("quorum_result", "quorum", score=round(weighted_score, 3), met=quorum_met)
 
         if not quorum_met:

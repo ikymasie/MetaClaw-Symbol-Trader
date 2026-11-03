@@ -179,6 +179,21 @@ class BotInstance:
             "isolated_risk_usd": self.config.isolated_risk_usd,
             "net_profit_target_usd": self.config.net_profit_target_usd,
             "take_profit_usd": self.config.take_profit_usd,
+            # Defensive systems — anti-fakeout + advanced profit retrace
+            "fakeout_filter_enabled": getattr(self.config, "fakeout_filter_enabled", True),
+            "profit_retrace_enabled": getattr(self.config, "profit_retrace_enabled", True),
+            "profit_retrace_arm_usd": getattr(self.config, "profit_retrace_arm_usd", 0.65),
+            "profit_retrace_giveback_pct": getattr(self.config, "profit_retrace_giveback_pct", 0.50),
+            # Boost position (trend-confirmation runner)
+            "boost_enabled": getattr(self.config, "boost_enabled", False),
+            "boost_lot": getattr(self.config, "boost_lot", 0.05),
+            "boost_max_loss_usd": getattr(self.config, "boost_max_loss_usd", 30.0),
+            "boost_active": bool(getattr(self.engine, "_boost_episode_open", False)) if self.engine else False,
+            # Trading psychology — editable discipline rails
+            "psychology_enabled": getattr(self.config, "psychology_enabled", True),
+            "block_average_down": getattr(self.config, "block_average_down", True),
+            "rolling_giveback_pct": getattr(self.config, "rolling_giveback_pct", 0.30),
+            "tilt_cooldown_secs": getattr(self.config, "tilt_cooldown_secs", 900),
             "created_at": self.created_at,
             "status": status,
             "vitals": vitals,
@@ -980,15 +995,23 @@ class FleetOrchestrator:
                 # Stripped before any DB write / WS payload (not serialisable).
                 _dataframes = analysis.get("dataframes", {}) or {}
 
+                # Real multi-timeframe trends pulled straight from MT5
+                # (M1/M5/M15/H1/H4). MT5 holds full per-timeframe history, so
+                # this gives the technical / multi-timeframe agents genuine data
+                # instead of higher timeframes starved by sparse 1m bars. Real
+                # values override the resampled ones.
+                real_trends = self._mt5_trend_summaries(symbol)
+                effective_trends = {**trend_summaries, **real_trends} if real_trends else trend_summaries
+
                 # 4. Push to local bot instances for zero-latency deliberation
                 with self._lock:
                     for bot in self._bots.values():
                         if bot.config.symbol == symbol:
-                            bot.market_trends = trend_summaries
+                            bot.market_trends = effective_trends
                             # Thread-safe push into SubAgentPool so agents
                             # receive trends in both background runs & deliberate()
                             if bot.sub_agent_pool:
-                                bot.sub_agent_pool.update_market_trends(trend_summaries)
+                                bot.sub_agent_pool.update_market_trends(effective_trends)
                                 # Phase 3 §9.1 — Hand raw frames to the pool
                                 # for agents like CorrelationAgent that need
                                 # direct pandas access without re-allocation.
@@ -999,6 +1022,52 @@ class FleetOrchestrator:
                 logger.error(f"Market aggregation failed for {symbol}: {e}")
 
         self._last_market_aggregation = now
+
+    def _mt5_trend_summaries(self, symbol: str) -> dict:
+        """
+        Build real multi-timeframe trend summaries (M1/M5/M15/H1/H4) by pulling
+        full per-timeframe history straight from MT5. Resampling the sparse 1m
+        bars in PostgreSQL starves the higher timeframes and leaves the
+        technical / multi-timeframe agents with "insufficient data"; MT5 keeps
+        complete history per timeframe, so this gives them something real to vote
+        on. Returns {tf: summary_dict}; empty on any failure (caller falls back).
+        """
+        try:
+            import pandas as pd
+            from mt5_bridge import mt5
+            from symbol_service import to_mt5_symbol
+        except Exception:
+            return {}
+
+        broker = to_mt5_symbol(symbol)
+        tf_map = {
+            "1m":  mt5.TIMEFRAME_M1,
+            "5m":  mt5.TIMEFRAME_M5,
+            "15m": mt5.TIMEFRAME_M15,
+            "1h":  mt5.TIMEFRAME_H1,
+            "4h":  mt5.TIMEFRAME_H4,
+        }
+        summaries: dict = {}
+        try:
+            mt5.symbol_select(broker, True)
+        except Exception:
+            pass
+        for tf, mtf in tf_map.items():
+            try:
+                rates = mt5.copy_rates_from_pos(broker, mtf, 0, 200)
+                if rates is None or len(rates) < 30:
+                    continue
+                df = pd.DataFrame({
+                    "open":   [float(r["open"])        for r in rates],
+                    "high":   [float(r["high"])        for r in rates],
+                    "low":    [float(r["low"])         for r in rates],
+                    "close":  [float(r["close"])       for r in rates],
+                    "volume": [float(r["tick_volume"]) for r in rates],
+                })
+                summaries[tf] = self._aggregator.compute_trend_summary(df, symbol, tf)
+            except Exception as e:
+                logger.debug(f"[MTF] {symbol} {tf} fetch failed: {e}")
+        return summaries
 
 
     def _push_telemetry(self):
@@ -1094,26 +1163,27 @@ class FleetOrchestrator:
         from openai import OpenAI
         from config import config as sys_config
         
-        # Build Gemini client using config
-        gemini_api_key = sys_config.openclaw_token or os.getenv("GEMINI_API_KEY", "")
-        gemini_model = sys_config.openclaw_model or os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+        # Build the LLM client (OpenAI-compatible) from config — DeepSeek by default.
+        llm_api_key = sys_config.openclaw_token or os.getenv("LLM_API_KEY", "")
+        gemini_model = sys_config.openclaw_model or os.getenv("LLM_MODEL", "deepseek-v4-flash")
+        llm_base_url = f"{(sys_config.openclaw_base_url or 'https://api.deepseek.com').rstrip('/')}/v1"
         ollama_base_url = sys_config.ollama_base_url or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
         ollama_model = sys_config.ollama_model or os.getenv("OLLAMA_MODEL_NAME", "gemma2:4b")
 
         openclaw_client = None
         openclaw_model = gemini_model
-        if gemini_api_key:
+        if llm_api_key:
             try:
                 openclaw_client = OpenAI(
-                    api_key=gemini_api_key,
-                    base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+                    api_key=llm_api_key,
+                    base_url=llm_base_url,
                     timeout=30.0,
                 )
-                logger.info(f"[{config.bot_id}] Gemini client initialized (model={gemini_model})")
+                logger.info(f"[{config.bot_id}] LLM client initialized → {llm_base_url} (model={gemini_model})")
             except Exception as e:
-                logger.warning(f"[{config.bot_id}] Gemini client init failed: {e}")
+                logger.warning(f"[{config.bot_id}] LLM client init failed: {e}")
         else:
-            logger.warning(f"[{config.bot_id}] No GEMINI_API_KEY set — AI features disabled")
+            logger.warning(f"[{config.bot_id}] No LLM API key set — AI features disabled")
 
         # Vital Signs
         vital_signs = BotVitalSigns(bot_id=config.bot_id)
@@ -1137,6 +1207,22 @@ class FleetOrchestrator:
             sub_agent_pool.start()
             # Wire the pool into the engine so _live_tick can call deliberate()
             engine.wire_sub_agent_pool(sub_agent_pool)
+
+        # Position Reviewer (Tier-2 trading-psychology narrator). Shares the same
+        # LLM client + budget pool as the sub-agents — no new budget. Optional:
+        # the deterministic discipline guards run with or without it.
+        if getattr(config, "psychology_enabled", True) and getattr(config, "psych_review_enabled", True):
+            from position_reviewer import PositionReviewer
+            reviewer = PositionReviewer(
+                bot_id=config.bot_id,
+                symbol=config.symbol,
+                openclaw_client=openclaw_client,
+                openclaw_model=openclaw_model,
+                ollama_base_url=ollama_base_url,
+                ollama_model=ollama_model,
+                vital_signs=vital_signs,
+            )
+            engine.wire_position_reviewer(reviewer)
 
         # AI Brain
         ai_brain = BotAIBrainScheduler(

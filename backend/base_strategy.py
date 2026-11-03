@@ -143,7 +143,18 @@ class TrendFollowingStrategy(BaseStrategy):
         bot_id = kwargs.get("bot_id", "unknown")
         adx = getattr(regime_state, "adx", None)
         agent = TrendStrategistAgent(bot_id)
-        result = agent.analyse(prices, volumes, "TRENDING", adx=adx)
+
+        # Supply OHLC highs/lows so the breakout is confirmed through the
+        # anti-fakeout filter (close beyond level + ATR buffer, no rejection
+        # wick) instead of the naive ``price > recent_high`` test.
+        highs = lows = None
+        snap = kwargs.get("history_snap")
+        if snap:
+            import pandas as pd
+            highs = pd.Series([float(p.get("high", p["price"])) for p in snap])
+            lows = pd.Series([float(p.get("low", p["price"])) for p in snap])
+
+        result = agent.analyse(prices, volumes, "TRENDING", adx=adx, highs=highs, lows=lows)
         return result.vote
 
 

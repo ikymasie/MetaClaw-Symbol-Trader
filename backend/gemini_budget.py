@@ -41,8 +41,8 @@ logger = logging.getLogger("tradeclaw.gemini_budget")
 # CONFIGURATION
 # ─────────────────────────────────────────────
 
-DEFAULT_HOURLY_LIMIT = 60          # Max Gemini calls per hour (fleet-wide)
-DEFAULT_PER_MINUTE_LIMIT = 5       # Burst cap per rolling 60s window
+DEFAULT_HOURLY_LIMIT = 2000        # Max LLM calls per hour (fleet-wide; DeepSeek has generous limits)
+DEFAULT_PER_MINUTE_LIMIT = 60      # Burst cap per rolling 60s window
 DEFAULT_COOLDOWN_SECONDS = 900     # 15 minutes cooldown after a 429
 HOUR_SECONDS = 3600
 MINUTE_SECONDS = 60

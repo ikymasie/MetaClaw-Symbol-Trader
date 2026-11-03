@@ -228,6 +228,11 @@ class BaseAgent:
             model = model.split("/", 1)[1]
         # Phase 3 §6.1c — auto-downgrade to -lite variant when budget pressure ≥ 80%
         model = gemini_budget.get_recommended_model(model)
+        # DeepSeek's OpenAI-compat API does not support json_schema mode (it 400s,
+        # and we fall back to json_object). json_object mode REQUIRES the literal
+        # word "json" somewhere in the prompt — guarantee it's present.
+        if "json" not in (system + prompt).lower():
+            system = f"{system}\n\nRespond ONLY with a single valid JSON object."
         messages = [
             {"role": "system", "content": system},
             {"role": "user", "content": prompt},
@@ -2871,7 +2876,34 @@ class SubAgentPool:
             return decision
 
         # ── Quorum calculation (non-Risk / non-Watchman / non-ICT direction votes) ─
-        panel_votes = [v for v in votes if v.agent not in ("risk_manager", "watchman", "ict")]
+        # On synthetic indices (volatility / crash / boom / step / jump), the
+        # fundamental agents (sentiment, macro, earnings, calendar) have nothing
+        # real to analyse and sit on a permanent HOLD that only dilutes the
+        # weighted score's denominator — making it nearly impossible for the
+        # price/technical/multi-timeframe agents to ever clear quorum. Exclude
+        # them so synthetics are decided by price action, as the operator chose.
+        _excluded_agents = {"risk_manager", "watchman", "ict"}
+        _sym = (self.symbol or "").lower()
+        _is_synthetic = any(
+            k in _sym for k in ("vol", "crash", "boom", "step", "jump", "range break", "syntx", "synthetic")
+        )
+        if _is_synthetic:
+            _excluded_agents |= {"sentiment", "macro", "earnings", "calendar"}
+        panel_votes = [v for v in votes if v.agent not in _excluded_agents]
+
+        # Price-led: on a synthetic, the price/momentum strategist that produced
+        # this raw_signal counts as a weighted panel vote. Otherwise a genuine
+        # directional signal is blocked whenever the data-light agents sit
+        # neutral (score 0.000), which is exactly what was preventing trades.
+        # Agents keep veto power — an opposite agent vote still subtracts.
+        if _is_synthetic and raw_signal in ("BUY", "SELL"):
+            panel_votes.append(AgentVote(
+                agent="strategist",
+                vote=raw_signal,
+                confidence=0.7,
+                reasoning="Price/momentum strategist directional signal (price-led on synthetics).",
+                weight=2.0,
+            ))
 
         agree_count = sum(1 for v in panel_votes if v.vote == raw_signal)
         total_panel = len(panel_votes)
@@ -2914,13 +2946,17 @@ class SubAgentPool:
             for v in panel_votes
         ) / total_weight
 
-        # Score must clear 0.25 (slightly tighter than old 0.2 to compensate for
-        # removing the raw agree_count gate — weights now do that work)
-        quorum_met = weighted_score >= 0.25
+        # Score must clear the threshold. Synthetics are price-led: the
+        # fundamental agents are excluded and the strategist's own signal carries
+        # the panel, so use a lower bar (0.10) — a real directional signal trades
+        # unless an agent actively opposes it (which drives the score negative and
+        # still blocks). Non-synthetics keep the stricter 0.25 gate.
+        _quorum_threshold = 0.10 if _is_synthetic else 0.25
+        quorum_met = weighted_score >= _quorum_threshold
 
         self._logger.info(
             f"[{self.bot_id}] QUORUM: {agree_count}/{total_panel} agree | "
-            f"weighted_score={weighted_score:.3f} (need ≥0.25) | {'PASS' if quorum_met else 'FAIL'}"
+            f"weighted_score={weighted_score:.3f} (need ≥{_quorum_threshold}) | {'PASS' if quorum_met else 'FAIL'}"
         )
 
         if not quorum_met:

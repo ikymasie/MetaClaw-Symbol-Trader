@@ -159,6 +159,9 @@ export interface MT5AccountInfo {
   cash: number;
   daily_pnl: number;
   daily_pnl_pct: number;
+  daily_realized?: number;       // today's closed-deal P&L from MT5 (incl. manual)
+  daily_unrealized?: number;     // current floating P&L
+  daily_pnl_source?: string;     // "mt5_history" | "mt5_history_utc" | "floating_only"
   unrealized_pnl: number;
   margin_used: number;
   margin_free: number;
@@ -209,6 +212,66 @@ export interface BotDeployRequest {
   isolated_risk_usd?: number;
   net_profit_target_usd?: number;
   take_profit_usd?: number;
+  // Anti-fakeout filter
+  fakeout_filter_enabled?: boolean;
+  fakeout_atr_buffer_mult?: number;
+  fakeout_wick_reject_ratio?: number;
+  fakeout_swing_lookback?: number;
+  // Advanced profit retrace (per-ticket profit ratchet)
+  profit_retrace_enabled?: boolean;
+  profit_retrace_arm_usd?: number;
+  profit_retrace_giveback_pct?: number;
+  profit_retrace_tighten_usd?: number;
+  profit_retrace_tight_giveback_pct?: number;
+  profit_retrace_min_lock_usd?: number;
+  profit_retrace_atr_adaptive?: boolean;
+  // Boost position (trend-confirmation runner)
+  boost_enabled?: boolean;
+  boost_lot?: number;
+  boost_trigger_slots?: number;
+  boost_max_loss_usd?: number;
+  boost_arm_usd?: number;
+  boost_giveback_pct?: number;
+  boost_mtf_exit_enabled?: boolean;
+  boost_mtf_min_flip?: number;
+  boost_mtf_refresh_secs?: number;
+  // Trading psychology (open-position discipline)
+  psychology_enabled?: boolean;
+  block_average_down?: boolean;
+  max_loser_hold_secs?: number;
+  max_position_hold_secs?: number;
+  max_adverse_excursion_usd?: number;
+  tilt_loss_streak?: number;
+  tilt_cooldown_secs?: number;
+  overconfidence_win_streak?: number;
+  rolling_giveback_pct?: number;
+  rolling_trade_window_secs?: number;
+  max_trades_per_window?: number;
+  psych_review_enabled?: boolean;
+  psych_review_interval_secs?: number;
+  psych_review_adverse_usd?: number;
+}
+
+export interface BotPsychologyPosition {
+  ticket: number;
+  side: string;
+  mae_usd: number;
+  peak_net: number;
+  exit_thesis: string;
+  ticks_held: number;
+  rationale?: string;
+}
+
+export interface BotPsychology {
+  enabled: boolean;
+  composure_state: string;       // CALM | FEARFUL | OVERCONFIDENT | FATIGUED | TILTED
+  discipline_score: number;      // 0–100
+  loss_streak: number;
+  win_streak: number;
+  tilt_lockout_remaining: number;
+  entries_halted: boolean;
+  session_entries: number;
+  positions: BotPsychologyPosition[];
 }
 
 
@@ -239,6 +302,21 @@ export interface BotSnapshot {
   isolated_risk_usd?: number;
   net_profit_target_usd?: number;
   take_profit_usd?: number;
+  // Defensive systems (anti-fakeout + profit retrace)
+  fakeout_filter_enabled?: boolean;
+  profit_retrace_enabled?: boolean;
+  profit_retrace_arm_usd?: number;
+  profit_retrace_giveback_pct?: number;
+  // Boost position
+  boost_enabled?: boolean;
+  boost_lot?: number;
+  boost_max_loss_usd?: number;
+  boost_active?: boolean;
+  // Trading psychology — editable discipline rails
+  psychology_enabled?: boolean;
+  block_average_down?: boolean;
+  rolling_giveback_pct?: number;
+  tilt_cooldown_secs?: number;
   status: {
     bot_status: string;
     current_price: number;
@@ -249,12 +327,18 @@ export interface BotSnapshot {
     daily_pnl: number;
     unrealized_pnl: number;
     starting_equity: number;
+    psychology?: BotPsychology;
   };
   vitals: {
     survival_state: string;
     apex_state: string;
     profit_pct: number;
     drawdown_pct: number;
+    composure_state?: string;
+    discipline_score?: number;
+    loss_streak?: number;
+    win_streak?: number;
+    tilt_lockout_remaining?: number;
   };
   ai: {
     enabled: boolean;

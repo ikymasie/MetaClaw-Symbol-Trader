@@ -6,12 +6,13 @@ import { AgentCard } from '@/components/dashboard/AgentCard';
 import { StatusBridge } from '@/components/dashboard/StatusBridge';
 import { SignalScanning } from '@/components/dashboard/SignalScanning';
 import { ExecutionerPanel } from '@/components/dashboard/ExecutionerPanel';
-import { OrbitalNexus } from '@/components/dashboard/OrbitalNexus';
+import { DeliberationGraph3D } from '@/components/dashboard/DeliberationGraph3D';
 import { AgentDetailsPanel } from '@/components/dashboard/AgentDetailsPanel';
 import { useFleetStatus } from '@/hooks/useFleet';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Radio, Activity, Shield, ChevronDown, ListChecks } from 'lucide-react';
+import { Radio, Activity, Shield, ChevronDown, ListChecks, BrainCircuit } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import type { BotSnapshot } from '@/lib/api';
 
 export default function SituationRoomPage() {
   const { data: fleet } = useFleetStatus();
@@ -135,6 +136,9 @@ export default function SituationRoomPage() {
               deliberation={deliberation}
             />
 
+            {/* ── Trading Psychology: the human-monitoring narrative ──────────── */}
+            <PsychologyStrip bot={selectedBot} />
+
             {/* ── Split Layout: Agent Grid + Verdict Panel ────────────────────── */}
             <div className="flex flex-col-reverse lg:flex-row gap-4 h-[700px]">
 
@@ -150,12 +154,14 @@ export default function SituationRoomPage() {
 
               {/* ── War Room Grid (6 voting agents, no executioner) ────────────── */}
               <div className="flex-1 min-w-0 flex flex-col h-full">
-                <OrbitalNexus
+                <DeliberationGraph3D
                   agents={agents}
                   flow={flow}
                   enabledAgents={enabledAgents}
                   deliberation={deliberation}
                   onAgentSelect={setSelectedAgentId}
+                  composure={selectedBot?.vitals?.composure_state}
+                  disciplineScore={selectedBot?.vitals?.discipline_score}
                 />
               </div>
 
@@ -185,6 +191,52 @@ export default function SituationRoomPage() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+// ─── Trading Psychology strip (human-monitoring narrative) ────────────────────
+
+const COMPOSURE_STYLE: Record<string, { text: string; bg: string; border: string }> = {
+  CALM:          { text: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/25' },
+  FEARFUL:       { text: 'text-amber-400',   bg: 'bg-amber-500/10',   border: 'border-amber-500/30'   },
+  OVERCONFIDENT: { text: 'text-sky-400',     bg: 'bg-sky-500/10',     border: 'border-sky-500/30'     },
+  GREEDY:        { text: 'text-fuchsia-400', bg: 'bg-fuchsia-500/10', border: 'border-fuchsia-500/30' },
+  FATIGUED:      { text: 'text-orange-400',  bg: 'bg-orange-500/10',  border: 'border-orange-500/30'  },
+  TILTED:        { text: 'text-red-500',     bg: 'bg-red-500/10',     border: 'border-red-500/50'     },
+};
+
+function PsychologyStrip({ bot }: { bot?: BotSnapshot }) {
+  const psy = bot?.status?.psychology;
+  const composure = bot?.vitals?.composure_state ?? psy?.composure_state ?? 'CALM';
+  const cc = COMPOSURE_STYLE[composure] ?? COMPOSURE_STYLE.CALM;
+  const discipline = bot?.vitals?.discipline_score ?? psy?.discipline_score ?? 100;
+  const tiltLeft = bot?.vitals?.tilt_lockout_remaining ?? psy?.tilt_lockout_remaining ?? 0;
+  const winStreak = bot?.vitals?.win_streak ?? psy?.win_streak ?? 0;
+  const lossStreak = bot?.vitals?.loss_streak ?? psy?.loss_streak ?? 0;
+  // Freshest narrator line across open positions.
+  const narrative = psy?.positions?.map(p => p.rationale || p.exit_thesis).find(Boolean) ?? '';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`flex flex-wrap items-center gap-3 px-4 py-2.5 rounded-2xl border ${cc.bg} ${cc.border}`}
+    >
+      <div className="flex items-center gap-2">
+        <BrainCircuit className={`w-4 h-4 ${cc.text}`} />
+        <span className={`text-[11px] font-mono font-bold uppercase tracking-widest ${cc.text}`}>{composure}</span>
+        {psy?.entries_halted && <span className="text-[10px] font-mono text-red-400 font-bold">· ENTRIES HALTED</span>}
+      </div>
+      <span className="text-[10px] font-mono text-zinc-400">Discipline {discipline.toFixed(0)}/100</span>
+      <span className="text-[10px] font-mono text-emerald-400">W{winStreak}</span>
+      <span className={`text-[10px] font-mono ${lossStreak > 0 ? 'text-red-400' : 'text-zinc-500'}`}>L{lossStreak}</span>
+      {tiltLeft > 0 && (
+        <span className="text-[10px] font-mono text-red-400">tilt cool-down {Math.round(tiltLeft)}s</span>
+      )}
+      {narrative && (
+        <span className="text-[10px] font-mono text-white/70 italic truncate flex-1 min-w-0">“{narrative}”</span>
+      )}
+    </motion.div>
   );
 }
 

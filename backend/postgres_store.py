@@ -34,11 +34,15 @@ BATCH_SIZE_LIMIT = 50       # entries per batch
 
 class AsyncBatcher:
     """Buffers high-frequency writes and flushes them in batches."""
-    def __init__(self, pool: asyncpg.Pool, table_name: str, columns: List[str], file_path: Optional[str] = None):
+    def __init__(self, pool: asyncpg.Pool, table_name: str, columns: List[str], file_path: Optional[str] = None, conflict_clause: str = ""):
         self.pool = pool
         self.table_name = table_name
         self.columns = columns
         self.file_path = file_path
+        # Optional trailing clause (e.g. "ON CONFLICT (...) DO NOTHING") so that
+        # re-inserting rows that already exist (warmup back-fill of bars) is a
+        # no-op instead of aborting the whole executemany batch.
+        self.conflict_clause = conflict_clause
         self.buffer = []
         self._lock = asyncio.Lock()
         self._flush_task = None
@@ -94,7 +98,7 @@ class AsyncBatcher:
         try:
             cols = ", ".join(self.columns)
             placeholders = ", ".join([f"${i+1}" for i in range(len(self.columns))])
-            query = f"INSERT INTO {self.table_name} ({cols}) VALUES ({placeholders})"
+            query = f"INSERT INTO {self.table_name} ({cols}) VALUES ({placeholders}){self.conflict_clause}"
             
             async with self.pool.acquire() as conn:
                 await conn.executemany(query, data)
@@ -134,7 +138,7 @@ class PostgresStore:
             
             # Initialize Batchers
             self.telemetry_batcher = AsyncBatcher(self.pool, "telemetry", ["bot_id", "timestamp", "state"])
-            self.bars_batcher = AsyncBatcher(self.pool, "market_bars", ["symbol", "timeframe", "timestamp", "open", "high", "low", "close", "volume"])
+            self.bars_batcher = AsyncBatcher(self.pool, "market_bars", ["symbol", "timeframe", "timestamp", "open", "high", "low", "close", "volume"], conflict_clause=" ON CONFLICT (symbol, timeframe, timestamp) DO NOTHING")
             self.equity_batcher = AsyncBatcher(self.pool, "equity_history", ["bot_id", "timestamp", "balance", "equity", "margin_level", "open_positions"])
             self.logs_batcher = AsyncBatcher(self.pool, "bot_logs", ["bot_id", "level", "message", "timestamp"], file_path="logs/bot_logs.txt")
             self.metrics_batcher = AsyncBatcher(self.pool, "system_metrics", ["metric_name", "value", "metadata", "timestamp"], file_path="logs/system_metrics.txt")

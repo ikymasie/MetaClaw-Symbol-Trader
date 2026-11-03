@@ -300,6 +300,22 @@ class DeployBotRequest(BaseModel):
     isolated_risk_usd: float = 40.0
     net_profit_target_usd: float = 1.0
     take_profit_usd: float = 0.0
+    stop_loss_usd: float = 0.0
+    # ── Trading Psychology (open-position discipline) ──
+    psychology_enabled: bool = True
+    block_average_down: bool = True
+    max_loser_hold_secs: int = 1800
+    max_position_hold_secs: int = 7200
+    max_adverse_excursion_usd: float = 0.0
+    tilt_loss_streak: int = 3
+    tilt_cooldown_secs: int = 900
+    overconfidence_win_streak: int = 4
+    rolling_giveback_pct: float = 0.30
+    rolling_trade_window_secs: int = 3600
+    max_trades_per_window: int = 0
+    psych_review_enabled: bool = True
+    psych_review_interval_secs: int = 300
+    psych_review_adverse_usd: float = 0.0
 
 
 class FleetConfigUpdate(BaseModel):
@@ -865,6 +881,22 @@ async def fleet_deploy(request: DeployBotRequest):
             isolated_risk_usd=request.isolated_risk_usd,
             net_profit_target_usd=request.net_profit_target_usd,
             take_profit_usd=request.take_profit_usd,
+            stop_loss_usd=request.stop_loss_usd,
+            # Trading psychology
+            psychology_enabled=request.psychology_enabled,
+            block_average_down=request.block_average_down,
+            max_loser_hold_secs=request.max_loser_hold_secs,
+            max_position_hold_secs=request.max_position_hold_secs,
+            max_adverse_excursion_usd=request.max_adverse_excursion_usd,
+            tilt_loss_streak=request.tilt_loss_streak,
+            tilt_cooldown_secs=request.tilt_cooldown_secs,
+            overconfidence_win_streak=request.overconfidence_win_streak,
+            rolling_giveback_pct=request.rolling_giveback_pct,
+            rolling_trade_window_secs=request.rolling_trade_window_secs,
+            max_trades_per_window=request.max_trades_per_window,
+            psych_review_enabled=request.psych_review_enabled,
+            psych_review_interval_secs=request.psych_review_interval_secs,
+            psych_review_adverse_usd=request.psych_review_adverse_usd,
         )
         instance = fleet.deploy_bot(cfg)
         return {
@@ -878,6 +910,85 @@ async def fleet_deploy(request: DeployBotRequest):
     except Exception as e:
         logger.error(f"Bot deploy error: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
+
+def _mt5_account_daily(mt5, balance: float, floating: float, candidate_symbol: str = None) -> dict:
+    """
+    True account-level daily P&L straight from MT5 — NOT the bot DB.
+
+    Daily P&L = today's CLOSED-deal profit (every magic, so MANUAL trades the
+    user placed in the terminal are included) + current floating P&L on all
+    open positions. This is what the broker terminal itself shows for "today".
+
+    Day boundary = broker SERVER midnight (derived from a live tick's server
+    clock — Weltrade runs UTC+3). Degrades gracefully:
+      · server time unreadable → fall back to UTC midnight (≤ a few h skew)
+      · deal history unreadable → fall back to floating-only
+
+    Returns: {daily_realized, daily_unrealized, daily_pnl, sod_balance, source}
+    """
+    # ── Resolve the broker server clock from a live tick (epoch secs, server tz) ──
+    srv_epoch = None
+    try:
+        sym = None
+        pos = mt5.positions_get()
+        if pos:
+            sym = pos[0].symbol
+        if sym is None:
+            sym = candidate_symbol
+        if sym:
+            tk = mt5.symbol_info_tick(sym)
+            if tk and getattr(tk, "time", 0):
+                srv_epoch = int(tk.time)
+    except Exception:
+        srv_epoch = None
+
+    used_utc_fallback = srv_epoch is None
+    if srv_epoch is None:
+        srv_epoch = int(datetime.now(timezone.utc).timestamp())
+
+    srv_dt = datetime.utcfromtimestamp(srv_epoch)
+    sod_epoch = srv_epoch - (srv_dt.hour * 3600 + srv_dt.minute * 60 + srv_dt.second)
+
+    # ── Sum today's closed trade deals (all magics → manual included) ──
+    # MT5 over the RPyC bridge REJECTS datetime args ((-2,'Invalid arguments'));
+    # pass epoch INTS positionally — they serialize cleanly and work.
+    realized = None
+    try:
+        deals = mt5.history_deals_get(int(sod_epoch), int(srv_epoch) + 120)
+        if deals is not None:
+            total = 0.0
+            for d in deals:
+                # type 0=BUY, 1=SELL are trade deals; skip balance/credit/deposit ops.
+                if int(getattr(d, "type", -1)) in (0, 1):
+                    total += (float(getattr(d, "profit", 0.0))
+                              + float(getattr(d, "commission", 0.0))
+                              + float(getattr(d, "swap", 0.0))
+                              + float(getattr(d, "fee", 0.0)))
+            realized = round(total, 2)
+    except Exception as e:
+        logger.warning(f"[account] history_deals_get failed: {e}")
+        realized = None
+
+    if realized is None:
+        # No history → floating-only daily (better than DB, still MT5-sourced).
+        return {
+            "daily_realized": 0.0,
+            "daily_unrealized": round(floating, 2),
+            "daily_pnl": round(floating, 2),
+            "sod_balance": balance,
+            "source": "floating_only",
+        }
+
+    # balance already reflects today's banked realized → back it out for SOD.
+    sod_balance = balance - realized
+    return {
+        "daily_realized": realized,
+        "daily_unrealized": round(floating, 2),
+        "daily_pnl": round(realized + floating, 2),
+        "sod_balance": sod_balance if sod_balance > 0 else balance,
+        "source": "mt5_history_utc" if used_utc_fallback else "mt5_history",
+    }
 
 
 @app.get("/fleet/account")
@@ -917,8 +1028,24 @@ async def fleet_account():
 
         equity = float(acc.equity)
         balance = float(acc.balance)
-        daily_pnl = equity - balance
-        daily_pnl_pct = (daily_pnl / balance * 100) if balance > 0 else 0.0
+        floating = equity - balance
+
+        # True daily P&L from MT5 (today's closed deals incl. manual + floating),
+        # not the bot DB. Falls back to floating-only if history is unavailable.
+        # A candidate symbol lets the server-clock read work even when flat.
+        _candidate = None
+        try:
+            for _inst in list(getattr(fleet, "_bots", {}).values()):
+                _sym = getattr(getattr(_inst, "config", None), "symbol", "")
+                if _sym:
+                    _candidate = to_mt5_symbol(_sym)
+                    break
+        except Exception:
+            _candidate = None
+        d = _mt5_account_daily(mt5, balance, floating, _candidate)
+        daily_pnl = d["daily_pnl"]
+        sod_balance = d["sod_balance"]
+        daily_pnl_pct = (daily_pnl / sod_balance * 100) if sod_balance > 0 else 0.0
 
         return {
             "equity": equity,
@@ -929,6 +1056,9 @@ async def fleet_account():
             "cash": balance,
             "daily_pnl": round(daily_pnl, 2),
             "daily_pnl_pct": round(daily_pnl_pct, 2),
+            "daily_realized": d["daily_realized"],
+            "daily_unrealized": d["daily_unrealized"],
+            "daily_pnl_source": d["source"],
             "unrealized_pnl": float(acc.profit),
             "margin_used": float(acc.margin),
             "margin_free": float(acc.margin_free),
@@ -1029,6 +1159,26 @@ async def fleet_update_bot_config(bot_id: str, updates: dict):
         "ai_interval_minutes", "capital_allocation", "kill_zone_enabled",
         "short_selling_enabled", "leverage_mode_enabled", "leverage_factor",
         "isolated_risk_usd", "net_profit_target_usd", "take_profit_usd",
+        "stop_loss_usd", "trailing_stop_enabled", "trailing_stop_pct",
+        "auto_start",
+        # Anti-fakeout filter
+        "fakeout_filter_enabled", "fakeout_atr_buffer_mult",
+        "fakeout_wick_reject_ratio", "fakeout_swing_lookback",
+        # Advanced profit retrace
+        "profit_retrace_enabled", "profit_retrace_arm_usd",
+        "profit_retrace_giveback_pct", "profit_retrace_tighten_usd",
+        "profit_retrace_tight_giveback_pct", "profit_retrace_min_lock_usd",
+        "profit_retrace_atr_adaptive",
+        # Boost position
+        "boost_enabled", "boost_lot", "boost_trigger_slots", "boost_max_loss_usd",
+        "boost_arm_usd", "boost_giveback_pct", "boost_mtf_exit_enabled",
+        "boost_mtf_min_flip", "boost_mtf_refresh_secs",
+        # Trading psychology (open-position discipline)
+        "psychology_enabled", "block_average_down", "max_loser_hold_secs",
+        "max_position_hold_secs", "max_adverse_excursion_usd", "tilt_loss_streak",
+        "tilt_cooldown_secs", "overconfidence_win_streak", "rolling_giveback_pct",
+        "rolling_trade_window_secs", "max_trades_per_window", "psych_review_enabled",
+        "psych_review_interval_secs", "psych_review_adverse_usd",
     }
     applied = {}
     for key, value in updates.items():
@@ -1036,10 +1186,13 @@ async def fleet_update_bot_config(bot_id: str, updates: dict):
             setattr(instance.config, key, value)
             applied[key] = value
 
-    # Persist updated config to Firestore
+    # Persist the FULL updated config (not just the changed fields). A partial
+    # dict would clobber every other field — symbol, account_id, etc. — in the
+    # bots/bot_configs tables via save_bot_config's ON CONFLICT UPDATE, which is
+    # how bots silently lost their symbol and reverted to a default on restart.
     try:
         from postgres_store import update_bot_config
-        await update_bot_config(bot_id, applied)
+        await update_bot_config(bot_id, instance.config.to_dict())
     except Exception as e:
         logger.warning(f"Failed to persist config update for {bot_id}: {e}")
 
@@ -1461,6 +1614,10 @@ _WIZARD_PRESETS = {
         "sub_agents": ["sentiment", "macro", "earnings", "watchman", "risk_manager"],
         "strategy": "mean_reversion", "smart_routing_min_qty": 6, "twap_interval_ms": 600,
         "max_slippage_pct": 0.05,
+        # Trading psychology — max discipline / patience
+        "block_average_down": True, "max_loser_hold_secs": 900, "max_position_hold_secs": 3600,
+        "tilt_loss_streak": 2, "tilt_cooldown_secs": 1200, "overconfidence_win_streak": 3,
+        "rolling_giveback_pct": 0.15, "rolling_trade_window_secs": 3600, "max_trades_per_window": 6,
     },
     "buffalo": {
         "qty": 2, "stop_loss_pct": 0.7, "max_daily_drawdown_pct": 4.0,
@@ -1471,6 +1628,10 @@ _WIZARD_PRESETS = {
         "sub_agents": ["sentiment", "macro", "earnings", "technical", "watchman", "risk_manager"],
         "strategy": "combined", "smart_routing_min_qty": 5, "twap_interval_ms": 500,
         "max_slippage_pct": 0.05,
+        # Trading psychology — conservative
+        "block_average_down": True, "max_loser_hold_secs": 1200, "max_position_hold_secs": 5400,
+        "tilt_loss_streak": 2, "tilt_cooldown_secs": 1080, "overconfidence_win_streak": 3,
+        "rolling_giveback_pct": 0.20, "rolling_trade_window_secs": 3600, "max_trades_per_window": 8,
     },
     "rhino": {
         "qty": 4, "stop_loss_pct": 1.0, "max_daily_drawdown_pct": 5.5,
@@ -1481,6 +1642,10 @@ _WIZARD_PRESETS = {
         "sub_agents": ["sentiment", "macro", "earnings", "technical", "watchman", "risk_manager"],
         "strategy": "trend_following", "smart_routing_min_qty": 4, "twap_interval_ms": 400,
         "max_slippage_pct": 0.05,
+        # Trading psychology — balanced
+        "block_average_down": True, "max_loser_hold_secs": 1800, "max_position_hold_secs": 7200,
+        "tilt_loss_streak": 3, "tilt_cooldown_secs": 900, "overconfidence_win_streak": 4,
+        "rolling_giveback_pct": 0.25, "rolling_trade_window_secs": 3600, "max_trades_per_window": 12,
     },
     "leopard": {
         "qty": 6, "stop_loss_pct": 1.3, "max_daily_drawdown_pct": 7.0,
@@ -1491,6 +1656,10 @@ _WIZARD_PRESETS = {
         "sub_agents": ["sentiment", "macro", "earnings", "technical", "watchman", "risk_manager"],
         "strategy": "mean_reversion", "smart_routing_min_qty": 3, "twap_interval_ms": 350,
         "max_slippage_pct": 0.05,
+        # Trading psychology — aggressive (rails stay on)
+        "block_average_down": True, "max_loser_hold_secs": 2400, "max_position_hold_secs": 9000,
+        "tilt_loss_streak": 3, "tilt_cooldown_secs": 720, "overconfidence_win_streak": 4,
+        "rolling_giveback_pct": 0.30, "rolling_trade_window_secs": 3600, "max_trades_per_window": 20,
     },
     "lion": {
         "qty": 10, "stop_loss_pct": 1.8, "max_daily_drawdown_pct": 9.0,
@@ -1501,6 +1670,10 @@ _WIZARD_PRESETS = {
         "sub_agents": ["sentiment", "macro", "earnings", "technical", "watchman", "risk_manager"],
         "strategy": "combined", "smart_routing_min_qty": 3, "twap_interval_ms": 280,
         "max_slippage_pct": 0.05,
+        # Trading psychology — most aggressive, but never averages down / removes stops
+        "block_average_down": True, "max_loser_hold_secs": 3000, "max_position_hold_secs": 10800,
+        "tilt_loss_streak": 3, "tilt_cooldown_secs": 600, "overconfidence_win_streak": 5,
+        "rolling_giveback_pct": 0.30, "rolling_trade_window_secs": 3600, "max_trades_per_window": 30,
     },
 }
 

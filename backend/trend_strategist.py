@@ -80,6 +80,12 @@ class TrendStrategistAgent:
     # Volume multiplier required to confirm breakout
     VOLUME_SPIKE_MIN: float = 1.5
 
+    # Anti-fakeout breakout confirmation (used when OHLC highs/lows are supplied).
+    # Breakout must close beyond the level by ≥ BREAKOUT_ATR_BUFFER × ATR and not
+    # be a rejection wick. Defeats the naive ``price > recent_high`` stop-hunt.
+    BREAKOUT_ATR_BUFFER: float = 0.25
+    BREAKOUT_WICK_REJECT: float = 0.50
+
     # Minimum bars required in the price series
     MIN_BARS: int = 30
 
@@ -96,6 +102,8 @@ class TrendStrategistAgent:
         volumes: Optional[pd.Series],
         regime: str,                # "RANGING" | "TRENDING" | "VOLATILE"
         adx: Optional[float] = None,  # pre-computed ADX from RegimeDetector (OHLC-based)
+        highs: Optional[pd.Series] = None,  # bar highs (enables anti-fakeout breakout confirm)
+        lows: Optional[pd.Series] = None,   # bar lows (enables anti-fakeout breakout confirm)
     ) -> TrendSignal:
         """
         Analyse the price/volume series and return a TrendSignal.
@@ -106,6 +114,9 @@ class TrendStrategistAgent:
             regime:  Current regime from RegimeDetector.
             adx:     ADX already computed by RegimeDetector (preferred — uses full OHLC).
                      When provided, skips the close-only proxy computation inside _compute.
+            highs/lows: Bar highs/lows aligned to prices. When supplied, breakouts
+                     are confirmed via the ATR-buffered anti-fakeout filter; when
+                     absent, the legacy ``close > recent_high`` breakout is used.
         """
         if regime != "TRENDING":
             return TrendSignal(
@@ -126,12 +137,15 @@ class TrendStrategistAgent:
             # Since prices is usually a Series, we check the last index entry
             current_bar_ts = str(prices.index[-1]) if hasattr(prices.index, "iloc") else ""
             
-            signal = self._compute(prices, volumes, adx)
+            signal = self._compute(prices, volumes, adx, highs, lows)
             
             # Deduplication: Only allow one BUY/SELL per bar.
             # HOLD is always allowed.
             if signal.vote in (VOTE_BUY, VOTE_SELL):
-                if current_bar_ts == self._last_signal_bar:
+                # Only dedup when we actually have a real bar identifier — an
+                # empty current_bar_ts ("" from a RangeIndex series) must never
+                # match an empty _last_signal_bar, or every signal is suppressed.
+                if current_bar_ts and current_bar_ts == self._last_signal_bar:
                     self._logger.debug(f"Trend signal {signal.vote} already issued for bar {current_bar_ts} — suppressing.")
                     return TrendSignal(
                         vote=VOTE_HOLD,
@@ -154,6 +168,8 @@ class TrendStrategistAgent:
     def _compute(
         self, prices: pd.Series, volumes: Optional[pd.Series],
         adx: Optional[float] = None,
+        highs: Optional[pd.Series] = None,
+        lows: Optional[pd.Series] = None,
     ) -> TrendSignal:
 
         # ── EMA crossover ──────────────────────────────────────────────────
@@ -185,8 +201,41 @@ class TrendStrategistAgent:
             cur_vol = volumes.iloc[-1]
             volume_confirms = (cur_vol >= avg_vol * self.VOLUME_SPIKE_MIN)
 
-        breakout_up = (current_price > recent_high) and volume_confirms
-        breakout_dn = (current_price < recent_low) and volume_confirms
+        raw_break_up = current_price > recent_high
+        raw_break_dn = current_price < recent_low
+
+        # ── Anti-fakeout breakout confirmation ──────────────────────────────
+        # With OHLC available, a breakout must CLOSE beyond the level by an
+        # ATR-scaled buffer and not be a rejection wick — defeating the naive
+        # ``price > recent_high`` stop-hunt. Without OHLC, use legacy behaviour.
+        if highs is not None and lows is not None and len(highs) >= self.MIN_BARS:
+            from fakeout_filter import confirm_breakout, compute_atr
+            atr_val = compute_atr(highs, lows, prices)
+
+            breakout_up = False
+            if raw_break_up and volume_confirms:
+                v = confirm_breakout(
+                    "UP", prices, highs, lows, recent_high,
+                    atr=atr_val, buffer_mult=self.BREAKOUT_ATR_BUFFER,
+                    wick_reject_ratio=self.BREAKOUT_WICK_REJECT,
+                )
+                breakout_up = v.confirmed
+                if not v.confirmed:
+                    self._logger.info(f"[{self.bot_id}] Breakout UP rejected (anti-fakeout): {v.reason}")
+
+            breakout_dn = False
+            if raw_break_dn and volume_confirms:
+                v = confirm_breakout(
+                    "DOWN", prices, highs, lows, recent_low,
+                    atr=atr_val, buffer_mult=self.BREAKOUT_ATR_BUFFER,
+                    wick_reject_ratio=self.BREAKOUT_WICK_REJECT,
+                )
+                breakout_dn = v.confirmed
+                if not v.confirmed:
+                    self._logger.info(f"[{self.bot_id}] Breakout DOWN rejected (anti-fakeout): {v.reason}")
+        else:
+            breakout_up = raw_break_up and volume_confirms
+            breakout_dn = raw_break_dn and volume_confirms
 
         # ── Signal aggregation ─────────────────────────────────────────────
         adx_ok = adx >= self.ADX_THRESHOLD
@@ -200,7 +249,7 @@ class TrendStrategistAgent:
         # direction.  This prevents the strategist from sitting idle during
         # sustained trends where the crossover happened many bars ago.
         ema_gap_pct = (cur_fast - cur_slow) / cur_slow * 100 if cur_slow != 0 else 0
-        MOMENTUM_GAP_PCT = 0.015  # minimum EMA gap (%) to consider momentum — 0.05 was too high for BTC 1-min
+        MOMENTUM_GAP_PCT = 0.030  # minimum EMA gap (%) to consider momentum — 0.05 too wide, 0.015 too narrow; 0.03 balances noise vs signal on 1-min BTC
 
         momentum_buy = (not ema_crossed_up and not breakout_up
                         and adx_ok and ema_gap_pct > MOMENTUM_GAP_PCT)

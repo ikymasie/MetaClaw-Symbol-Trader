@@ -6,17 +6,14 @@ import {
   Zap, Shield, Brain, BarChart2, TrendingUp,
   ArrowRight, Check, Loader2, Sparkles, Server
 } from 'lucide-react';
-import { api, accountsApi } from '@/lib/api';
+import { api } from '@/lib/api';
 import {
   useDeployBot,
-  useAvailableSymbols,
+  useAccountSymbols,
   useMT5Account,
   useFleetStatus,
   useAccounts,
-  useAccountSymbols,
   useGenerateBot,
-  type MT5Account,
-  type MT5Symbol,
   type BotDeployRequest,
   type WizardGenerateRequest,
   type WizardResult,
@@ -45,6 +42,7 @@ const PERSONALITIES = [
     strategy: 'mean_reversion',
     strategyLabel: 'Value Guardian',
     huntingDescription: 'Waits for "oversold" signals. Slow, safe, and deliberate.',
+    discipline: { label: 'Max discipline', giveback: 15, tiltStreak: 2, loserHoldMin: 15 },
   },
   {
     id: 'buffalo',
@@ -61,6 +59,7 @@ const PERSONALITIES = [
     strategy: 'combined',
     strategyLabel: 'Balanced Hunter',
     huntingDescription: 'Uses multiple indicators to find high-probability setups.',
+    discipline: { label: 'Conservative', giveback: 20, tiltStreak: 2, loserHoldMin: 20 },
   },
   {
     id: 'rhino',
@@ -77,6 +76,7 @@ const PERSONALITIES = [
     strategy: 'trend_following',
     strategyLabel: 'Momentum Charge',
     huntingDescription: 'Identifies strong trends and rides the wave while it stays hot.',
+    discipline: { label: 'Balanced', giveback: 25, tiltStreak: 3, loserHoldMin: 30 },
   },
   {
     id: 'leopard',
@@ -93,6 +93,7 @@ const PERSONALITIES = [
     strategy: 'mean_reversion',
     strategyLabel: 'Rapid Scalper',
     huntingDescription: 'Fires fast trades on quick bounces. High frequency, tight exits.',
+    discipline: { label: 'Aggressive · rails on', giveback: 30, tiltStreak: 3, loserHoldMin: 40 },
   },
   {
     id: 'lion',
@@ -109,6 +110,7 @@ const PERSONALITIES = [
     strategy: 'combined',
     strategyLabel: 'Apex Predator',
     huntingDescription: 'Maximum aggression. Uses all high-power strategies at once.',
+    discipline: { label: 'Apex · rails on', giveback: 30, tiltStreak: 3, loserHoldMin: 50 },
   },
 ];
 
@@ -194,8 +196,6 @@ export function BotWizard({ onClose, onDeployed }: Props) {
   const [accountId, setAccountId] = useState('');
   const { data: accountsData, isLoading: loadingAccounts } = useAccounts();
   const accounts = accountsData?.accounts ?? [];
-  const { data: accountSymbolsData, isLoading: loadingAccountSymbols } = useAccountSymbols(accountId);
-  const accountSymbols = accountSymbolsData?.symbols ?? [];
   const [category, setCategory]   = useState('');
   const [symbol, setSymbol]       = useState('');
   const [customSymbol, setCustomSymbol] = useState('');
@@ -205,6 +205,7 @@ export function BotWizard({ onClose, onDeployed }: Props) {
   const [capitalAllocation, setCapitalAllocation] = useState(10000);
   const [lotSize, setLotSize] = useState(0.01);
   const [forgeError, setForgeError] = useState('');
+  const [deployError, setDeployError] = useState('');
   const [symbolSearch, setSymbolSearch] = useState('');
   const [categorySearch, setCategorySearch] = useState('');
   const [leverageEnabled, setLeverageEnabled] = useState(false);
@@ -214,7 +215,7 @@ export function BotWizard({ onClose, onDeployed }: Props) {
   const [takeProfitUsd, setTakeProfitUsd] = useState(1);
   const deployBot = useDeployBot();
   const generateBot = useGenerateBot();
-  const { data: availableSymbolsData, isLoading: isLoadingSymbols } = useAvailableSymbols();
+  const { data: availableSymbolsData, isLoading: isLoadingSymbols, refetch: refetchSymbols } = useAccountSymbols(accountId || null);
   const { data: accountInfo } = useMT5Account();
   const { data: fleetStatus } = useFleetStatus();
 
@@ -229,10 +230,14 @@ export function BotWizard({ onClose, onDeployed }: Props) {
 
   const totalAllocated = fleetStatus?.bots?.reduce((sum, b) => sum + b.capital_allocation, 0) ?? 0;
   const maxAllocation = accountInfo ? Math.max(0, accountInfo.equity - totalAllocated) : 0;
+  // Backend rejects capital_allocation < $1 (ge=1). Only treat equity as a hard
+  // cap once it clears that floor — tiny/unfunded accounts fall back to a notional
+  // ceiling so deploy never sends an invalid (sub-$1) allocation.
+  const MIN_CAPITAL = 1;
+  const allocCeiling = maxAllocation >= MIN_CAPITAL ? maxAllocation : 100000;
 
   // ── Dynamic Categories ────────────────────────────────
-  // Use account-specific symbols when available, fallback to global
-  const effectiveSymbols = accountSymbols.length > 0 ? accountSymbols : (availableSymbolsData?.symbols ?? []);
+  const effectiveSymbols = availableSymbolsData?.symbols ?? [];
 
   const { categories, symbolsByCategory } = useMemo(() => {
     if (!effectiveSymbols.length) return { categories: [], symbolsByCategory: {} };
@@ -364,7 +369,9 @@ export function BotWizard({ onClose, onDeployed }: Props) {
         setNetProfitTarget(data.config.net_profit_target_usd ?? 1);
         setTakeProfitUsd(data.config.take_profit_usd ?? 1);
         setLotSize(selectedSymbolInfo?.volume_min ?? 0.01);
-        if (maxAllocation > 0) setCapitalAllocation(Math.min(10000, maxAllocation));
+        // Default to the account's available capital (capped at 10k), but never
+        // below the backend's $1 minimum — otherwise deploy 422s on small accounts.
+        setCapitalAllocation(Math.max(MIN_CAPITAL, Math.min(10000, maxAllocation || 10000)));
         setStep('review');
       },
       onError: (err: unknown) => {
@@ -379,6 +386,7 @@ export function BotWizard({ onClose, onDeployed }: Props) {
   // ── Deploy ────────────────────────────────────────────
   const handleDeploy = () => {
     if (!result) return;
+    setDeployError('');
     const payload = {
       ...result.config,
       account_id: accountId,
@@ -389,7 +397,7 @@ export function BotWizard({ onClose, onDeployed }: Props) {
       category: result.category,
       symbol: result.symbol,
       ai_generated: result.ai_generated,
-      capital_allocation: capitalAllocation,
+      capital_allocation: Math.max(MIN_CAPITAL, capitalAllocation),
       qty: lotSize,
       short_selling_enabled: true,
       sub_agents: result.config.sub_agents ?? [],
@@ -406,6 +414,21 @@ export function BotWizard({ onClose, onDeployed }: Props) {
       onSuccess: (res) => {
         onDeployed?.(res.bot_id);
         onClose();
+      },
+      onError: (err: unknown) => {
+        const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
+        let msg: string;
+        if (Array.isArray(detail)) {
+          // FastAPI/Pydantic validation errors → [{loc, msg}, ...]
+          msg = detail
+            .map((d: { loc?: unknown[]; msg?: string }) => `${d.loc?.slice(1).join('.') ?? ''}: ${d.msg ?? ''}`.trim())
+            .join('; ');
+        } else if (typeof detail === 'string') {
+          msg = detail;
+        } else {
+          msg = err instanceof Error ? err.message : 'Deploy failed. Please try again.';
+        }
+        setDeployError(msg || 'Deploy failed. Please try again.');
       },
     });
   };
@@ -477,12 +500,6 @@ export function BotWizard({ onClose, onDeployed }: Props) {
         </div>
       )}
 
-      {loadingAccountSymbols && accountId && (
-        <div className="flex items-center gap-2 justify-center text-xs text-muted-foreground pt-2">
-          <Loader2 className="w-3 h-3 animate-spin" />
-          <span className="font-mono">Loading broker symbols…</span>
-        </div>
-      )}
     </div>
   );
 
@@ -520,7 +537,28 @@ export function BotWizard({ onClose, onDeployed }: Props) {
         </div>
 
         <div className="grid grid-cols-1 gap-2.5 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar">
-          {filteredCategories.length > 0 ? (
+          {isLoadingSymbols ? (
+            <div className="py-10 text-center">
+              <Loader2 className="w-6 h-6 text-primary animate-spin mx-auto mb-3" />
+              <p className="text-xs text-muted-foreground font-mono animate-pulse">Scanning exchange for available markets...</p>
+            </div>
+          ) : effectiveSymbols.length === 0 ? (
+            <div className="py-8 text-center">
+              {categorySearch ? (
+                <p className="text-xs text-muted-foreground font-mono">No markets found matching "{categorySearch}"</p>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground font-mono">No markets available from your exchange connection</p>
+                  <button
+                    onClick={() => refetchSymbols()}
+                    className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-muted-foreground hover:text-white hover:border-white/20 transition-all font-mono inline-flex items-center gap-2"
+                  >
+                    <RefreshCw className="w-3 h-3" /> Retry
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : filteredCategories.length > 0 ? (
             filteredCategories.map(cat => (
               <button
                 key={cat.id}
@@ -694,6 +732,16 @@ export function BotWizard({ onClose, onDeployed }: Props) {
                     <span key={t} className="px-1.5 py-0.5 rounded-full bg-white/8 text-[9px] text-muted-foreground font-mono">{t}</span>
                   ))}
                 </div>
+                {/* Trading-psychology discipline defaults */}
+                <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
+                  <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-sky-500/10 border border-sky-500/25 text-[8px] font-mono text-sky-300 uppercase tracking-tight">
+                    <Shield className="w-2.5 h-2.5" />
+                    {p.discipline.label}
+                  </span>
+                  <span className="text-[8px] font-mono text-muted-foreground">
+                    give-back {p.discipline.giveback}% · tilt @{p.discipline.tiltStreak}L · cut loser {p.discipline.loserHoldMin}m
+                  </span>
+                </div>
               </div>
             </div>
           </button>
@@ -857,13 +905,13 @@ export function BotWizard({ onClose, onDeployed }: Props) {
               <span className="text-muted-foreground text-xs">$</span>
               <input
                 type="number"
-                min="0"
-                max={maxAllocation > 0 ? maxAllocation : undefined}
+                min={MIN_CAPITAL}
+                max={allocCeiling}
                 step="100"
                 value={capitalAllocation}
                 onChange={e => {
                   const v = parseFloat(e.target.value) || 0;
-                  setCapitalAllocation(maxAllocation > 0 ? Math.min(v, maxAllocation) : v);
+                  setCapitalAllocation(Math.min(v, allocCeiling));
                 }}
                 className="bg-transparent border-none text-right text-xs font-mono font-bold text-primary focus:ring-0 p-0 w-20 appearance-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
@@ -872,9 +920,9 @@ export function BotWizard({ onClose, onDeployed }: Props) {
           <input
             type="range"
             min={0}
-            max={maxAllocation > 0 ? maxAllocation : 100000}
-            step={Math.max(1, Math.floor((maxAllocation || 100000) / 100))}
-            value={Math.min(capitalAllocation, maxAllocation > 0 ? maxAllocation : 100000)}
+            max={allocCeiling}
+            step={Math.max(1, Math.floor(allocCeiling / 100))}
+            value={Math.min(capitalAllocation, allocCeiling)}
             onChange={e => setCapitalAllocation(parseFloat(e.target.value))}
             className="w-full accent-primary"
           />
@@ -882,12 +930,10 @@ export function BotWizard({ onClose, onDeployed }: Props) {
             <span>$0</span>
             <span>Allocation per Bot</span>
             <span>
-              {maxAllocation > 0
-                ? `$${maxAllocation.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
-                : 'MAX'}
+              {`$${allocCeiling.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
             </span>
           </div>
-          {maxAllocation > 0 && capitalAllocation > maxAllocation && (
+          {maxAllocation >= MIN_CAPITAL && capitalAllocation > maxAllocation && (
             <p className="text-[9px] text-red-400 font-mono flex items-center gap-1">
               ⚠ Exceeds available capital
             </p>
@@ -1015,7 +1061,14 @@ export function BotWizard({ onClose, onDeployed }: Props) {
 
         {/* Footer — only shown on review */}
         {step === 'review' && (
-          <div className="px-5 py-4 border-t border-white/8 flex items-center gap-3">
+          <div className="px-5 py-4 border-t border-white/8 space-y-3">
+          {deployError && (
+            <p className="text-[11px] text-red-400 font-mono flex items-start gap-1.5 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+              <span className="shrink-0">⚠</span>
+              <span>Deploy failed — {deployError}</span>
+            </p>
+          )}
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setStep('personality')}
               className="px-4 py-2 rounded-xl border border-white/8 text-xs text-muted-foreground hover:text-white hover:border-white/20 transition-all font-mono flex items-center gap-1.5"
@@ -1033,6 +1086,7 @@ export function BotWizard({ onClose, onDeployed }: Props) {
                 <><Rocket className="w-3.5 h-3.5" /> DEPLOY BOT</>
               )}
             </button>
+          </div>
           </div>
         )}
       </div>

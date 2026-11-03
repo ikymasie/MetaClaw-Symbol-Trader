@@ -72,7 +72,7 @@ def get_intelligence_budget(profit_pct: float) -> dict:
         return {
             "tier": 3,
             "tier_name": VitalState.SINGULARITY,
-            "model": "google/gemini-pro-latest",
+            "model": "deepseek-v4-flash",
             "ollama_model": "ollama/llama3:70b",
             "temperature": 0.1,
             "thinking_budget": 65536,
@@ -83,7 +83,7 @@ def get_intelligence_budget(profit_pct: float) -> dict:
         return {
             "tier": 2,
             "tier_name": VitalState.APEX,
-            "model": "google/gemini-pro-latest",
+            "model": "deepseek-v4-flash",
             "ollama_model": "ollama/llama3:70b",
             "temperature": 0.15,
             "thinking_budget": 32768,
@@ -94,7 +94,7 @@ def get_intelligence_budget(profit_pct: float) -> dict:
         return {
             "tier": 1,
             "tier_name": VitalState.DOMINANT,
-            "model": "google/gemini-flash-latest",
+            "model": "deepseek-v4-flash",
             "ollama_model": "ollama/gemma4:e4b",
             "temperature": 0.25,
             "thinking_budget": 16384,
@@ -105,7 +105,7 @@ def get_intelligence_budget(profit_pct: float) -> dict:
         return {
             "tier": 0,
             "tier_name": VitalState.HUNTING,
-            "model": "google/gemini-flash-latest",
+            "model": "deepseek-v4-flash",
             "ollama_model": "ollama/gemma4:e4b",
             "temperature": 0.3,
             "thinking_budget": 4096,
