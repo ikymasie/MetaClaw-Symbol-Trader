@@ -19,21 +19,6 @@ export default function SituationRoomPage() {
   
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
-  
-  // Live clock – only ticks on the client to avoid hydration mismatch
-  const [now, setNow] = useState('--:--:--');
-  useEffect(() => {
-    const fmt = () =>
-      new Date().toLocaleTimeString('en-US', {
-        hour12: false,
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      });
-    setNow(fmt());
-    const id = setInterval(() => setNow(fmt()), 1_000);
-    return () => clearInterval(id);
-  }, []);
 
   // Connect stream to selected bot
   const { isStreaming } = useStreaming();
@@ -101,10 +86,7 @@ export default function SituationRoomPage() {
           <StatPill label="UPSTREAM" value={counts.processing ?? 0} color="text-amber-400" dot="bg-amber-400" />
           <StatPill label="QUORUM" value={counts.approved ?? 0} color="text-emerald-400" dot="bg-emerald-400" />
           <StatPill label="VETOED" value={counts.vetoed ?? 0} color="text-rose-400" dot="bg-rose-500" />
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 border border-white/6">
-            <Activity className="w-3 h-3 text-primary" />
-            <span className="text-[10px] font-mono text-zinc-400">{now}</span>
-          </div>
+          <LiveClock />
         </div>
       </motion.div>
 
@@ -184,6 +166,33 @@ export default function SituationRoomPage() {
           <span>CYCLES: {cycleCount}</span>
         </div>
       </motion.div>
+    </div>
+  );
+}
+
+// ⚡ Bolt: Extracted clock into an isolated component to prevent
+// 1000ms re-renders from trickling down the entire SituationRoomPage tree.
+function LiveClock() {
+  // Live clock – only ticks on the client to avoid hydration mismatch
+  const [now, setNow] = useState('--:--:--');
+
+  useEffect(() => {
+    const fmt = () =>
+      new Date().toLocaleTimeString('en-US', {
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      });
+    setNow(fmt());
+    const id = setInterval(() => setNow(fmt()), 1_000);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 border border-white/6">
+      <Activity className="w-3 h-3 text-primary" />
+      <span className="text-[10px] font-mono text-zinc-400">{now}</span>
     </div>
   );
 }
