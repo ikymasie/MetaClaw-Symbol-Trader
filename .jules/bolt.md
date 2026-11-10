@@ -1,0 +1,3 @@
+## 2024-05-18 - Avoid findIndex deduplication in TradingChart.tsx
+**Learning:** Using `.filter()` with `.findIndex()` to deduplicate arrays inside a React component (like `uniquePriceData` and `bollingerData` in `frontend/src/components/dashboard/TradingChart.tsx`) creates an O(N^2) bottleneck. This is severely amplified during frequent re-renders of large data feeds like candlestick charts. Additionally, `.some()` lookups against arrays create O(N*M) bottlenecks.
+**Action:** Always prefer using a `Set` to track seen unique values to bring deduplication time complexity down to O(N). For lookups against a target array, convert the target array to a `Set` to enable O(1) membership checks.

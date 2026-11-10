@@ -97,28 +97,34 @@ export function TradingChart({ priceData, bollingerData, markers }: TradingChart
       close: d.close,
     })).sort((a, b) => a.time - b.time);
 
-    // Filter duplicates
-    const uniquePriceData = formattedPriceData.filter((val, idx, self) => 
-      idx === self.findIndex((t) => t.time === val.time)
-    );
+    // Filter duplicates: Optimized O(N) deduplication using Set
+    const seenTimes = new Set<number>();
+    const uniquePriceData = [];
+    for (const item of formattedPriceData) {
+      if (!seenTimes.has(item.time)) {
+        seenTimes.add(item.time);
+        uniquePriceData.push(item);
+      }
+    }
 
     candlestickSeriesRef.current.setData(uniquePriceData as CandlestickData[]);
 
     if (bollingerData.length) {
-      const upperData = bollingerData.map(d => ({
-        time: Math.floor(new Date(d.time).getTime() / 1000),
-        value: d.upper,
-      })).filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time));
+      // Optimized O(N) deduplication for Bollinger bands
+      const seenBBTimes = new Set<number>();
+      const upperData = [];
+      const middleData = [];
+      const lowerData = [];
 
-      const middleData = bollingerData.map(d => ({
-        time: Math.floor(new Date(d.time).getTime() / 1000),
-        value: d.middle,
-      })).filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time));
-
-      const lowerData = bollingerData.map(d => ({
-        time: Math.floor(new Date(d.time).getTime() / 1000),
-        value: d.lower,
-      })).filter((val, idx, self) => idx === self.findIndex((t) => t.time === val.time));
+      for (const d of bollingerData) {
+        const time = Math.floor(new Date(d.time).getTime() / 1000);
+        if (!seenBBTimes.has(time)) {
+          seenBBTimes.add(time);
+          upperData.push({ time, value: d.upper });
+          middleData.push({ time, value: d.middle });
+          lowerData.push({ time, value: d.lower });
+        }
+      }
 
       upperBBSeriesRef.current?.setData(upperData as LineData[]);
       middleBBSeriesRef.current?.setData(middleData as LineData[]);
@@ -131,13 +137,20 @@ export function TradingChart({ priceData, bollingerData, markers }: TradingChart
         try { markersRef.current.detach(); } catch (_) {}
         markersRef.current = null;
       }
+
+      // Optimized O(1) membership check using a Set
+      const validTimes = new Set<number>();
+      for (const p of uniquePriceData) {
+        validTimes.add(p.time);
+      }
+
       const formattedMarkers = markers.map(m => ({
         time: Math.floor(new Date(m.time).getTime() / 1000) as unknown as import('lightweight-charts').Time,
         position: m.position as 'aboveBar' | 'belowBar' | 'inBar',
         color: m.color as string,
         shape:  m.shape  as 'circle' | 'square' | 'arrowUp' | 'arrowDown',
         text:   m.text   as string | undefined,
-      })).filter(m => uniquePriceData.some(p => p.time === (m.time as unknown as number)));
+      })).filter(m => validTimes.has(m.time as unknown as number));
 
       markersRef.current = createSeriesMarkers(candlestickSeriesRef.current, formattedMarkers);
     }
